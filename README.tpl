@@ -1,12 +1,7 @@
 ## {{crate}}
-
-<!--
-[![Build Status]](https://travis-ci.org/RazrFalcon/svgtypes)
-[![Crates.io](https://img.shields.io/crates/v/svgtypes.svg)](https://crates.io/crates/svgtypes)
-[![Documentation](https://docs.rs/svgtypes/badge.svg)](https://docs.rs/svgtypes)
--->
-
-[Build Status]: https://travis-ci.org/RazrFalcon/svgtypes.svg?branch=master
+[![Build Status](https://travis-ci.org/RazrFalcon/{{crate}}.svg?branch=master)](https://travis-ci.org/RazrFalcon/{{crate}})
+[![Crates.io](https://img.shields.io/crates/v/{{crate}}.svg)](https://crates.io/crates/{{crate}})
+[![Documentation](https://docs.rs/{{crate}}/badge.svg)](https://docs.rs/{{crate}})
 
 {{readme}}
 
@@ -18,7 +13,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-svgtypes = "0.1"
+{{crate}} = "0.1"
 ```
 
 ### License

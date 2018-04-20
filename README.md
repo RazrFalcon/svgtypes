@@ -1,12 +1,7 @@
 ## svgtypes
-
-<!--
-[![Build Status]](https://travis-ci.org/RazrFalcon/svgtypes)
+[![Build Status](https://travis-ci.org/RazrFalcon/svgtypes.svg?branch=master)](https://travis-ci.org/RazrFalcon/svgtypes)
 [![Crates.io](https://img.shields.io/crates/v/svgtypes.svg)](https://crates.io/crates/svgtypes)
 [![Documentation](https://docs.rs/svgtypes/badge.svg)](https://docs.rs/svgtypes)
--->
-
-[Build Status]: https://travis-ci.org/RazrFalcon/svgtypes.svg?branch=master
 
 *svgtypes* is a collection of parsers, containers and writers for
 [SVG](https://www.w3.org/TR/SVG11/) types.
