@@ -1,0 +1,30 @@
+// Copyright 2018 Evgeniy Reizner
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
+
+mod colors;
+mod parser;
+mod writer;
+
+/// Representation of the [`<color>`] type.
+///
+/// [`<color>`]: https://www.w3.org/TR/SVG/types.html#DataTypeColor
+#[derive(Clone, Copy, PartialEq, Debug)]
+#[allow(missing_docs)]
+pub struct Color {
+    pub red: u8,
+    pub green: u8,
+    pub blue: u8,
+}
+
+impl Color {
+    /// Constructs a new `Color` from `red`, `green` and `blue` values.
+    #[inline]
+    pub fn new(red: u8, green: u8, blue: u8) -> Color {
+        Color { red, green, blue }
+    }
+}
