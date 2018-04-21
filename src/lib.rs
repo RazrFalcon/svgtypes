@@ -78,10 +78,10 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 [\<style\>]: https://www.w3.org/TR/SVG/styling.html#StyleAttribute
 [\<paint\>]: https://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
 
-* All types implement from string (`FromStr`, `FromSpan`) and
+- All types implement from string (`FromStr`, `FromSpan`) and
   to string traits (`Display`, `WriteBuffer`).
-* The library doesn't store transform list as is. It will premultiplied.
-* `style` and `paint` types can only be parsed.
+- The library doesn't store transform list as is. It will premultiplied.
+- `style` and `paint` types can only be parsed.
 
 ### Benefits
 

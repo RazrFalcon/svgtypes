@@ -72,10 +72,10 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 [\<style\>]: https://www.w3.org/TR/SVG/styling.html#StyleAttribute
 [\<paint\>]: https://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
 
-* All types implement from string (`FromStr`, `FromSpan`) and
+- All types implement from string (`FromStr`, `FromSpan`) and
   to string traits (`Display`, `WriteBuffer`).
-* The library doesn't store transform list as is. It will premultiplied.
-* `style` and `paint` types can only be parsed.
+- The library doesn't store transform list as is. It will premultiplied.
+- `style` and `paint` types can only be parsed.
 
 #### Benefits
 
@@ -111,6 +111,21 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 
 None.
 
+### Migration from svgparser
+
+This crate is a successor for the [`svgparser`](https://github.com/RazrFalcon/svgparser) crate,
+but it differs from it in many ways.
+
+- There is no XML parser or writer. You can use any you like.
+  But since it depends on [`xmlparser`](https://github.com/RazrFalcon/xmlparser)
+  and reexports it - you can use it too.
+- Unlike the `svgparser` this crate not only parse values but can also store and write them.
+  Currently, it has a minimal API for manipulating this values.
+- No [`AttributeValue`](https://docs.rs/svgparser/0.8.0/svgparser/enum.AttributeValue.html).
+  This crate provides only value parsers. You should match attributes and values by yourself.
+- No [`ValueId`](https://docs.rs/svgparser/0.8.0/svgparser/enum.ValueId.html).
+  It's up to you how to store those values.
+
 ### Usage
 
 Dependency: [Rust](https://www.rust-lang.org/) >= 1.18
@@ -126,10 +141,10 @@ svgtypes = "0.1"
 
 Licensed under either of
 
- * Apache License, Version 2.0
-   ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
- * MIT license
-   ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+- Apache License, Version 2.0
+  ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+- MIT license
+  ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
 
 at your option.
 
