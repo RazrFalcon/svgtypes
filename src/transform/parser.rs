@@ -47,7 +47,7 @@ pub enum TransformListToken {
     },
 }
 
-/// A pull-based transform list parser.
+/// A pull-based [`<transform-list>`] parser.
 ///
 /// # Errors
 ///
@@ -70,6 +70,8 @@ pub enum TransformListToken {
 /// assert_eq!(p.next().unwrap().unwrap(), TransformListToken::Translate { tx: 10.0, ty: -20.0 } );
 /// assert_eq!(p.next().is_none(), true);
 /// ```
+///
+/// [`<transform-list>`]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct TransformListParser<'a> {
     stream: Stream<'a>,

@@ -17,9 +17,9 @@ use {
     StreamExt,
 };
 
-/// A pull-based length list parser.
+/// A pull-based [`<list-of-points>`] parser.
 ///
-/// Use it for `points` attribute of `polygon` and `polyline` elements.
+/// Use it for the `points` attribute of the `polygon` and `polyline` elements.
 ///
 /// # Errors
 ///
@@ -42,6 +42,8 @@ use {
 /// assert_eq!(p.next(), Some((30.0, 40.0)));
 /// assert_eq!(p.next(), None);
 /// ```
+///
+/// [`<list-of-points>`]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct PointsParser<'a>(Stream<'a>);
 

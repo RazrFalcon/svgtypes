@@ -20,7 +20,7 @@ pub enum ListSeparator {
     CommaSpace,
 }
 
-/// Options that defines SVG writing.
+/// Options for SVG types writing.
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct WriteOptions {
     /// Use #RGB color notation when possible.
@@ -111,6 +111,8 @@ pub struct WriteOptions {
     pub simplify_transform_matrices: bool,
 
     /// Set the separator type for list types.
+    ///
+    /// Affects `Points`, `LengthList`, `NumberList` and `Transform`.
     ///
     /// Default: `ListSeparator::Space`
     pub list_separator: ListSeparator,

@@ -18,6 +18,8 @@ use {
 
 /// Representation of the fallback part of the [`<paint>`] type.
 ///
+/// Used by the [`Paint`](enum.Paint.html) type.
+///
 /// [`<paint>`]: https://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum PaintFallback {
@@ -33,7 +35,24 @@ pub enum PaintFallback {
 
 /// Representation of the [`<paint>`] type.
 ///
+/// Doesn't own the data. Use only for parsing.
+///
+/// `<icccolor>` isn't supported.
+///
 /// [`<paint>`]: https://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+///
+/// # Examples
+///
+/// ```
+/// use svgtypes::{Paint, PaintFallback, Color};
+///
+/// let paint = Paint::from_str("url(#gradient) red").unwrap();
+/// assert_eq!(paint, Paint::FuncIRI("gradient",
+///                                  Some(PaintFallback::Color(Color::new(255, 0, 0)))));
+///
+/// let paint = Paint::from_str("inherit").unwrap();
+/// assert_eq!(paint, Paint::Inherit);
+/// ```
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Paint<'a> {
     /// The `none` value.
@@ -46,7 +65,7 @@ pub enum Paint<'a> {
     ///
     /// [`<color>`]: https://www.w3.org/TR/SVG/types.html#DataTypeColor
     Color(Color),
-    /// [`<FuncIRI>`] value.
+    /// [`<FuncIRI>`] value with an optional fallback.
     ///
     /// [`<FuncIRI>`]: https://www.w3.org/TR/SVG/types.html#DataTypeFuncIRI
     FuncIRI(&'a str, Option<PaintFallback>),

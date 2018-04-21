@@ -17,7 +17,9 @@ use {
     WriteOptions,
 };
 
-/// Representation of the `<list-of-numbers>` type.
+/// Representation of the [`<list-of-numbers>`] type.
+///
+/// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG/types.html#DataTypeList
 #[derive(Clone, PartialEq)]
 pub struct NumberList(pub Vec<f64>);
 
@@ -26,7 +28,7 @@ impl_vec_defer!(NumberList, f64);
 impl_display!(NumberList);
 impl_debug_from_display!(NumberList);
 
-/// A pull-based number list parser.
+/// A pull-based [`<list-of-numbers>`] parser.
 ///
 /// # Example
 ///
@@ -39,6 +41,8 @@ impl_debug_from_display!(NumberList);
 /// assert_eq!(p.next().unwrap().unwrap(), -50.0);
 /// assert_eq!(p.next().is_none(), true);
 /// ```
+///
+/// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG/types.html#DataTypeList
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct NumberListParser<'a>(Stream<'a>);
 

@@ -18,7 +18,9 @@ use {
     WriteOptions,
 };
 
-/// Representation of the `<list-of-length>` type.
+/// Representation of the [`<list-of-length>`] type.
+///
+/// [`<list-of-length>`]: https://www.w3.org/TR/SVG/types.html#DataTypeList
 #[derive(Clone, PartialEq)]
 pub struct LengthList(pub Vec<Length>);
 
@@ -27,7 +29,7 @@ impl_vec_defer!(LengthList, Length);
 impl_display!(LengthList);
 impl_debug_from_display!(LengthList);
 
-/// A pull-based length list parser.
+/// A pull-based [`<list-of-length>`] parser.
 ///
 /// # Example
 ///
@@ -40,6 +42,8 @@ impl_debug_from_display!(LengthList);
 /// assert_eq!(p.next().unwrap().unwrap(), Length::new(50.0, LengthUnit::Mm));
 /// assert_eq!(p.next().is_none(), true);
 /// ```
+///
+/// [`<list-of-length>`]: https://www.w3.org/TR/SVG/types.html#DataTypeList
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct LengthListParser<'a>(Stream<'a>);
 

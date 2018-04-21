@@ -10,7 +10,7 @@ use xmlparser;
 
 use ErrorPos;
 
-/// Additional errors for `xmlparser::StreamError`.
+/// List of all errors.
 #[derive(Fail, Debug)]
 pub enum Error {
     /// An invalid color.
@@ -65,4 +65,4 @@ impl From<xmlparser::StreamError> for Error {
 }
 
 /// An alias to `Result<T, Error>`.
-pub type Result<T> = ::std::result::Result<T, Error>;
+pub(crate) type Result<T> = ::std::result::Result<T, Error>;

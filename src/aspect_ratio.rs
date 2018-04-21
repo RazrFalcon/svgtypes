@@ -37,6 +37,16 @@ pub enum Align {
 
 /// Representation of the [`preserveAspectRatio`] attribute.
 ///
+/// # Examples
+///
+/// ```
+/// use std::str::FromStr;
+/// use svgtypes::AspectRatio;
+///
+/// let ratio = AspectRatio::from_str("xMinYMax slice").unwrap();
+/// assert_eq!(ratio.to_string(), "xMinYMax slice");
+/// ```
+///
 /// [`preserveAspectRatio`]: https://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct AspectRatio {

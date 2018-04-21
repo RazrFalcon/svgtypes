@@ -50,7 +50,7 @@ let opt = WriteOptions {
 assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 ```
 
-### Supported SVG types
+## Supported SVG types
 
 | SVG Type                  | Rust Type     | Storage | Parser              |
 | ------------------------- | ------------- | ------- | ------------------- |
@@ -83,7 +83,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 - The library doesn't store transform list as is. It will premultiplied.
 - `style` and `paint` types can only be parsed.
 
-### Benefits
+## Benefits
 
 - Complete support of paths, so data like `M10-20A5.5.3-4 110-.1` will be parsed correctly.
 - Every type can be parsed separately, so you can parse just paths or transform
@@ -92,7 +92,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 - Access to pull-based parsers.
 - Pretty fast.
 
-### Limitations
+## Limitations
 
 - All keywords must be lowercase.
   Case-insensitive parsing is supported only for colors (requires allocation for named colors).
@@ -107,13 +107,13 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 - Implicit path commands are not supported. All commands are parsed as explicit.
 - Implicit MoveTo commands will be automatically converted into explicit LineTo.
 
-### Safety
+## Safety
 
 - The library should not panic. Any panic considered as a critical bug
   and should be reported.
 - The library forbids unsafe code.
 
-### Alternatives
+## Alternatives
 
 None.
 */

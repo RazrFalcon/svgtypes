@@ -6,10 +6,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-//! This module contains all structs for manipulating SVG [path data].
-//!
-//! [path data]: https://www.w3.org/TR/SVG/paths.html#PathData
-
 mod parser;
 mod segment;
 mod writer;
@@ -19,7 +15,9 @@ pub use self::parser::*;
 pub use self::segment::*;
 pub use self::builder::*;
 
-/// Representation of the SVG path data.
+/// Representation of the SVG [path data].
+///
+/// [path data]: https://www.w3.org/TR/SVG/paths.html#PathData
 #[derive(Clone, PartialEq)]
 pub struct Path(pub Vec<PathSegment>);
 

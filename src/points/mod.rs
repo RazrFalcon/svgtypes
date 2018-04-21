@@ -11,7 +11,9 @@ mod writer;
 
 pub use self::parser::*;
 
-/// Representation of the SVG `points` attribute data.
+/// Representation of the [`<list-of-points>`] type.
+///
+/// [`<list-of-points>`]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
 #[derive(Clone, PartialEq)]
 pub struct Points(pub Vec<(f64, f64)>);
 

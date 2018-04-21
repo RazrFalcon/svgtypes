@@ -22,7 +22,7 @@ use {
 };
 
 
-/// `Stream` additional methods.
+/// [`Stream`](struct.Stream.html) additional methods.
 pub trait StreamExt<'a> {
     /// Parses number from the stream.
     ///

@@ -11,7 +11,31 @@ use super::{
     PathSegment,
 };
 
-/// Construct a new path using build pattern.
+/// A builder for [`Path`].
+///
+/// # Examples
+///
+/// Ellipse to path:
+///
+/// ```
+/// use svgtypes::PathBuilder;
+///
+/// let (cx, cy, rx, ry) = (10.0, 20.0, 5.0, 8.0);
+///
+/// let path = PathBuilder::with_capacity(6)
+///     .move_to(cx + rx, cy)
+///     .arc_to(rx, ry, 0.0, false, true, cx,      cy + ry)
+///     .arc_to(rx, ry, 0.0, false, true, cx - rx, cy)
+///     .arc_to(rx, ry, 0.0, false, true, cx,      cy - ry)
+///     .arc_to(rx, ry, 0.0, false, true, cx + rx, cy)
+///     .close_path()
+///     .finalize();
+///
+/// assert_eq!(path.to_string(), "M 15 20 A 5 8 0 0 1 10 28 A 5 8 0 0 1 5 20 \
+///                               A 5 8 0 0 1 10 12 A 5 8 0 0 1 15 20 Z");
+/// ```
+///
+/// [`Path`]: struct.Path.html
 #[allow(missing_debug_implementations)]
 pub struct PathBuilder {
     path: Path,
@@ -23,7 +47,7 @@ impl PathBuilder {
         PathBuilder { path: Path::new() }
     }
 
-    /// Constructs a new builder with the specified capacity.
+    /// Constructs a new builder with a specified capacity.
     pub fn with_capacity(capacity: usize) -> PathBuilder {
         PathBuilder { path: Path::with_capacity(capacity) }
     }

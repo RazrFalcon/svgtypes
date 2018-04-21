@@ -61,7 +61,7 @@ impl<T: WriteBuffer> WriteBuffer for Vec<T> {
     }
 }
 
-/// A wrapper to use `fmt::Display` with `WriteOptions`.
+/// A wrapper to use `fmt::Display` with [`WriteOptions`].
 ///
 /// Should be used via `WriteBuffer::with_write_opt`.
 ///
@@ -79,6 +79,8 @@ impl<T: WriteBuffer> WriteBuffer for Vec<T> {
 /// };
 /// assert_eq!(ts.with_write_opt(&opt).to_string(), "translate(10 20)");
 /// ```
+///
+/// [`WriteOptions`]: struct.WriteOptions.html
 pub struct DisplaySvg<'a, T: 'a + WriteBuffer> {
     value: &'a T,
     opt: &'a WriteOptions,
@@ -111,7 +113,7 @@ macro_rules! impl_display {
     )
 }
 
-/// Trait for fuzzy/approximate equality comparisons.
+/// A trait for fuzzy/approximate equality comparisons.
 pub trait FuzzyEq<Rhs: ?Sized = Self> {
     /// Returns `true` if values are approximately equal.
     fn fuzzy_eq(&self, other: &Rhs) -> bool;
@@ -139,7 +141,7 @@ impl<T: FuzzyEq> FuzzyEq for Vec<T> {
     }
 }
 
-/// The trait for fuzzy/approximate comparisons of `f64` numbers.
+/// A trait for fuzzy/approximate comparisons of `f64` numbers.
 pub trait FuzzyZero: FuzzyEq {
     /// Returns `true` if the number is approximately zero.
     #[inline]
