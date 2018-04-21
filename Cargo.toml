@@ -19,7 +19,7 @@ failure = "0.1.1"
 float-cmp = "0.4"
 log = "0.4"
 phf = "0.7.21"
-xmlparser = { git = "https://github.com/RazrFalcon/xmlparser", rev = "a0677ff" }
+xmlparser = "0.4"
 
 [lib]
 path = "src/lib.rs" # for cargo-readme
