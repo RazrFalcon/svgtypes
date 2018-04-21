@@ -243,6 +243,7 @@ impl<'a> Iterator for PathParser<'a> {
                 }
             }
             b'a' => {
+                // TODO: radius cannot be negative
                 PathSegment::EllipticalArc {
                     abs: absolute,
                     rx: parse_num!(),

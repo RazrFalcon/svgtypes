@@ -12,7 +12,6 @@ use std::str::FromStr;
 use {
     WriteOptions,
     StrSpan,
-    ListSeparator,
 };
 
 /// A trait for parsing data from a string.
@@ -56,11 +55,7 @@ impl<T: WriteBuffer> WriteBuffer for Vec<T> {
         for (n, l) in self.iter().enumerate() {
             l.write_buf_opt(opt, buf);
             if n < self.len() - 1 {
-                match opt.list_separator {
-                    ListSeparator::Space => buf.push(b' '),
-                    ListSeparator::Comma => buf.push(b','),
-                    ListSeparator::CommaSpace => buf.extend_from_slice(b", "),
-                }
+                opt.write_separator(buf);
             }
         }
     }

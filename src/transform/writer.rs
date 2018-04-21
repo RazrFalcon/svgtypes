@@ -24,19 +24,17 @@ impl WriteBuffer for Transform {
 }
 
 fn write_matrix_transform(ts: &Transform, opt: &WriteOptions, out: &mut Vec<u8>) {
-    // TODO: ListSeparator
-
     out.extend_from_slice(b"matrix(");
     ts.a.write_buf_opt(opt, out);
-    out.push(b' ');
+    opt.write_separator(out);
     ts.b.write_buf_opt(opt, out);
-    out.push(b' ');
+    opt.write_separator(out);
     ts.c.write_buf_opt(opt, out);
-    out.push(b' ');
+    opt.write_separator(out);
     ts.d.write_buf_opt(opt, out);
-    out.push(b' ');
+    opt.write_separator(out);
     ts.e.write_buf_opt(opt, out);
-    out.push(b' ');
+    opt.write_separator(out);
     ts.f.write_buf_opt(opt, out);
     out.push(b')');
 }
@@ -89,6 +87,7 @@ mod tests {
     use {
         WriteOptions,
         WriteBuffer,
+        ListSeparator,
     };
 
     macro_rules! test {
@@ -166,4 +165,20 @@ mod tests {
         Transform::new(1.0, 0.0, 0.0, 1.0, 20.0, 30.0), false,
         "matrix(1 0 0 1 20 30)"
     );
+
+    #[test]
+    fn write_14() {
+        let mut opt = WriteOptions::default();
+        opt.list_separator = ListSeparator::Comma;
+        assert_eq!(Transform::default().with_write_opt(&opt).to_string(),
+                   "matrix(1,0,0,1,0,0)");
+    }
+
+    #[test]
+    fn write_15() {
+        let mut opt = WriteOptions::default();
+        opt.list_separator = ListSeparator::CommaSpace;
+        assert_eq!(Transform::default().with_write_opt(&opt).to_string(),
+                   "matrix(1, 0, 0, 1, 0, 0)");
+    }
 }

@@ -6,13 +6,10 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use super::{
-    PathCommand,
-    Path,
-    PathSegment,
-};
-
 use {
+    Path,
+    PathCommand,
+    PathSegment,
     WriteBuffer,
     WriteOptions,
 };

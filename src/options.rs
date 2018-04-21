@@ -130,3 +130,16 @@ impl Default for WriteOptions {
         }
     }
 }
+
+impl WriteOptions {
+    /// Writes a selected separator to the output buffer.
+    ///
+    /// Uses `WriteOptions::list_separator` option.
+    pub fn write_separator(&self, out: &mut Vec<u8>) {
+        match self.list_separator {
+            ListSeparator::Space => out.push(b' '),
+            ListSeparator::Comma => out.push(b','),
+            ListSeparator::CommaSpace => out.extend_from_slice(b", "),
+        }
+    }
+}

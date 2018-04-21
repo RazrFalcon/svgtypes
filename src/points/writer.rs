@@ -6,10 +6,9 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use super::Points;
-
 use {
     ListSeparator,
+    Points,
     WriteBuffer,
     WriteOptions,
 };
@@ -30,3 +29,38 @@ impl WriteBuffer for (f64, f64) {
 
 impl_display!(Points);
 impl_debug_from_display!(Points);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn write_1() {
+        let list = Points(vec![(1.0, 2.0), (3.0, 4.0)]);
+
+        let mut opt = WriteOptions::default();
+        opt.list_separator = ListSeparator::Space;
+
+        assert_eq!(list.with_write_opt(&opt).to_string(), "1 2 3 4");
+    }
+
+    #[test]
+    fn write_2() {
+        let list = Points(vec![(1.0, 2.0), (3.0, 4.0)]);
+
+        let mut opt = WriteOptions::default();
+        opt.list_separator = ListSeparator::Comma;
+
+        assert_eq!(list.with_write_opt(&opt).to_string(), "1,2,3,4");
+    }
+
+    #[test]
+    fn write_3() {
+        let list = Points(vec![(1.0, 2.0), (3.0, 4.0)]);
+
+        let mut opt = WriteOptions::default();
+        opt.list_separator = ListSeparator::CommaSpace;
+
+        assert_eq!(list.with_write_opt(&opt).to_string(), "1, 2, 3, 4");
+    }
+}
