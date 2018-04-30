@@ -7,5 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - `encoding` and `standalone` to AttributeId.
+- `StreamExt::parse_iri_unchecked`.
+- `StreamExt::parse_func_iri_unchecked`.
 
 [Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.1.0...HEAD

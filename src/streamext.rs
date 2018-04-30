@@ -14,11 +14,11 @@ use xmlparser::{
 };
 
 use {
-    Stream,
     Error,
-    Result,
     Length,
     LengthUnit,
+    Result,
+    Stream,
 };
 
 
@@ -101,10 +101,28 @@ pub trait StreamExt<'a> {
     /// [IRI]: https://www.w3.org/TR/SVG/types.html#DataTypeIRI
     fn parse_iri(&mut self) -> Result<&'a str>;
 
+    /// Parses a [IRI].
+    ///
+    /// Unlike the `parse_iri` method this one doesn't check
+    /// that ID contains only the valid [Name] characters.
+    ///
+    /// [IRI]: https://www.w3.org/TR/SVG/types.html#DataTypeIRI
+    /// [Name]: https://www.w3.org/TR/xml/#NT-Name
+    fn parse_iri_unchecked(&mut self) -> Result<&'a str>;
+
     /// Parses a [FuncIRI].
     ///
     /// [FuncIRI]: https://www.w3.org/TR/SVG/types.html#DataTypeFuncIRI
     fn parse_func_iri(&mut self) -> Result<&'a str>;
+
+    /// Parses a [FuncIRI].
+    ///
+    /// Unlike the `parse_func_iri` method this one doesn't check
+    /// that ID contains only the valid [Name] characters.
+    ///
+    /// [FuncIRI]: https://www.w3.org/TR/SVG/types.html#DataTypeFuncIRI
+    /// [Name]: https://www.w3.org/TR/xml/#NT-Name
+    fn parse_func_iri_unchecked(&mut self) -> Result<&'a str>;
 }
 
 impl<'a> StreamExt<'a> for Stream<'a> {
@@ -309,27 +327,51 @@ impl<'a> StreamExt<'a> for Stream<'a> {
     }
 
     fn parse_iri(&mut self) -> Result<&'a str> {
-        self.skip_spaces();
-        if self.starts_with(b"#") {
-            self.advance(1);
+        let mut _impl = || -> Result<&'a str> {
+            self.skip_spaces();
+            self.consume_byte(b'#')?;
             let link = self.consume_name()?.to_str();
             Ok(link)
-        } else {
-            Err(Error::InvalidIRI)
-        }
+        };
+
+        _impl().map_err(|_| Error::InvalidIRI)
+    }
+
+    fn parse_iri_unchecked(&mut self) -> Result<&'a str> {
+        let mut _impl = || -> Result<&'a str> {
+            self.skip_spaces();
+            self.consume_byte(b'#')?;
+            let link = self.consume_bytes(|_, c| c != b' ').to_str();
+            Ok(link)
+        };
+
+        _impl().map_err(|_| Error::InvalidIRI)
     }
 
     fn parse_func_iri(&mut self) -> Result<&'a str> {
-        self.skip_spaces();
-        if self.starts_with(b"url(#") {
-            self.advance(5);
-            let link = self.consume_name()?.to_str();
-            self.consume_byte(b')')?;
-            Ok(link)
-        } else {
-            Err(Error::InvalidFuncIRI)
-        }
+        parse_func_iri(self, |s| Ok(s.consume_name()?.to_str()))
     }
+
+    fn parse_func_iri_unchecked(&mut self) -> Result<&'a str> {
+        parse_func_iri(self, |s| Ok(s.consume_bytes(|_, c| c != b' ' && c != b')').to_str()))
+    }
+}
+
+fn parse_func_iri<'a, F>(s: &mut Stream<'a>, f: F) -> Result<&'a str>
+    where F: Fn(&mut Stream<'a>) -> Result<&'a str>
+{
+    let mut _impl = || -> Result<&'a str> {
+        s.skip_spaces();
+        s.skip_string(b"url(")?;
+        s.skip_spaces();
+        s.consume_byte(b'#')?;
+        let link = f(s)?;
+        s.skip_spaces();
+        s.consume_byte(b')')?;
+        Ok(link)
+    };
+
+    _impl().map_err(|_| Error::InvalidFuncIRI)
 }
 
 #[inline]
@@ -355,5 +397,75 @@ mod tests {
         let mut s = Stream::from("10000000000000");
         assert_eq!(s.parse_integer().unwrap_err().to_string(),
                    "invalid number at 1:1");
+    }
+
+    #[test]
+    fn parse_iri_1() {
+        assert_eq!(Stream::from("#id").parse_iri().unwrap(), "id");
+    }
+
+    #[test]
+    fn parse_iri_2() {
+        assert_eq!(Stream::from("   #id   ").parse_iri().unwrap(), "id");
+    }
+
+    #[test]
+    fn parse_iri_3() {
+        assert_eq!(Stream::from("   #id   text").parse_iri().unwrap(), "id");
+    }
+
+    #[test]
+    fn parse_err_iri_1() {
+        assert_eq!(Stream::from("# id").parse_iri().unwrap_err().to_string(),
+                   "invalid IRI");
+    }
+
+    #[test]
+    fn parse_err_iri_2() {
+        assert_eq!(Stream::from("#1").parse_iri().unwrap_err().to_string(),
+                   "invalid IRI");
+    }
+
+    #[test]
+    fn parse_iri_unchecked_1() {
+        assert_eq!(Stream::from("#1").parse_iri_unchecked().unwrap(), "1");
+    }
+
+    #[test]
+    fn parse_func_iri_1() {
+        assert_eq!(Stream::from("url(#id)").parse_func_iri().unwrap(), "id");
+    }
+
+    #[test]
+    fn parse_func_iri_2() {
+        assert_eq!(Stream::from("    url(    #id    )   ").parse_func_iri().unwrap(), "id");
+    }
+
+    #[test]
+    fn parse_err_func_iri_1() {
+        assert_eq!(Stream::from("url(#1)").parse_func_iri().unwrap_err().to_string(),
+                   "invalid FuncIRI");
+    }
+
+    #[test]
+    fn parse_err_func_iri_2() {
+        assert_eq!(Stream::from("url ( #1 )").parse_func_iri().unwrap_err().to_string(),
+                   "invalid FuncIRI");
+    }
+
+    #[test]
+    fn parse_func_iri_unchecked_1() {
+        assert_eq!(Stream::from("url(#1)").parse_func_iri_unchecked().unwrap(), "1");
+    }
+
+    #[test]
+    fn parse_func_iri_unchecked_2() {
+        assert_eq!(Stream::from("   url(   #1  )  ").parse_func_iri_unchecked().unwrap(), "1");
+    }
+
+    #[test]
+    fn parse_err_func_iri_unchecked_1() {
+        assert_eq!(Stream::from(" url ( #1 ) ").parse_func_iri_unchecked().unwrap_err().to_string(),
+                   "invalid FuncIRI");
     }
 }
