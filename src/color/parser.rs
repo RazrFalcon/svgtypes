@@ -93,15 +93,15 @@ impl FromSpan for Color {
             let l = s.parse_list_length()?;
 
             if l.unit == LengthUnit::Percent {
-                fn from_persent(v: f64) -> u8 {
+                fn from_percent(v: f64) -> u8 {
                     let d = 255.0 / 100.0;
                     let n = (v * d).round() as i32;
                     bound(0, n, 255) as u8
                 }
 
-                color.red = from_persent(l.num);
-                color.green = from_persent(s.parse_list_length()?.num);
-                color.blue = from_persent(s.parse_list_length()?.num);
+                color.red = from_percent(l.num);
+                color.green = from_percent(s.parse_list_length()?.num);
+                color.blue = from_percent(s.parse_list_length()?.num);
             } else {
                 color.red = bound(0, l.num as i32, 255) as u8;
                 color.green = bound(0, s.parse_list_integer()?, 255) as u8;

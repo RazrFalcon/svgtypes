@@ -49,6 +49,7 @@ dy
 edgeMode
 elevation
 enable-background
+encoding
 end
 exponent
 externalResourcesRequired
@@ -196,6 +197,7 @@ spacing
 specularConstant
 specularExponent
 spreadMethod
+standalone
 startOffset
 stdDeviation
 stemh
