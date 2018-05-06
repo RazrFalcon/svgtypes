@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - `encoding` and `standalone` to AttributeId.
-- `StreamExt::parse_iri_unchecked`.
-- `StreamExt::parse_func_iri_unchecked`.
+
+### Changed
+- `StreamExt::parse_iri` and `StreamExt::parse_func_iri` will parse
+  not only well-formed data now.
 
 [Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.1.0...HEAD
