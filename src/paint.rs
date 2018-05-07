@@ -93,34 +93,39 @@ impl<'a> Paint<'a> {
             "currentColor" => Ok(Paint::CurrentColor),
             _ => {
                 let mut s = Stream::from(span2);
-                match s.parse_func_iri() {
-                    Ok(link) => {
-                        s.skip_spaces();
+                s.skip_spaces();
+                if s.starts_with(b"url(") {
+                    match s.parse_func_iri() {
+                        Ok(link) => {
+                            s.skip_spaces();
 
-                        // get fallback
-                        if !s.at_end() {
-                            let fallback = s.slice_tail();
-                            match fallback.to_str() {
-                                "none" => {
-                                    Ok(Paint::FuncIRI(link, Some(PaintFallback::None)))
+                            // get fallback
+                            if !s.at_end() {
+                                let fallback = s.slice_tail();
+                                match fallback.to_str() {
+                                    "none" => {
+                                        Ok(Paint::FuncIRI(link, Some(PaintFallback::None)))
+                                    }
+                                    "currentColor" => {
+                                        Ok(Paint::FuncIRI(link, Some(PaintFallback::CurrentColor)))
+                                    }
+                                    _ => {
+                                        let color = Color::from_span(fallback)?;
+                                        Ok(Paint::FuncIRI(link, Some(PaintFallback::Color(color))))
+                                    }
                                 }
-                                "currentColor" => {
-                                    Ok(Paint::FuncIRI(link, Some(PaintFallback::CurrentColor)))
-                                }
-                                _ => {
-                                    let color = Color::from_span(fallback)?;
-                                    Ok(Paint::FuncIRI(link, Some(PaintFallback::Color(color))))
-                                }
+                            } else {
+                                Ok(Paint::FuncIRI(link, None))
                             }
-                        } else {
-                            Ok(Paint::FuncIRI(link, None))
+                        }
+                        Err(_) => {
+                            Err(Error::InvalidPaint)
                         }
                     }
-                    Err(_) => {
-                        match Color::from_span(span2) {
-                            Ok(c) => Ok(Paint::Color(c)),
-                            Err(_) => Err(Error::InvalidPaint),
-                        }
+                } else {
+                    match Color::from_span(span2) {
+                        Ok(c) => Ok(Paint::Color(c)),
+                        Err(_) => Err(Error::InvalidPaint),
                     }
                 }
             }
