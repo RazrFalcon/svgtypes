@@ -165,6 +165,7 @@ fn is_rgb(s: &Stream) -> bool {
     }
 
     #[allow(unused_imports)]
+    #[allow(deprecated)]
     use std::ascii::AsciiExt;
 
     prefix.eq_ignore_ascii_case("rgb")
