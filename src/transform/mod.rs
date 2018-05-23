@@ -34,40 +34,81 @@ pub struct Transform {
 
 impl Transform {
     /// Constructs a new transform.
-    pub fn new(a: f64, b: f64, c: f64, d: f64,  e: f64, f: f64) -> Self {
+    pub fn new(a: f64, b: f64, c: f64, d: f64, e: f64, f: f64) -> Self {
         Transform { a, b, c, d, e, f, }
     }
 
-    /// Translates the current transform.
-    pub fn translate(&mut self, x: f64, y: f64) {
-        self.append(&Transform::new(1.0, 0.0, 0.0, 1.0, x, y));
+    /// Constructs a new translate transform.
+    pub fn new_translate(x: f64, y: f64) -> Self {
+        Transform::new(1.0, 0.0, 0.0, 1.0, x, y)
     }
 
-    /// Scales the current transform.
-    pub fn scale(&mut self, sx: f64, sy: f64) {
-        self.append(&Transform::new(sx, 0.0, 0.0, sy, 0.0, 0.0));
+    /// Constructs a new scale transform.
+    pub fn new_scale(sx: f64, sy: f64) -> Self {
+        Transform::new(sx, 0.0, 0.0, sy, 0.0, 0.0)
     }
 
-    /// Rotates the current transform.
-    pub fn rotate(&mut self, angle: f64) {
+    /// Constructs a new rotate transform.
+    pub fn new_rotate(angle: f64) -> Self {
         let v = (angle / 180.0) * f64::consts::PI;
         let a =  v.cos();
         let b =  v.sin();
         let c = -b;
         let d =  a;
-        self.append(&Transform::new(a, b, c, d, 0.0, 0.0));
+        Transform::new(a, b, c, d, 0.0, 0.0)
+    }
+
+    /// Constructs a new rotate transform at the specified position.
+    pub fn new_rotate_at(angle: f64, x: f64, y: f64) -> Self {
+        let mut ts = Self::default();
+        ts.translate(x, y);
+        ts.rotate(angle);
+        ts.translate(-x, -y);
+        ts
+    }
+
+    /// Constructs a new skew transform along then X axis.
+    pub fn new_skew_x(angle: f64) -> Self {
+        let c = ((angle / 180.0) * f64::consts::PI).tan();
+        Transform::new(1.0, 0.0, c, 1.0, 0.0, 0.0)
+    }
+
+    /// Constructs a new skew transform along then Y axis.
+    pub fn new_skew_y(angle: f64) -> Self {
+        let b = ((angle / 180.0) * f64::consts::PI).tan();
+        Transform::new(1.0, b, 0.0, 1.0, 0.0, 0.0)
+    }
+
+    /// Translates the current transform.
+    pub fn translate(&mut self, x: f64, y: f64) {
+        self.append(&Transform::new_translate(x, y));
+    }
+
+    /// Scales the current transform.
+    pub fn scale(&mut self, sx: f64, sy: f64) {
+        self.append(&Transform::new_scale(sx, sy));
+    }
+
+    /// Rotates the current transform.
+    pub fn rotate(&mut self, angle: f64) {
+        self.append(&Transform::new_rotate(angle));
+    }
+
+    /// Rotates the current transform at the specified position.
+    pub fn rotate_at(&mut self, angle: f64, x: f64, y: f64) {
+        self.translate(x, y);
+        self.rotate(angle);
+        self.translate(-x, -y);
     }
 
     /// Skews the current transform along the X axis.
     pub fn skew_x(&mut self, angle: f64) {
-        let c = ((angle / 180.0) * f64::consts::PI).tan();
-        self.append(&Transform::new(1.0, 0.0, c, 1.0, 0.0, 0.0));
+        self.append(&Transform::new_skew_x(angle));
     }
 
     /// Skews the current transform along the Y axis.
     pub fn skew_y(&mut self, angle: f64) {
-        let b = ((angle / 180.0) * f64::consts::PI).tan();
-        self.append(&Transform::new(1.0, b, 0.0, 1.0, 0.0, 0.0));
+        self.append(&Transform::new_skew_y(angle));
     }
 
     /// Appends transform to the current transform.
