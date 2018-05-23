@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.1.1] - 2018-05-23
 ### Added
 - `encoding` and `standalone` to AttributeId.
 - `new_translate`, `new_scale`, `new_rotate`, `new_rotate_at`, `new_skew_x`, `new_skew_y`
@@ -17,4 +19,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `Paint::from_span` poor performance.
 
-[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/RazrFalcon/svgtypes/compare/0.1.0...0.1.1
