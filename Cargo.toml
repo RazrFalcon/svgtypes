@@ -15,11 +15,11 @@ readme = "README.md"
 travis-ci = { repository = "RazrFalcon/svgtypes" }
 
 [dependencies]
-failure = "0.1.1"
 float-cmp = "0.4"
 log = "0.4"
 phf = "0.7.21"
-xmlparser = "0.4.1"
+#xmlparser = "0.4.1"
+xmlparser = { git = "https://github.com/RazrFalcon/xmlparser", rev = "52a57d9" }
 
 [lib]
 path = "src/lib.rs" # for cargo-readme

@@ -186,6 +186,7 @@ fn parse_entity_ref<'a>(stream: &mut Stream<'a>) -> Result<StyleToken<'a>> {
             Ok(StyleToken::EntityRef(name.to_str()))
         }
         Reference::CharRef(_) => {
+            // TODO: wrong, should be parsed as a string
             Err(Error::InvalidEntityRef(stream.gen_error_pos()))
         }
     }

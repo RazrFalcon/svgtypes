@@ -6,56 +6,98 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::fmt;
+use std::error;
+
 use xmlparser;
 
 use ErrorPos;
 
+// TODO: should all errors have a pos?
+
 /// List of all errors.
-#[derive(Fail, Debug)]
+#[derive(Debug)]
 pub enum Error {
     /// An invalid color.
-    #[fail(display = "invalid color at {}", _0)]
     InvalidColor(ErrorPos),
 
     /// An invalid number.
-    #[fail(display = "invalid number at {}", _0)]
     InvalidNumber(ErrorPos),
 
+    // TODO: remove
     /// An invalid entity reference.
-    #[fail(display = "invalid entity reference at {}", _0)]
     InvalidEntityRef(ErrorPos),
 
     /// An invalid transform prefix.
-    #[fail(display = "invalid transform prefix at {}", _0)]
     InvalidTransformPrefix(ErrorPos),
 
     /// An invalid align type.
-    #[fail(display = "'{}' is an invalid align type", _0)]
     InvalidAlignType(String),
 
     /// An invalid align slice.
-    #[fail(display = "expected 'meet' or 'slice' not '{}'", _0)]
     InvalidAlignSlice(String),
 
     /// An invalid IRI value.
-    #[fail(display = "invalid IRI")]
     InvalidIRI,
 
     /// An invalid FuncIRI value.
-    #[fail(display = "invalid FuncIRI")]
     InvalidFuncIRI,
 
     /// An invalid paint type.
-    #[fail(display = "invalid paint value")]
     InvalidPaint,
 
     /// A viewBox with a negative or zero size.
-    #[fail(display = "viewBox should have a positive size")]
     InvalidViewbox,
 
+    // TODO: remove
     /// An XML stream error.
-    #[fail(display = "{}", _0)]
     XmlError(xmlparser::StreamError),
+}
+
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::InvalidColor(pos) => {
+                write!(f, "invalid color at {}", pos)
+            }
+            Error::InvalidNumber(pos) => {
+                write!(f, "invalid number at {}", pos)
+            }
+            Error::InvalidEntityRef(pos) => {
+                write!(f, "invalid entity reference at {}", pos)
+            }
+            Error::InvalidTransformPrefix(pos) => {
+                write!(f, "invalid transform prefix at {}", pos)
+            }
+            Error::InvalidAlignType(ref kind) => {
+                write!(f, "'{}' is an invalid align type", kind)
+            }
+            Error::InvalidAlignSlice(ref kind) => {
+                write!(f, "expected 'meet' or 'slice' not '{}'", kind)
+            }
+            Error::InvalidIRI => {
+                write!(f, "invalid IRI")
+            }
+            Error::InvalidFuncIRI => {
+                write!(f, "invalid FuncIRI")
+            }
+            Error::InvalidPaint => {
+                write!(f, "invalid paint value")
+            }
+            Error::InvalidViewbox => {
+                write!(f, "viewBox should have a positive size")
+            }
+            Error::XmlError(ref e) => {
+                write!(f, "{}", e)
+            }
+        }
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        "an SVG data parsing error"
+    }
 }
 
 impl From<xmlparser::StreamError> for Error {

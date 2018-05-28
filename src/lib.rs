@@ -132,7 +132,6 @@ pub extern crate xmlparser;
 extern crate float_cmp;
 extern crate phf;
 #[macro_use] extern crate log;
-#[macro_use] extern crate failure;
 
 
 #[macro_use] mod traits;
