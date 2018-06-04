@@ -7,15 +7,15 @@
 // except according to those terms.
 
 use std::io::Write;
-//use std::cmp;
 
 use float_cmp::ApproxEqUlps;
 
 use {
+    FuzzyEq,
     WriteBuffer,
     WriteOptions,
-    FuzzyEq,
 };
+
 
 impl FuzzyEq for f64 {
     #[inline]
@@ -24,28 +24,16 @@ impl FuzzyEq for f64 {
     }
 }
 
-///// The trait for `Ordering` f64 numbers.
-//pub trait FuzzyOrd {
-//    /// This method returns an `Ordering` between `self` and `other`.
-//    fn fuzzy_cmp(&self, other: &f64) -> cmp::Ordering;
-//}
-//
-//impl FuzzyOrd for f64 {
-//    #[inline]
-//    fn fuzzy_cmp(&self, other: &f64) -> cmp::Ordering {
-//        if self.fuzzy_eq(other) {
-//            return cmp::Ordering::Equal;
-//        } else if self > other {
-//            return cmp::Ordering::Greater;
-//        }
-//
-//        cmp::Ordering::Less
-//    }
-//}
+
+impl WriteBuffer for f64 {
+    fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
+        write_num(self, opt.remove_leading_zero, buf);
+    }
+}
 
 fn write_num(num: &f64, rm_leading_zero: bool, buf: &mut Vec<u8>) {
-    // By default it will round numbers up to 11 digits
-    // to prevent writing ugly numbers like 29.999999999999996.
+    // Round numbers up to 11 digits to prevent writing
+    // ugly numbers like 29.999999999999996.
     // It's not 100% correct, but differences are insignificant.
 
     let v = (num * 100_000_000_000.0).round() / 100_000_000_000.0;
@@ -77,11 +65,6 @@ fn write_num(num: &f64, rm_leading_zero: bool, buf: &mut Vec<u8>) {
     }
 }
 
-impl WriteBuffer for f64 {
-    fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
-        write_num(self, opt.remove_leading_zero, buf);
-    }
-}
 
 #[cfg(test)]
 mod tests {

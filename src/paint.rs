@@ -48,7 +48,7 @@ pub enum PaintFallback {
 ///
 /// let paint = Paint::from_str("url(#gradient) red").unwrap();
 /// assert_eq!(paint, Paint::FuncIRI("gradient",
-///                                  Some(PaintFallback::Color(Color::new(255, 0, 0)))));
+///                                  Some(PaintFallback::Color(Color::red()))));
 ///
 /// let paint = Paint::from_str("inherit").unwrap();
 /// assert_eq!(paint, Paint::Inherit);
@@ -150,11 +150,11 @@ mod tests {
     test!(parse_2, "  none   ", Paint::None);
     test!(parse_3, " inherit ", Paint::Inherit);
     test!(parse_4, " currentColor ", Paint::CurrentColor);
-    test!(parse_5, " red ", Paint::Color(Color::new(255, 0, 0)));
+    test!(parse_5, " red ", Paint::Color(Color::red()));
     test!(parse_6, " url(#qwe) ", Paint::FuncIRI("qwe", None));
     test!(parse_7, " url(#qwe) none ", Paint::FuncIRI("qwe", Some(PaintFallback::None)));
     test!(parse_8, " url(#qwe) currentColor ", Paint::FuncIRI("qwe", Some(PaintFallback::CurrentColor)));
-    test!(parse_9, " url(#qwe) red ", Paint::FuncIRI("qwe", Some(PaintFallback::Color(Color::new(255, 0, 0)))));
+    test!(parse_9, " url(#qwe) red ", Paint::FuncIRI("qwe", Some(PaintFallback::Color(Color::red()))));
 
     macro_rules! test_err {
         ($name:ident, $text:expr, $result:expr) => (

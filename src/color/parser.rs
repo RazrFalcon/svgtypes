@@ -64,7 +64,7 @@ impl FromSpan for Color {
 
         let start = s.pos();
 
-        let mut color = Color::new(0, 0, 0);
+        let mut color = Color::black();
 
         if s.curr_byte()? == b'#' {
             s.advance(1);
