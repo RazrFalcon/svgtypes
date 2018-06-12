@@ -323,7 +323,7 @@ mod tests {
     fn parse_err_3() {
         let mut s = StyleParser::from("&\x0a96M*9");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "invalid name token");
+                   "invalid reference");
     }
 
     #[test]
@@ -336,7 +336,7 @@ mod tests {
     fn parse_err_5() {
         let mut s = StyleParser::from("&#x4B2ƿ  ;");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected ';' not 'Æ' at 1:7");
+                   "invalid reference");
     }
 
     #[test]
