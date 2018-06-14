@@ -122,9 +122,10 @@ impl<'a> Iterator for StyleParser<'a> {
         } else if is_ident_char(c) {
             Some(parse_attribute(&mut self.stream))
         } else {
+            // TODO: use custom error type
             let pos = self.stream.gen_error_pos();
             self.stream.jump_to_end();
-            Some(Err(StreamError::InvalidChar(c as char, "/-&".into(), pos).into()))
+            Some(Err(StreamError::InvalidChar(vec![c, b'/', b'-', b'&'], pos).into()))
         }
     }
 }
@@ -309,7 +310,7 @@ mod tests {
     fn parse_err_1() {
         let mut s = StyleParser::from(":");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected '/-&' not ':' at 1:1");
+                   "expected '/', '-', '&' not ':' at 1:1");
     }
 
     #[test]
@@ -343,6 +344,6 @@ mod tests {
     fn parse_err_6() {
         let mut s = StyleParser::from("{");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected '/-&' not '{' at 1:1");
+                   "expected '/', '-', '&' not '{' at 1:1");
     }
 }
