@@ -184,7 +184,7 @@ fn parse_attribute<'a>(stream: &mut Stream<'a>) -> Result<StyleToken<'a>> {
 fn parse_entity_ref<'a>(stream: &mut Stream<'a>) -> Result<StyleToken<'a>> {
     match stream.consume_reference()? {
         Reference::EntityRef(name) => {
-            Ok(StyleToken::EntityRef(name.to_str()))
+            Ok(StyleToken::EntityRef(name))
         }
         Reference::CharRef(_) => {
             // TODO: wrong, should be parsed as a string
@@ -193,7 +193,7 @@ fn parse_entity_ref<'a>(stream: &mut Stream<'a>) -> Result<StyleToken<'a>> {
     }
 }
 
-fn parse_prefix<'a>(stream: &mut Stream<'a>) -> Result<()> {
+fn parse_prefix(stream: &mut Stream) -> Result<()> {
     // prefixed attributes are not supported, aka '-webkit-*'
 
     stream.advance(1); // -

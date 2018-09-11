@@ -155,7 +155,7 @@ mod viewbox;
 
 
 pub use xmlparser::{
-    ErrorPos,
+    TextPos,
     Stream,
     StrSpan,
 };

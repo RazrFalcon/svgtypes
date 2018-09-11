@@ -11,7 +11,7 @@ use std::error;
 
 use xmlparser;
 
-use ErrorPos;
+use TextPos;
 
 // TODO: should all errors have a pos?
 
@@ -19,17 +19,17 @@ use ErrorPos;
 #[derive(Debug)]
 pub enum Error {
     /// An invalid color.
-    InvalidColor(ErrorPos),
+    InvalidColor(TextPos),
 
     /// An invalid number.
-    InvalidNumber(ErrorPos),
+    InvalidNumber(TextPos),
 
     // TODO: remove
     /// An invalid entity reference.
-    InvalidEntityRef(ErrorPos),
+    InvalidEntityRef(TextPos),
 
     /// An invalid transform prefix.
-    InvalidTransformPrefix(ErrorPos),
+    InvalidTransformPrefix(TextPos),
 
     /// An invalid align type.
     InvalidAlignType(String),
