@@ -24,10 +24,6 @@ pub enum Error {
     /// An invalid number.
     InvalidNumber(TextPos),
 
-    // TODO: remove
-    /// An invalid entity reference.
-    InvalidEntityRef(TextPos),
-
     /// An invalid transform prefix.
     InvalidTransformPrefix(TextPos),
 
@@ -62,9 +58,6 @@ impl fmt::Display for Error {
             }
             Error::InvalidNumber(pos) => {
                 write!(f, "invalid number at {}", pos)
-            }
-            Error::InvalidEntityRef(pos) => {
-                write!(f, "invalid entity reference at {}", pos)
             }
             Error::InvalidTransformPrefix(pos) => {
                 write!(f, "invalid transform prefix at {}", pos)

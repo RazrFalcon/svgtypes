@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - `failure` dependency.
 - `StyleToken`.
+- `Error::InvalidEntityRef`.
 
 ## [0.1.1] - 2018-05-23
 ### Added
