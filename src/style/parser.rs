@@ -6,43 +6,17 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use std::fmt;
 use std::str;
 
 use xmlparser::{
     StreamError,
-    Reference,
 };
 
 use {
-    Error,
     Result,
     Stream,
     StrSpan,
 };
-
-// TODO: prefix
-// TODO: comment
-
-/// Style token.
-#[derive(PartialEq)]
-pub enum StyleToken<'a> {
-    /// Tuple contains attribute's name and value.
-    Attribute(StrSpan<'a>, StrSpan<'a>),
-    /// Tuple contains ENTITY reference. Just a name without `&` and `;`.
-    EntityRef(&'a str),
-}
-
-impl<'a> fmt::Debug for StyleToken<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            StyleToken::Attribute(name, value) =>
-                write!(f, "SvgAttribute({:?}, {:?})", name, value),
-            StyleToken::EntityRef(name) =>
-                write!(f, "EntityRef({})", name),
-        }
-    }
-}
 
 /// A pull-based style parser.
 ///
@@ -52,22 +26,22 @@ impl<'a> fmt::Debug for StyleToken<'a> {
 ///
 /// # Notes
 ///
+/// - Entity references must be already resolved.
 /// - By the SVG spec a `style` attribute can contain any style sheet language,
 ///   but the library only support CSS2, which is default.
-/// - Objects with `-` prefix will be ignored since.
+/// - Objects with `-` prefix will be ignored.
 /// - All comments are automatically skipped.
 ///
 /// # Example
 ///
 /// ```rust
-/// use svgtypes::{StyleParser, StyleToken};
+/// use svgtypes::StyleParser;
 ///
 /// let style = "/* comment */fill:red;";
 /// let mut p = StyleParser::from(style);
-/// if let StyleToken::Attribute(name, value) = p.next().unwrap().unwrap() {
-///     assert_eq!(name.to_str(), "fill");
-///     assert_eq!(value.to_str(), "red");
-/// }
+/// let (name, value) = p.next().unwrap().unwrap();
+/// assert_eq!(name.to_str(), "fill");
+/// assert_eq!(value.to_str(), "red");
 /// assert_eq!(p.next().is_none(), true);
 /// ```
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -90,7 +64,7 @@ impl<'a> From<StrSpan<'a>> for StyleParser<'a> {
 }
 
 impl<'a> Iterator for StyleParser<'a> {
-    type Item = Result<StyleToken<'a>>;
+    type Item = Result<(StrSpan<'a>, StrSpan<'a>)>;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.stream.skip_spaces();
@@ -117,15 +91,13 @@ impl<'a> Iterator for StyleParser<'a> {
         } else if c == b'-' {
             try2!(parse_prefix(&mut self.stream));
             self.next()
-        } else if c == b'&' {
-            Some(parse_entity_ref(&mut self.stream))
         } else if is_ident_char(c) {
             Some(parse_attribute(&mut self.stream))
         } else {
             // TODO: use custom error type
             let pos = self.stream.gen_error_pos();
             self.stream.jump_to_end();
-            Some(Err(StreamError::InvalidChar(vec![c, b'/', b'-', b'&'], pos).into()))
+            Some(Err(StreamError::InvalidChar(vec![c, b'/', b'-'], pos).into()))
         }
     }
 }
@@ -139,7 +111,7 @@ fn skip_comment(stream: &mut Stream) -> Result<()> {
     Ok(())
 }
 
-fn parse_attribute<'a>(stream: &mut Stream<'a>) -> Result<StyleToken<'a>> {
+fn parse_attribute<'a>(stream: &mut Stream<'a>) -> Result<(StrSpan<'a>, StrSpan<'a>)> {
     let name = stream.consume_bytes(|_, c| is_ident_char(c));
 
     if name.is_empty() {
@@ -178,30 +150,15 @@ fn parse_attribute<'a>(stream: &mut Stream<'a>) -> Result<StyleToken<'a>> {
         stream.skip_spaces();
     }
 
-    Ok(StyleToken::Attribute(name, value))
-}
-
-fn parse_entity_ref<'a>(stream: &mut Stream<'a>) -> Result<StyleToken<'a>> {
-    match stream.consume_reference()? {
-        Reference::EntityRef(name) => {
-            Ok(StyleToken::EntityRef(name))
-        }
-        Reference::CharRef(_) => {
-            // TODO: wrong, should be parsed as a string
-            Err(Error::InvalidEntityRef(stream.gen_error_pos()))
-        }
-    }
+    Ok((name, value))
 }
 
 fn parse_prefix(stream: &mut Stream) -> Result<()> {
     // prefixed attributes are not supported, aka '-webkit-*'
 
     stream.advance(1); // -
-    let t = parse_attribute(stream)?;
-
-    if let StyleToken::Attribute(name, _) = t {
-        warn!("Style attribute '-{}' is skipped.", name);
-    }
+    let (name, _) = parse_attribute(stream)?;
+    warn!("Style attribute '-{}' is skipped.", name);
 
     Ok(())
 }
@@ -228,13 +185,9 @@ mod tests {
             fn $name() {
                 let mut s = StyleParser::from($text);
                 $(
-                    match s.next().unwrap().unwrap() {
-                        StyleToken::Attribute(name, value) => {
-                            assert_eq!(name.to_str(), $aname);
-                            assert_eq!(value.to_str(), $avalue);
-                        },
-                        _ => unreachable!(),
-                    }
+                    let (name, value) = s.next().unwrap().unwrap();
+                    assert_eq!(name.to_str(), $aname);
+                    assert_eq!(value.to_str(), $avalue);
                 )*
 
                 assert_eq!(s.next().is_none(), true);
@@ -279,14 +232,6 @@ mod tests {
         ("fill", "none")
     );
 
-    #[test]
-    fn parse_9() {
-        let mut s = StyleParser::from("&st0; &st1;");
-        assert_eq!(s.next().unwrap().unwrap(), StyleToken::EntityRef("st0"));
-        assert_eq!(s.next().unwrap().unwrap(), StyleToken::EntityRef("st1"));
-        assert_eq!(s.next().is_none(), true);
-    }
-
     test!(parse_10, "/**/", );
 
     test!(parse_11, "font-family:Cantarell;-inkscape-font-specification:&apos;Cantarell Bold&apos;",
@@ -310,7 +255,7 @@ mod tests {
     fn parse_err_1() {
         let mut s = StyleParser::from(":");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected '/', '-', '&' not ':' at 1:1");
+                   "expected '/', '-' not ':' at 1:1");
     }
 
     #[test]
@@ -324,7 +269,7 @@ mod tests {
     fn parse_err_3() {
         let mut s = StyleParser::from("&\x0a96M*9");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "invalid reference");
+                   "expected '/', '-' not '&' at 1:1");
     }
 
     #[test]
@@ -337,13 +282,13 @@ mod tests {
     fn parse_err_5() {
         let mut s = StyleParser::from("&#x4B2ƿ  ;");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "invalid reference");
+                   "expected '/', '-' not '&' at 1:1");
     }
 
     #[test]
     fn parse_err_6() {
         let mut s = StyleParser::from("{");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected '/', '-', '&' not '{' at 1:1");
+                   "expected '/', '-' not '{' at 1:1");
     }
 }

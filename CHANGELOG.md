@@ -8,8 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `black`, `white`, `gray`, `red`, `green` and `blue` constructors to the `Color` struct.
 
+### Changed
+- `StyleParser` will return `(StrSpan, StrSpan)` and not `StyleToken` from now.
+- `StyleParser` requires entity references to be resolved before parsing from now.
+
 ### Removed
 - `failure` dependency.
+- `StyleToken`.
 
 ## [0.1.1] - 2018-05-23
 ### Added
