@@ -134,7 +134,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-svgtypes = "0.1"
+svgtypes = "0.2"
 ```
 
 ### License

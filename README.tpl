@@ -28,7 +28,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-{{crate}} = "0.1"
+{{crate}} = "0.2"
 ```
 
 ### License

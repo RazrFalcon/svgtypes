@@ -119,7 +119,7 @@ None.
 */
 
 
-#![doc(html_root_url = "https://docs.rs/svgtypes/0.1.1")]
+#![doc(html_root_url = "https://docs.rs/svgtypes/0.2.0")]
 
 
 #![forbid(unsafe_code)]
