@@ -29,7 +29,7 @@ pub trait StreamExt<'a> {
     /// This method will detect a number length and then
     /// will pass a substring to the `std::from_str` method.
     ///
-    /// <https://www.w3.org/TR/SVG/types.html#DataTypeNumber>
+    /// <https://www.w3.org/TR/SVG11/types.html#DataTypeNumber>
     ///
     /// # Errors
     ///
@@ -74,7 +74,7 @@ pub trait StreamExt<'a> {
 
     /// Parses length from the stream.
     ///
-    /// <https://www.w3.org/TR/SVG/types.html#DataTypeLength>
+    /// <https://www.w3.org/TR/SVG11/types.html#DataTypeLength>
     ///
     /// # Examples
     ///
@@ -101,7 +101,7 @@ pub trait StreamExt<'a> {
     /// By the SVG spec the ID must contain only [Name] characters,
     /// but since no one fallows this it will parse any characters.
     ///
-    /// [IRI]: https://www.w3.org/TR/SVG/types.html#DataTypeIRI
+    /// [IRI]: https://www.w3.org/TR/SVG11/types.html#DataTypeIRI
     /// [Name]: https://www.w3.org/TR/xml/#NT-Name
     fn parse_iri(&mut self) -> Result<&'a str>;
 
@@ -110,7 +110,7 @@ pub trait StreamExt<'a> {
     /// By the SVG spec the ID must contain only [Name] characters,
     /// but since no one fallows this it will parse any characters.
     ///
-    /// [FuncIRI]: https://www.w3.org/TR/SVG/types.html#DataTypeFuncIRI
+    /// [FuncIRI]: https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI
     /// [Name]: https://www.w3.org/TR/xml/#NT-Name
     fn parse_func_iri(&mut self) -> Result<&'a str>;
 }

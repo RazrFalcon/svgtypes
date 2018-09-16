@@ -17,7 +17,7 @@ pub use self::builder::*;
 
 /// Representation of the SVG [path data].
 ///
-/// [path data]: https://www.w3.org/TR/SVG/paths.html#PathData
+/// [path data]: https://www.w3.org/TR/SVG11/paths.html#PathData
 #[derive(Clone, PartialEq)]
 pub struct Path(pub Vec<PathSegment>);
 

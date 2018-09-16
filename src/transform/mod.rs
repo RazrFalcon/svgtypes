@@ -20,7 +20,7 @@ use {
 
 /// Representation of the [`<transform>`] type.
 ///
-/// [`<transform>`]: https://www.w3.org/TR/SVG/coords.html#TransformAttribute
+/// [`<transform>`]: https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct Transform {

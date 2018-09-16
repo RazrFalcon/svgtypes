@@ -20,7 +20,7 @@ use {
 ///
 /// Used by the [`Paint`](enum.Paint.html) type.
 ///
-/// [`<paint>`]: https://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+/// [`<paint>`]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum PaintFallback {
     /// The `none` value.
@@ -29,7 +29,7 @@ pub enum PaintFallback {
     CurrentColor,
     /// [`<color>`] value.
     ///
-    /// [`<color>`]: https://www.w3.org/TR/SVG/types.html#DataTypeColor
+    /// [`<color>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
     Color(Color),
 }
 
@@ -39,7 +39,7 @@ pub enum PaintFallback {
 ///
 /// `<icccolor>` isn't supported.
 ///
-/// [`<paint>`]: https://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+/// [`<paint>`]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
 ///
 /// # Examples
 ///
@@ -63,11 +63,11 @@ pub enum Paint<'a> {
     CurrentColor,
     /// [`<color>`] value.
     ///
-    /// [`<color>`]: https://www.w3.org/TR/SVG/types.html#DataTypeColor
+    /// [`<color>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
     Color(Color),
     /// [`<FuncIRI>`] value with an optional fallback.
     ///
-    /// [`<FuncIRI>`]: https://www.w3.org/TR/SVG/types.html#DataTypeFuncIRI
+    /// [`<FuncIRI>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI
     FuncIRI(&'a str, Option<PaintFallback>),
 }
 

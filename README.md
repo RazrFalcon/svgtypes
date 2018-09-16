@@ -60,17 +60,17 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 | [\<style\>]               | -             | -       | StyleParser         |
 | [\<paint\>]               | -             | -       | Paint               |
 
-[\<color\>]: https://www.w3.org/TR/SVG/types.html#DataTypeColor
-[\<number\>]: https://www.w3.org/TR/SVG/types.html#DataTypeNumber
-[\<length\>]: https://www.w3.org/TR/SVG/types.html#DataTypeLength
+[\<color\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
+[\<number\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeNumber
+[\<length\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeLength
 [\<viewBox\>]: https://www.w3.org/TR/SVG11/coords.html#ViewBoxAttribute
-[\<path\>]: https://www.w3.org/TR/SVG/paths.html#PathData
-[\<list-of-numbers\>]: https://www.w3.org/TR/SVG/types.html#DataTypeList
-[\<list-of-lengths\>]: https://www.w3.org/TR/SVG/types.html#DataTypeList
-[\<transform-list\>]: https://www.w3.org/TR/SVG/types.html#DataTypeTransformList
+[\<path\>]: https://www.w3.org/TR/SVG11/paths.html#PathData
+[\<list-of-numbers\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
+[\<list-of-lengths\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
+[\<transform-list\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList
 [\<list-of-points\>]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
-[\<style\>]: https://www.w3.org/TR/SVG/styling.html#StyleAttribute
-[\<paint\>]: https://www.w3.org/TR/SVG/painting.html#SpecifyingPaint
+[\<style\>]: https://www.w3.org/TR/SVG11/styling.html#StyleAttribute
+[\<paint\>]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
 
 - All types implement from string (`FromStr`, `FromSpan`) and
   to string traits (`Display`, `WriteBuffer`).

@@ -12,7 +12,7 @@ mod writer;
 
 /// Representation of the [`<color>`] type.
 ///
-/// [`<color>`]: https://www.w3.org/TR/SVG/types.html#DataTypeColor
+/// [`<color>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct Color {

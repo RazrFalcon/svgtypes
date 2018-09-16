@@ -35,7 +35,7 @@ pub enum LengthUnit {
 
 /// Representation of the [`<length>`] type.
 ///
-/// [`<length>`]: https://www.w3.org/TR/SVG/types.html#DataTypeLength
+/// [`<length>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeLength
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(missing_docs)]
 pub struct Length {

@@ -19,7 +19,7 @@ use {
 
 /// Representation of the `align` value of the [`preserveAspectRatio`] attribute.
 ///
-/// [`preserveAspectRatio`]: https://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
+/// [`preserveAspectRatio`]: https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute
 #[allow(missing_docs)]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum Align {
@@ -47,7 +47,7 @@ pub enum Align {
 /// assert_eq!(ratio.to_string(), "xMinYMax slice");
 /// ```
 ///
-/// [`preserveAspectRatio`]: https://www.w3.org/TR/SVG/coords.html#PreserveAspectRatioAttribute
+/// [`preserveAspectRatio`]: https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct AspectRatio {
     /// `<defer>` value.

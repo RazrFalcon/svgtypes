@@ -9,7 +9,7 @@
 
 /// A separator type for a list of values.
 ///
-/// <https://www.w3.org/TR/SVG/types.html#DataTypeList>
+/// <https://www.w3.org/TR/SVG11/types.html#DataTypeList>
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum ListSeparator {
     /// `10,20`
