@@ -12,6 +12,7 @@ use float_cmp::ApproxEqUlps;
 
 use {
     FuzzyEq,
+    FuzzyZero,
     WriteBuffer,
     WriteOptions,
 };
@@ -21,6 +22,13 @@ impl FuzzyEq for f64 {
     #[inline]
     fn fuzzy_eq(&self, other: &f64) -> bool {
         self.approx_eq_ulps(other, 4)
+    }
+}
+
+impl FuzzyZero for f64 {
+    #[inline]
+    fn is_fuzzy_zero(&self) -> bool {
+        self.approx_eq_ulps(&0.0, 4)
     }
 }
 

@@ -142,17 +142,11 @@ impl<T: FuzzyEq> FuzzyEq for Vec<T> {
 }
 
 /// A trait for fuzzy/approximate comparisons of `f64` numbers.
-pub trait FuzzyZero: FuzzyEq {
+pub trait FuzzyZero {
     /// Returns `true` if the number is approximately zero.
-    #[inline]
-    fn is_fuzzy_zero(&self) -> bool
-        where Self: FuzzyEq<f64>,
-    {
-        self.fuzzy_eq(&0.0)
-    }
+    fn is_fuzzy_zero(&self) -> bool;
 }
 
-impl FuzzyZero for f64 {}
 
 macro_rules! impl_vec_defer {
     ($t:ty, $tt:ty) => (
