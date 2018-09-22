@@ -1,16 +1,7 @@
-// Copyright 2018 Evgeniy Reizner
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-
 /*!
 
 *svgtypes* is a collection of parsers, containers and writers for
-[SVG](https://www.w3.org/TR/SVG11/) types.
+[SVG 1.1](https://www.w3.org/TR/SVG11/) types.
 
 Usage is simple as:
 
@@ -86,8 +77,6 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 ## Benefits
 
 - Complete support of paths, so data like `M10-20A5.5.3-4 110-.1` will be parsed correctly.
-- Every type can be parsed separately, so you can parse just paths or transform
-  or any other SVG value.
 - Good error processing. All error types contain position (line:column) where it occurred.
 - Access to pull-based parsers.
 - Pretty fast.
@@ -97,20 +86,15 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 - All keywords must be lowercase.
   Case-insensitive parsing is supported only for colors (requires allocation for named colors).
 - The `<color>` followed by the `<icccolor>` is not supported. As the `<icccolor>` itself.
-- CSS styles does not processed. You should use an external CSS parser.
 - Comments inside attributes value supported only for the `style` attribute.
 - [System colors](https://www.w3.org/TR/css3-color/#css2-system), like `fill="AppWorkspace"`,
-  are not supported.
-- There is no separate `coordinate` type. It will be parsed as `<length>`,
-- There is no separate `opacity-value` type. It will be parsed as `<number>`,
-  but will be bound to 0..1 range.
-- Implicit path commands are not supported. All commands are parsed as explicit.
+  are not supported. They were deprecated anyway.
+- Implicit path commands are not supported. All commands will be parsed as explicit.
 - Implicit MoveTo commands will be automatically converted into explicit LineTo.
 
 ## Safety
 
-- The library should not panic. Any panic considered as a critical bug
-  and should be reported.
+- The library should not panic. Any panic considered as a critical bug and should be reported.
 - The library forbids unsafe code.
 
 ## Alternatives
@@ -118,6 +102,13 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 None.
 */
 
+// Copyright 2018 Evgeniy Reizner
+//
+// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
+// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
+// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
+// option. This file may not be copied, modified, or distributed
+// except according to those terms.
 
 #![doc(html_root_url = "https://docs.rs/svgtypes/0.2.0")]
 
