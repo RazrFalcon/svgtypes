@@ -6,16 +6,15 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::str::FromStr;
+
 use {
-    Stream,
-    StrSpan,
     Error,
+    FuzzyEq,
     Result,
-    FromSpan,
+    Stream,
     WriteBuffer,
     WriteOptions,
-    FuzzyEq,
-    StreamExt,
 };
 
 
@@ -38,9 +37,11 @@ impl ViewBox {
     }
 }
 
-impl FromSpan for ViewBox {
-    fn from_span(span: StrSpan) -> Result<Self> {
-        let mut s = Stream::from(span);
+impl FromStr for ViewBox {
+    type Err = Error;
+
+    fn from_str(text: &str) -> Result<Self> {
+        let mut s = Stream::from(text);
 
         let x = s.parse_list_number()?;
         let y = s.parse_list_number()?;
@@ -54,8 +55,6 @@ impl FromSpan for ViewBox {
         Ok(ViewBox::new(x, y, w, h))
     }
 }
-
-impl_from_str!(ViewBox);
 
 impl WriteBuffer for ViewBox {
     fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
@@ -106,7 +105,7 @@ mod tests {
         )
     }
 
-    test_err!(parse_err_1, "qwe", "invalid number at 1:1");
+    test_err!(parse_err_1, "qwe", "invalid number at position 1");
     test_err!(parse_err_2, "10 20 30 0", "viewBox should have a positive size");
     test_err!(parse_err_3, "10 20 0 40", "viewBox should have a positive size");
     test_err!(parse_err_4, "10 20 0 0", "viewBox should have a positive size");

@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- `Error` was rewritten.
+
+### Removed
+- `FromSpan` trait. Use `FromStr`.
+- `StrSpan`. All strings are `&str` now.
+- `TextPos`. All errors have position in characters now.
+- `xmlparser` dependency.
 
 ## [0.2.0] - 2018-09-12
 ### Added

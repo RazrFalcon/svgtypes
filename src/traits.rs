@@ -7,30 +7,10 @@
 // except according to those terms.
 
 use std::fmt;
-use std::str::FromStr;
 
 use {
     WriteOptions,
-    StrSpan,
 };
-
-/// A trait for parsing data from a string.
-pub trait FromSpan: FromStr {
-    /// Parses data from a `StrSpan`.
-    fn from_span(s: StrSpan) -> Result<Self, <Self as FromStr>::Err>;
-}
-
-macro_rules! impl_from_str {
-    ($t:ty) => (
-        impl ::std::str::FromStr for $t {
-            type Err = Error;
-
-            fn from_str(s: &str) -> ::std::result::Result<$t, Self::Err> {
-                FromSpan::from_span(StrSpan::from(s))
-            }
-        }
-    )
-}
 
 /// A trait for writing data to the buffer.
 pub trait WriteBuffer {

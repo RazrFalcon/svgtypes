@@ -6,14 +6,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::str::FromStr;
+
 use {
-    Stream,
     Error,
-    FromSpan,
-    StreamExt,
-    StrSpan,
-    Transform,
     Result,
+    Stream,
+    Transform,
 };
 
 /// Transform list token.
@@ -80,15 +79,9 @@ pub struct TransformListParser<'a> {
 }
 
 impl<'a> From<&'a str> for TransformListParser<'a> {
-    fn from(v: &'a str) -> Self {
-        Self::from(StrSpan::from(v))
-    }
-}
-
-impl<'a> From<StrSpan<'a>> for TransformListParser<'a> {
-    fn from(span: StrSpan<'a>) -> Self {
+    fn from(text: &'a str) -> Self {
         TransformListParser {
-            stream: Stream::from(span),
+            stream: Stream::from(text),
             rotate_ts: None,
             last_angle: None,
         }
@@ -134,7 +127,8 @@ impl<'a> TransformListParser<'a> {
     fn parse_next(&mut self) -> Result<TransformListToken> {
         let s = &mut self.stream;
 
-        let name = s.consume_name()?;
+        let start = s.pos();
+        let name = s.consume_ident();
         s.skip_spaces();
         s.consume_byte(b'(')?;
 
@@ -216,8 +210,7 @@ impl<'a> TransformListParser<'a> {
                 }
             }
             _ => {
-                let pos = s.gen_error_pos();
-                return Err(Error::InvalidTransformPrefix(pos));
+                return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
             }
         };
 
@@ -233,11 +226,11 @@ impl<'a> TransformListParser<'a> {
     }
 }
 
-impl_from_str!(Transform);
+impl FromStr for Transform {
+    type Err = Error;
 
-impl FromSpan for Transform {
-    fn from_span(span: StrSpan) -> Result<Transform> {
-        let tokens = TransformListParser::from(span);
+    fn from_str(text: &str) -> Result<Self> {
+        let tokens = TransformListParser::from(text);
         let mut transform = Transform::default();
 
         for token in tokens {
@@ -321,8 +314,8 @@ mod tests {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
-                let mut ts = TransformListParser::from($text);
-                assert_eq!(ts.next().unwrap().unwrap_err().to_string(), $result);
+                let ts = Transform::from_str($text);
+                assert_eq!(ts.unwrap_err().to_string(), $result);
             }
         )
     }
@@ -337,7 +330,7 @@ mod tests {
                    "unexpected end of stream");
     }
 
-    test_err!(parse_err_3, "???G", "invalid name token");
+    test_err!(parse_err_3, "???G", "expected '(' not '?' at position 1");
 
     #[test]
     fn parse_err_4() {
@@ -350,4 +343,8 @@ mod tests {
         let mut ts = TransformListParser::from("\x01");
         assert_eq!(ts.next().unwrap().is_err(), true);
     }
+
+    test_err!(parse_err_6, "rect()", "unexpected data at position 1");
+
+    test_err!(parse_err_7, "scale(2) rect()", "unexpected data at position 10");
 }

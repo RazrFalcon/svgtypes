@@ -81,12 +81,13 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 ### Benefits
 
 - Complete support of paths, so data like `M10-20A5.5.3-4 110-.1` will be parsed correctly.
-- Good error processing. All error types contain position (line:column) where it occurred.
 - Access to pull-based parsers.
 - Pretty fast.
 
 ### Limitations
 
+- Accepts only [normalized](https://www.w3.org/TR/REC-xml/#AVNormalize) values,
+  e.g. an input text should not contains `&#x20;` or `&data;`.
 - All keywords must be lowercase.
   Case-insensitive parsing is supported only for colors (requires allocation for named colors).
 - The `<color>` followed by the `<icccolor>` is not supported. As the `<icccolor>` itself.

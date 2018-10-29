@@ -6,13 +6,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::str::FromStr;
+
 use {
     Error,
-    FromSpan,
     FuzzyEq,
+    Result,
     Stream,
-    StreamExt,
-    StrSpan,
     WriteBuffer,
     WriteOptions,
 };
@@ -65,11 +65,11 @@ impl Length {
     }
 }
 
-impl_from_str!(Length);
+impl FromStr for Length {
+    type Err = Error;
 
-impl FromSpan for Length {
-    fn from_span(span: StrSpan) -> Result<Length, Self::Err> {
-        let mut ss = Stream::from(span);
+    fn from_str(text: &str) -> Result<Self> {
+        let mut ss = Stream::from(text);
         let l = ss.parse_length()?;
         Ok(Length::new(l.num, l.unit))
     }
@@ -144,7 +144,7 @@ mod tests {
         let mut s = Stream::from("1q");
         assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
         assert_eq!(s.parse_length().unwrap_err().to_string(),
-                   "invalid number at 1:2");
+                   "invalid number at position 2");
     }
 
     macro_rules! test_w {

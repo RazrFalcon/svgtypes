@@ -77,7 +77,7 @@ fn write_num(num: &f64, rm_leading_zero: bool, buf: &mut Vec<u8>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use {Stream, StreamExt};
+    use Stream;
 
     macro_rules! test_p {
         ($name:ident, $text:expr, $result:expr) => (
@@ -124,14 +124,14 @@ mod tests {
         )
     }
 
-    test_p_err!(parse_err_1, "q",    "invalid number at 1:1");
-    test_p_err!(parse_err_2, "",     "invalid number at 1:1");
-    test_p_err!(parse_err_3, "-",    "invalid number at 1:1");
-    test_p_err!(parse_err_4, "+",    "invalid number at 1:1");
-    test_p_err!(parse_err_5, "-q",   "invalid number at 1:1");
-    test_p_err!(parse_err_6, ".",    "invalid number at 1:1");
-    test_p_err!(parse_err_7, "99999999e99999999",  "invalid number at 1:1");
-    test_p_err!(parse_err_8, "-99999999e99999999", "invalid number at 1:1");
+    test_p_err!(parse_err_1, "q",    "invalid number at position 1");
+    test_p_err!(parse_err_2, "",     "invalid number at position 1");
+    test_p_err!(parse_err_3, "-",    "invalid number at position 1");
+    test_p_err!(parse_err_4, "+",    "invalid number at position 1");
+    test_p_err!(parse_err_5, "-q",   "invalid number at position 1");
+    test_p_err!(parse_err_6, ".",    "invalid number at position 1");
+    test_p_err!(parse_err_7, "99999999e99999999",  "invalid number at position 1");
+    test_p_err!(parse_err_8, "-99999999e99999999", "invalid number at position 1");
 
     macro_rules! test_w {
         ($name:ident, $num:expr, $rm_zero:expr, $result:expr) => (

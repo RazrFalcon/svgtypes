@@ -6,12 +6,12 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::str::FromStr;
+
 use {
-    Stream,
-    StrSpan,
     Error,
     Result,
-    FromSpan,
+    Stream,
     WriteBuffer,
     WriteOptions,
 };
@@ -63,9 +63,11 @@ pub struct AspectRatio {
     pub slice: bool,
 }
 
-impl FromSpan for AspectRatio {
-    fn from_span(span: StrSpan) -> Result<Self> {
-        let mut s = Stream::from(span);
+impl FromStr for AspectRatio {
+    type Err = Error;
+
+    fn from_str(text: &str) -> Result<Self> {
+        let mut s = Stream::from(text);
 
         s.skip_spaces();
 
@@ -76,7 +78,8 @@ impl FromSpan for AspectRatio {
             s.skip_spaces();
         }
 
-        let align = s.consume_name()?.to_str();
+        let start = s.pos();
+        let align = s.consume_ident();
         let align = match align {
             "none" => Align::None,
             "xMinYMin" => Align::XMinYMin,
@@ -88,8 +91,8 @@ impl FromSpan for AspectRatio {
             "xMinYMax" => Align::XMinYMax,
             "xMidYMax" => Align::XMidYMax,
             "xMaxYMax" => Align::XMaxYMax,
-            _ => return {
-                Err(Error::InvalidAlignType(align.into()))
+            _ => {
+                return Err(Error::UnexpectedData(s.calc_char_pos_at(start)))
             }
         };
 
@@ -97,13 +100,14 @@ impl FromSpan for AspectRatio {
 
         let mut slice = false;
         if !s.at_end() {
-            let v = s.consume_name()?.to_str();
+            let start = s.pos();
+            let v = s.consume_ident();
             match v {
                 "meet" => {}
                 "slice" => slice = true,
                 "" => {}
-                _ => return {
-                    Err(Error::InvalidAlignSlice(v.into()))
+                _ => {
+                    return Err(Error::UnexpectedData(s.calc_char_pos_at(start)))
                 }
             };
         }
@@ -115,8 +119,6 @@ impl FromSpan for AspectRatio {
         })
     }
 }
-
-impl_from_str!(AspectRatio);
 
 impl WriteBuffer for AspectRatio {
     fn write_buf_opt(&self, _: &WriteOptions, buf: &mut Vec<u8>) {

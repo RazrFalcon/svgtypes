@@ -6,14 +6,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
+use std::str::FromStr;
+
 use {
     Error,
-    FromSpan,
+    Length,
     Result,
     Stream,
-    StreamExt,
-    StrSpan,
-    Length,
     WriteBuffer,
     WriteOptions,
 };
@@ -49,13 +48,7 @@ pub struct LengthListParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for LengthListParser<'a> {
     fn from(v: &'a str) -> Self {
-        Self::from(StrSpan::from(v))
-    }
-}
-
-impl<'a> From<StrSpan<'a>> for LengthListParser<'a> {
-    fn from(span: StrSpan<'a>) -> Self {
-        LengthListParser(Stream::from(span))
+        LengthListParser(Stream::from(v))
     }
 }
 
@@ -76,12 +69,12 @@ impl<'a> Iterator for LengthListParser<'a> {
     }
 }
 
-impl_from_str!(LengthList);
+impl FromStr for LengthList {
+    type Err = Error;
 
-impl FromSpan for LengthList {
-    fn from_span(span: StrSpan) -> Result<Self> {
+    fn from_str(text: &str) -> Result<Self> {
         let mut vec = Vec::new();
-        for number in LengthListParser::from(span) {
+        for number in LengthListParser::from(text) {
             vec.push(number?);
         }
 

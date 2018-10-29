@@ -6,15 +6,13 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use super::Points;
+use std::str::FromStr;
 
 use {
     Error,
-    StrSpan,
-    FromSpan,
+    Points,
     Result,
     Stream,
-    StreamExt,
 };
 
 /// A pull-based [`<list-of-points>`] parser.
@@ -49,13 +47,7 @@ pub struct PointsParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for PointsParser<'a> {
     fn from(v: &'a str) -> Self {
-        Self::from(StrSpan::from(v))
-    }
-}
-
-impl<'a> From<StrSpan<'a>> for PointsParser<'a> {
-    fn from(span: StrSpan<'a>) -> Self {
-        PointsParser(Stream::from(span))
+        PointsParser(Stream::from(v))
     }
 }
 
@@ -81,12 +73,12 @@ impl<'a> Iterator for PointsParser<'a> {
     }
 }
 
-impl_from_str!(Points);
+impl FromStr for Points {
+    type Err = Error;
 
-impl FromSpan for Points {
-    fn from_span(span: StrSpan) -> Result<Self> {
+    fn from_str(text: &str) -> Result<Self> {
         // TODO: should contain at least two coordinate pairs
-        Ok(Points(PointsParser::from(span).collect()))
+        Ok(Points(PointsParser::from(text).collect()))
     }
 }
 

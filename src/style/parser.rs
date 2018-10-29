@@ -8,14 +8,11 @@
 
 use std::str;
 
-use xmlparser::{
-    StreamError,
-};
-
 use {
+    Error,
     Result,
     Stream,
-    StrSpan,
+    XmlByteExt,
 };
 
 /// A pull-based style parser.
@@ -40,36 +37,26 @@ use {
 /// let style = "/* comment */fill:red;";
 /// let mut p = StyleParser::from(style);
 /// let (name, value) = p.next().unwrap().unwrap();
-/// assert_eq!(name.to_str(), "fill");
-/// assert_eq!(value.to_str(), "red");
+/// assert_eq!(name, "fill");
+/// assert_eq!(value, "red");
 /// assert_eq!(p.next().is_none(), true);
 /// ```
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub struct StyleParser<'a> {
-    stream: Stream<'a>,
-}
+pub struct StyleParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for StyleParser<'a> {
     fn from(v: &'a str) -> Self {
-        Self::from(StrSpan::from(v))
-    }
-}
-
-impl<'a> From<StrSpan<'a>> for StyleParser<'a> {
-    fn from(span: StrSpan<'a>) -> Self {
-        StyleParser {
-            stream: Stream::from(span),
-        }
+        StyleParser(Stream::from(v))
     }
 }
 
 impl<'a> Iterator for StyleParser<'a> {
-    type Item = Result<(StrSpan<'a>, StrSpan<'a>)>;
+    type Item = Result<(&'a str, &'a str)>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.stream.skip_spaces();
+        self.0.skip_spaces();
 
-        if self.stream.at_end() {
+        if self.0.at_end() {
             return None;
         }
 
@@ -84,20 +71,20 @@ impl<'a> Iterator for StyleParser<'a> {
             }
         }
 
-        let c = try2!(self.stream.curr_byte());
+        let c = try2!(self.0.curr_byte());
         if c == b'/' {
-            try2!(skip_comment(&mut self.stream));
+            try2!(skip_comment(&mut self.0));
             self.next()
         } else if c == b'-' {
-            try2!(parse_prefix(&mut self.stream));
+            try2!(parse_prefix(&mut self.0));
             self.next()
-        } else if is_ident_char(c) {
-            Some(parse_attribute(&mut self.stream))
+        } else if c.is_ident_char() {
+            Some(parse_attribute(&mut self.0))
         } else {
             // TODO: use custom error type
-            let pos = self.stream.gen_error_pos();
-            self.stream.jump_to_end();
-            Some(Err(StreamError::InvalidChar(vec![c, b'/', b'-'], pos).into()))
+            let pos = self.0.calc_char_pos();
+            self.0.jump_to_end();
+            Some(Err(Error::InvalidChar(vec![c, b'/', b'-'], pos).into()))
         }
     }
 }
@@ -111,13 +98,13 @@ fn skip_comment(stream: &mut Stream) -> Result<()> {
     Ok(())
 }
 
-fn parse_attribute<'a>(stream: &mut Stream<'a>) -> Result<(StrSpan<'a>, StrSpan<'a>)> {
-    let name = stream.consume_bytes(|_, c| is_ident_char(c));
+fn parse_attribute<'a>(stream: &mut Stream<'a>) -> Result<(&'a str, &'a str)> {
+    let name = stream.consume_ident();
 
     if name.is_empty() {
         // TODO: this
         // The error type is irrelevant because we will ignore it anyway.
-        return Err(StreamError::UnexpectedEndOfStream.into());
+        return Err(Error::UnexpectedEndOfStream.into());
     }
 
     stream.skip_spaces();
@@ -129,17 +116,12 @@ fn parse_attribute<'a>(stream: &mut Stream<'a>) -> Result<(StrSpan<'a>, StrSpan<
         let v = stream.consume_bytes(|_, c| c != b'\'');
         stream.consume_byte(b'\'')?;
         v
-    } else if stream.starts_with(b"&apos;") {
-        stream.advance(6);
-        let v = stream.consume_bytes(|_, c| c != b'&');
-        stream.skip_string(b"&apos;")?;
-        v
     } else {
         stream.consume_bytes(|_, c| c != b';' && c != b'/')
     }.trim();
 
     if value.len() == 0 {
-        return Err(StreamError::UnexpectedEndOfStream.into());
+        return Err(Error::UnexpectedEndOfStream.into());
     }
 
     stream.skip_spaces();
@@ -163,18 +145,6 @@ fn parse_prefix(stream: &mut Stream) -> Result<()> {
     Ok(())
 }
 
-// TODO: to xmlparser traits
-fn is_ident_char(c: u8) -> bool {
-    match c {
-        b'0'...b'9'
-        | b'A'...b'Z'
-        | b'a'...b'z'
-        | b'-'
-        | b'_' => true,
-        _ => false,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -186,8 +156,8 @@ mod tests {
                 let mut s = StyleParser::from($text);
                 $(
                     let (name, value) = s.next().unwrap().unwrap();
-                    assert_eq!(name.to_str(), $aname);
-                    assert_eq!(value.to_str(), $avalue);
+                    assert_eq!(name, $aname);
+                    assert_eq!(value, $avalue);
                 )*
 
                 assert_eq!(s.next().is_none(), true);
@@ -224,19 +194,11 @@ mod tests {
         ("fill", "none")
     );
 
-    test!(parse_7, "font-family:&apos;Verdana&apos;",
-        ("font-family", "Verdana")
-    );
-
     test!(parse_8, "  fill  :  none  ",
         ("fill", "none")
     );
 
     test!(parse_10, "/**/", );
-
-    test!(parse_11, "font-family:Cantarell;-inkscape-font-specification:&apos;Cantarell Bold&apos;",
-        ("font-family", "Cantarell")
-    );
 
     // TODO: technically incorrect, because value with spaces should be quoted
     test!(parse_12, "font-family:Neue Frutiger 65",
@@ -255,7 +217,7 @@ mod tests {
     fn parse_err_1() {
         let mut s = StyleParser::from(":");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected '/', '-' not ':' at 1:1");
+                   "expected '/', '-' not ':' at position 1");
     }
 
     #[test]
@@ -269,7 +231,7 @@ mod tests {
     fn parse_err_3() {
         let mut s = StyleParser::from("&\x0a96M*9");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected '/', '-' not '&' at 1:1");
+                   "expected '/', '-' not '&' at position 1");
     }
 
     #[test]
@@ -282,13 +244,23 @@ mod tests {
     fn parse_err_5() {
         let mut s = StyleParser::from("&#x4B2ƿ  ;");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected '/', '-' not '&' at 1:1");
+                   "expected '/', '-' not '&' at position 1");
     }
 
     #[test]
     fn parse_err_6() {
         let mut s = StyleParser::from("{");
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
-                   "expected '/', '-' not '{' at 1:1");
+                   "expected '/', '-' not '{' at position 1");
+    }
+
+    #[test]
+    fn parse_err_7() {
+        // Non-ASCII text and error pos.
+
+        let mut s = StyleParser::from("fill:красный;&");
+        s.next();
+        assert_eq!(s.next().unwrap().unwrap_err().to_string(),
+                   "expected '/', '-' not '&' at position 14");
     }
 }

@@ -77,12 +77,13 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 ## Benefits
 
 - Complete support of paths, so data like `M10-20A5.5.3-4 110-.1` will be parsed correctly.
-- Good error processing. All error types contain position (line:column) where it occurred.
 - Access to pull-based parsers.
 - Pretty fast.
 
 ## Limitations
 
+- Accepts only [normalized](https://www.w3.org/TR/REC-xml/#AVNormalize) values,
+  e.g. an input text should not contains `&#x20;` or `&data;`.
 - All keywords must be lowercase.
   Case-insensitive parsing is supported only for colors (requires allocation for named colors).
 - The `<color>` followed by the `<icccolor>` is not supported. As the `<icccolor>` itself.
@@ -119,7 +120,6 @@ None.
 #![deny(missing_copy_implementations)]
 
 
-pub extern crate xmlparser;
 extern crate float_cmp;
 extern crate phf;
 #[macro_use] extern crate log;
@@ -139,17 +139,10 @@ mod options;
 mod paint;
 mod path;
 mod points;
-mod streamext;
+mod stream;
 mod style;
 mod transform;
 mod viewbox;
-
-
-pub use xmlparser::{
-    TextPos,
-    Stream,
-    StrSpan,
-};
 
 pub use aspect_ratio::*;
 pub use attribute_id::*;
@@ -164,7 +157,7 @@ pub use options::*;
 pub use paint::*;
 pub use path::*;
 pub use points::*;
-pub use streamext::*;
+pub use stream::*;
 pub use style::*;
 pub use traits::*;
 pub use transform::*;

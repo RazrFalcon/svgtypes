@@ -18,9 +18,6 @@ travis-ci = { repository = "RazrFalcon/svgtypes" }
 float-cmp = "0.4"
 log = "0.4"
 phf = "0.7.23"
-xmlparser = "0.6"
-#xmlparser = { git = "https://github.com/RazrFalcon/xmlparser", rev = "0946aac" }
-#xmlparser = { path = "../xmlparser" }
 
 [lib]
 path = "src/lib.rs" # for cargo-readme

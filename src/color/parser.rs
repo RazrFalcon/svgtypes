@@ -7,27 +7,22 @@
 // except according to those terms.
 
 use std::cmp;
-
-use xmlparser::{
-    XmlByteExt,
-};
+use std::str::FromStr;
 
 use super::colors;
 
 use {
-    Stream,
-    StrSpan,
-    Result,
+    Color,
     Error,
     LengthUnit,
-    StreamExt,
-    Color,
-    FromSpan,
+    Result,
+    Stream,
+    XmlByteExt,
 };
 
-impl_from_str!(Color);
+impl FromStr for Color {
+    type Err = Error;
 
-impl FromSpan for Color {
     /// Parses `Color` from `StrSpan`.
     ///
     /// Parsing is done according to [spec]:
@@ -57,18 +52,15 @@ impl FromSpan for Color {
     ///
     /// [spec]: http://www.w3.org/TR/SVG/types.html#DataTypeColor
     /// [details]: https://lists.w3.org/Archives/Public/www-svg/2014Jan/0109.html
-    fn from_span(span: StrSpan) -> Result<Self> {
-        let mut s = Stream::from(span);
-
+    fn from_str(text: &str) -> Result<Self> {
+        let mut s = Stream::from(text);
         s.skip_spaces();
-
-        let start = s.pos();
 
         let mut color = Color::black();
 
         if s.curr_byte()? == b'#' {
             s.advance(1);
-            let color_str = s.consume_bytes(|_, c| c.is_xml_hex_digit()).to_str().as_bytes();
+            let color_str = s.consume_bytes(|_, c| c.is_xml_hex_digit()).as_bytes();
             // get color data len until first space or stream end
             match color_str.len() {
                 6 => {
@@ -84,7 +76,7 @@ impl FromSpan for Color {
                     color.blue = short_hex(color_str[2]);
                 }
                 _ => {
-                    return Err(Error::InvalidColor(s.gen_error_pos_from(start)));
+                    return Err(Error::InvalidValue);
                 }
             }
         } else if is_rgb(&s) {
@@ -111,13 +103,14 @@ impl FromSpan for Color {
             s.skip_spaces();
             s.consume_byte(b')')?;
         } else {
-            let name = s.consume_name()?.to_str().to_lowercase();
+            // TODO: use str::eq_ignore_ascii_case after 1.23
+            let name = s.consume_ident().to_lowercase();
             match colors::from_str(&name) {
                 Some(c) => {
                     color = c;
                 }
                 None => {
-                    return Err(Error::InvalidColor(s.gen_error_pos_from(start)));
+                    return Err(Error::InvalidValue);
                 }
             }
         }
@@ -127,7 +120,7 @@ impl FromSpan for Color {
         s.skip_spaces();
         if !s.at_end() {
             // TODO: to UnsupportedColor
-            return Err(Error::InvalidColor(s.gen_error_pos()));
+            return Err(Error::UnexpectedData(s.calc_char_pos()));
         }
 
         Ok(color)
@@ -159,7 +152,7 @@ fn hex_pair(c1: u8, c2: u8) -> u8 {
 
 fn is_rgb(s: &Stream) -> bool {
     let mut s = s.clone();
-    let prefix = s.consume_bytes(|_, c| c != b'(').to_str();
+    let prefix = s.consume_bytes(|_, c| c != b'(');
     if s.consume_byte(b'(').is_err() {
         return false;
     }
@@ -298,19 +291,19 @@ mod tests {
     test_err!(
         not_a_color_1,
         "text",
-        "invalid color at 1:1"
+        "invalid value"
     );
 
     test_err!(
         icc_color_not_supported_1,
         "#CD853F icc-color(acmecmyk, 0.11, 0.48, 0.83, 0.00)",
-        "invalid color at 1:9"
+        "unexpected data at position 9"
     );
 
     test_err!(
         icc_color_not_supported_2,
         "red icc-color(acmecmyk, 0.11, 0.48, 0.83, 0.00)",
-        "invalid color at 1:5"
+        "unexpected data at position 5"
     );
 
     test_err!(
@@ -322,6 +315,6 @@ mod tests {
     test_err!(
         invalid_input_2,
         "#9ߞpx! ;",
-        "invalid color at 1:1"
+        "invalid value"
     );
 }

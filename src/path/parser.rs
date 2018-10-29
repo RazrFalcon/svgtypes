@@ -6,17 +6,14 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-use {
-    Stream,
-    FromSpan,
-    Error,
-    StrSpan,
-    StreamExt,
-};
+use std::str::FromStr;
 
-use super::{
+use {
+    Error,
     Path,
     PathSegment,
+    Result,
+    Stream,
 };
 
 macro_rules! try_opt {
@@ -28,11 +25,11 @@ macro_rules! try_opt {
     }
 }
 
-impl_from_str!(Path);
+impl FromStr for Path {
+    type Err = Error;
 
-impl FromSpan for Path {
-    fn from_span(span: StrSpan) -> Result<Path, Self::Err> {
-        let tokens = PathParser::from(span);
+    fn from_str(text: &str) -> Result<Self> {
+        let tokens = PathParser::from(text);
         Ok(Path(tokens.collect()))
     }
 }
@@ -76,14 +73,8 @@ pub struct PathParser<'a> {
 
 impl<'a> From<&'a str> for PathParser<'a> {
     fn from(v: &'a str) -> Self {
-        Self::from(StrSpan::from(v))
-    }
-}
-
-impl<'a> From<StrSpan<'a>> for PathParser<'a> {
-    fn from(span: StrSpan<'a>) -> Self {
         PathParser {
-            stream: Stream::from(span),
+            stream: Stream::from(v),
             prev_cmd: None,
         }
     }
@@ -103,10 +94,8 @@ impl<'a> Iterator for PathParser<'a> {
 
         macro_rules! data_error {
             () => ({
-                warn!(
-                    "Invalid path data at {}. The remaining data is ignored.",
-                    s.gen_error_pos()
-                );
+                warn!("Invalid path data at {}. The remaining data is ignored.",
+                      s.calc_char_pos());
                 s.jump_to_end();
                 return None;
             })
