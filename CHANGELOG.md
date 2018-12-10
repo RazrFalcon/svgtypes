@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `StrSpan`. All strings are `&str` now.
 - `TextPos`. All errors have position in characters now.
 - `xmlparser` dependency.
+- `log` dependency.
 
 ## [0.2.0] - 2018-09-12
 ### Added

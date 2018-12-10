@@ -139,8 +139,7 @@ fn parse_prefix(stream: &mut Stream) -> Result<()> {
     // prefixed attributes are not supported, aka '-webkit-*'
 
     stream.advance(1); // -
-    let (name, _) = parse_attribute(stream)?;
-    warn!("Style attribute '-{}' is skipped.", name);
+    let _ = parse_attribute(stream)?;
 
     Ok(())
 }

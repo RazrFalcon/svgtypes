@@ -16,7 +16,6 @@ travis-ci = { repository = "RazrFalcon/svgtypes" }
 
 [dependencies]
 float-cmp = "0.4"
-log = "0.4"
 phf = "0.7.23"
 
 [lib]

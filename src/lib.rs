@@ -122,7 +122,6 @@ None.
 
 extern crate float_cmp;
 extern crate phf;
-#[macro_use] extern crate log;
 
 
 #[macro_use] mod traits;
