@@ -16,21 +16,20 @@ use {
     Stream,
 };
 
-macro_rules! try_opt {
-    ($expr: expr) => {
-        match $expr {
-            Some(value) => value,
-            None => return None
-        }
-    }
-}
 
 impl FromStr for Path {
     type Err = Error;
 
     fn from_str(text: &str) -> Result<Self> {
-        let tokens = PathParser::from(text);
-        Ok(Path(tokens.collect()))
+        let mut data = Vec::new();
+        for token in PathParser::from(text) {
+            match token {
+                Ok(token) => data.push(token),
+                Err(_) => break,
+            }
+        }
+
+        Ok(Path(data))
     }
 }
 
@@ -38,10 +37,7 @@ impl FromStr for Path {
 ///
 /// # Errors
 ///
-/// By the SVG spec any invalid data inside the path data should stop parsing of this path,
-/// but not the whole document. So the parser will stop on the first invalid data.
-///
-/// Example: `M 10 20 L 30 40 #!@$1 L 50 60` -> `M 10 20 L 30 40`
+/// - Most of the `Error` types can occur.
 ///
 /// # Notes
 ///
@@ -56,12 +52,17 @@ impl FromStr for Path {
 /// ```rust
 /// use svgtypes::{PathParser, PathSegment};
 ///
-/// let mut p = PathParser::from("M10-20l30.1.5.1-20z");
-/// assert_eq!(p.next(), Some(PathSegment::MoveTo { abs: true, x: 10.0, y: -20.0 } ));
-/// assert_eq!(p.next(), Some(PathSegment::LineTo { abs: false, x: 30.1, y: 0.5 } ));
-/// assert_eq!(p.next(), Some(PathSegment::LineTo { abs: false, x: 0.1, y: -20.0 } ));
-/// assert_eq!(p.next(), Some(PathSegment::ClosePath { abs: false } ));
-/// assert_eq!(p.next(), None);
+/// let mut segments = Vec::new();
+/// for segment in PathParser::from("M10-20l30.1.5.1-20z") {
+///     segments.push(segment.unwrap());
+/// }
+///
+/// assert_eq!(segments, &[
+///     PathSegment::MoveTo { abs: true, x: 10.0, y: -20.0 },
+///     PathSegment::LineTo { abs: false, x: 30.1, y: 0.5 },
+///     PathSegment::LineTo { abs: false, x: 0.1, y: -20.0 },
+///     PathSegment::ClosePath { abs: false },
+/// ]);
 /// ```
 ///
 /// [path data]: https://www.w3.org/TR/SVG11/paths.html#PathData
@@ -81,7 +82,7 @@ impl<'a> From<&'a str> for PathParser<'a> {
 }
 
 impl<'a> Iterator for PathParser<'a> {
-    type Item = PathSegment;
+    type Item = Result<PathSegment>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let s = &mut self.stream;
@@ -92,178 +93,160 @@ impl<'a> Iterator for PathParser<'a> {
             return None;
         }
 
-        macro_rules! data_error {
-            () => ({
-                warn!("Invalid path data at {}. The remaining data is ignored.",
-                      s.calc_char_pos());
-                s.jump_to_end();
-                return None;
-            })
-        }
-
-        macro_rules! try_num {
-            ($expr:expr) => (
-                match $expr {
-                    Ok(v) => v,
-                    Err(_) => data_error!(),
-                }
-            )
-        }
-
-        macro_rules! parse_num {
-            () => ( try_num!(s.parse_list_number()); )
-        }
-
-        let has_prev_cmd = self.prev_cmd.is_some();
-        let first_char = s.curr_byte().unwrap(); // TODO: remove unwrap
-
-        if !has_prev_cmd && !is_cmd(first_char) {
-            warn!("'{}' is not a command. \
-                   The remaining data is ignored.", first_char as char);
+        let res = next_impl(s, &mut self.prev_cmd);
+        if res.is_err() {
             s.jump_to_end();
-            return None;
         }
 
-        if !has_prev_cmd {
-            match first_char {
-                b'M' | b'm' => {}
-                _ => {
-                    warn!("First segment must be MoveTo. \
-                           The remaining data is ignored.");
-                    s.jump_to_end();
-                    return None;
-                }
-            }
-        }
-
-        // TODO: simplify
-        let is_implicit_move_to;
-        let cmd: u8;
-        if is_cmd(first_char) {
-            is_implicit_move_to = false;
-            cmd = first_char;
-            s.advance(1);
-        } else if is_digit(first_char) && has_prev_cmd {
-            // unwrap is safe, because we checked 'has_prev_cmd'
-            let prev_cmd = self.prev_cmd.unwrap();
-
-            if prev_cmd == b'Z' || prev_cmd == b'z' {
-                warn!("ClosePath cannot be followed by a number. \
-                       The remaining data is ignored.");
-                s.jump_to_end();
-                return None;
-            }
-
-            if prev_cmd == b'M' || prev_cmd == b'm' {
-                // 'If a moveto is followed by multiple pairs of coordinates,
-                // the subsequent pairs are treated as implicit lineto commands.'
-                // So we parse them as LineTo.
-                is_implicit_move_to = true;
-                cmd = if is_absolute(prev_cmd) { b'L' } else { b'l' };
-            } else {
-                is_implicit_move_to = false;
-                cmd = prev_cmd;
-            }
-        } else {
-            data_error!();
-        }
-
-        let cmdl = to_relative(cmd);
-        let absolute = is_absolute(cmd);
-        let token = match cmdl {
-            b'm' => {
-                PathSegment::MoveTo {
-                    abs: absolute,
-                    x: parse_num!(),
-                    y: parse_num!(),
-                }
-            }
-            b'l' => {
-                PathSegment::LineTo {
-                    abs: absolute,
-                    x: parse_num!(),
-                    y: parse_num!(),
-                }
-            }
-            b'h' => {
-                PathSegment::HorizontalLineTo {
-                    abs: absolute,
-                    x: parse_num!(),
-                }
-            }
-            b'v' => {
-                PathSegment::VerticalLineTo {
-                    abs: absolute,
-                    y: parse_num!(),
-                }
-            }
-            b'c' => {
-                PathSegment::CurveTo {
-                    abs: absolute,
-                    x1: parse_num!(),
-                    y1: parse_num!(),
-                    x2: parse_num!(),
-                    y2: parse_num!(),
-                    x:  parse_num!(),
-                    y:  parse_num!(),
-                }
-            }
-            b's' => {
-                PathSegment::SmoothCurveTo {
-                    abs: absolute,
-                    x2: parse_num!(),
-                    y2: parse_num!(),
-                    x:  parse_num!(),
-                    y:  parse_num!(),
-                }
-            }
-            b'q' => {
-                PathSegment::Quadratic {
-                    abs: absolute,
-                    x1: parse_num!(),
-                    y1: parse_num!(),
-                    x:  parse_num!(),
-                    y:  parse_num!(),
-                }
-            }
-            b't' => {
-                PathSegment::SmoothQuadratic {
-                    abs: absolute,
-                    x: parse_num!(),
-                    y: parse_num!(),
-                }
-            }
-            b'a' => {
-                // TODO: radius cannot be negative
-                PathSegment::EllipticalArc {
-                    abs: absolute,
-                    rx: parse_num!(),
-                    ry: parse_num!(),
-                    x_axis_rotation: parse_num!(),
-                    large_arc: try_opt!(parse_flag(s)),
-                    sweep: try_opt!(parse_flag(s)),
-                    x: parse_num!(),
-                    y: parse_num!(),
-                }
-            }
-            b'z' => {
-                PathSegment::ClosePath {
-                    abs: absolute,
-                }
-            }
-            _ => unreachable!(),
-        };
-
-        self.prev_cmd = Some(
-            if is_implicit_move_to {
-                if is_absolute(cmd) { b'M' } else { b'm' }
-            } else {
-                cmd
-            }
-        );
-
-        Some(token)
+        Some(res)
     }
+}
+
+fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment> {
+    let start = s.pos();
+
+    let has_prev_cmd = prev_cmd.is_some();
+    let first_char = s.curr_byte_unchecked();
+
+    if !has_prev_cmd && !is_cmd(first_char) {
+        return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
+    }
+
+    if !has_prev_cmd {
+        match first_char {
+            b'M' | b'm' => {}
+            _ => {
+                // The first segment must be a MoveTo.
+                return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
+            }
+        }
+    }
+
+    // TODO: simplify
+    let is_implicit_move_to;
+    let cmd: u8;
+    if is_cmd(first_char) {
+        is_implicit_move_to = false;
+        cmd = first_char;
+        s.advance(1);
+    } else if is_digit(first_char) && has_prev_cmd {
+        // unwrap is safe, because we checked 'has_prev_cmd'
+        let p_cmd = prev_cmd.unwrap();
+
+        if p_cmd == b'Z' || p_cmd == b'z' {
+            // ClosePath cannot be followed by a number.
+            return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
+        }
+
+        if p_cmd == b'M' || p_cmd == b'm' {
+            // 'If a moveto is followed by multiple pairs of coordinates,
+            // the subsequent pairs are treated as implicit lineto commands.'
+            // So we parse them as LineTo.
+            is_implicit_move_to = true;
+            cmd = if is_absolute(p_cmd) { b'L' } else { b'l' };
+        } else {
+            is_implicit_move_to = false;
+            cmd = p_cmd;
+        }
+    } else {
+        return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
+    }
+
+    let cmdl = to_relative(cmd);
+    let absolute = is_absolute(cmd);
+    let token = match cmdl {
+        b'm' => {
+            PathSegment::MoveTo {
+                abs: absolute,
+                x: s.parse_list_number()?,
+                y: s.parse_list_number()?,
+            }
+        }
+        b'l' => {
+            PathSegment::LineTo {
+                abs: absolute,
+                x: s.parse_list_number()?,
+                y: s.parse_list_number()?,
+            }
+        }
+        b'h' => {
+            PathSegment::HorizontalLineTo {
+                abs: absolute,
+                x: s.parse_list_number()?,
+            }
+        }
+        b'v' => {
+            PathSegment::VerticalLineTo {
+                abs: absolute,
+                y: s.parse_list_number()?,
+            }
+        }
+        b'c' => {
+            PathSegment::CurveTo {
+                abs: absolute,
+                x1: s.parse_list_number()?,
+                y1: s.parse_list_number()?,
+                x2: s.parse_list_number()?,
+                y2: s.parse_list_number()?,
+                x:  s.parse_list_number()?,
+                y:  s.parse_list_number()?,
+            }
+        }
+        b's' => {
+            PathSegment::SmoothCurveTo {
+                abs: absolute,
+                x2: s.parse_list_number()?,
+                y2: s.parse_list_number()?,
+                x:  s.parse_list_number()?,
+                y:  s.parse_list_number()?,
+            }
+        }
+        b'q' => {
+            PathSegment::Quadratic {
+                abs: absolute,
+                x1: s.parse_list_number()?,
+                y1: s.parse_list_number()?,
+                x:  s.parse_list_number()?,
+                y:  s.parse_list_number()?,
+            }
+        }
+        b't' => {
+            PathSegment::SmoothQuadratic {
+                abs: absolute,
+                x: s.parse_list_number()?,
+                y: s.parse_list_number()?,
+            }
+        }
+        b'a' => {
+            // TODO: radius cannot be negative
+            PathSegment::EllipticalArc {
+                abs: absolute,
+                rx: s.parse_list_number()?,
+                ry: s.parse_list_number()?,
+                x_axis_rotation: s.parse_list_number()?,
+                large_arc: parse_flag(s)?,
+                sweep: parse_flag(s)?,
+                x: s.parse_list_number()?,
+                y: s.parse_list_number()?,
+            }
+        }
+        b'z' => {
+            PathSegment::ClosePath {
+                abs: absolute,
+            }
+        }
+        _ => unreachable!(),
+    };
+
+    *prev_cmd = Some(
+        if is_implicit_move_to {
+            if is_absolute(cmd) { b'M' } else { b'm' }
+        } else {
+            cmd
+        }
+    );
+
+    Ok(token)
 }
 
 /// Returns `true` if the selected char is the command.
@@ -328,22 +311,22 @@ fn is_digit(c: u8) -> bool {
 
 // By the SVG spec 'large-arc' and 'sweep' must contain only one char
 // and can be written without any separators, aka: 10 20 30 01 10 20.
-fn parse_flag(s: &mut Stream) -> Option<bool> {
+fn parse_flag(s: &mut Stream) -> Result<bool> {
     s.skip_spaces();
-    let c = try_opt!(s.curr_byte().ok());
+    let start = s.pos();
+    let c = s.curr_byte()?;
     match c {
         b'0' | b'1' => {
             s.advance(1);
-            if try_opt!(s.curr_byte().ok()) == b',' {
+            if s.curr_byte()? == b',' {
                 s.advance(1);
             }
             s.skip_spaces();
 
-            Some(c == b'1')
+            Ok(c == b'1')
         }
         _ => {
-            // error type is not relevant since it will be ignored
-            None
+            Err(Error::UnexpectedData(s.calc_char_pos_at(start)))
         }
     }
 }
@@ -358,10 +341,12 @@ mod tests {
             fn $name() {
                 let mut s = PathParser::from($text);
                 $(
-                    assert_eq!(s.next().unwrap(), $seg);
+                    assert_eq!(s.next().unwrap().unwrap(), $seg);
                 )*
 
-                assert_eq!(s.next().is_none(), true);
+                if let Some(res) = s.next() {
+                    assert!(res.is_err());
+                }
             }
         )
     }

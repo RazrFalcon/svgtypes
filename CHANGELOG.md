@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
+- `PathParser` will return `Result<PathSegment>` instead of `PathSegment` from now.
 - `Error` was rewritten.
 
 ### Removed
