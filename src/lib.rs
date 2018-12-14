@@ -69,7 +69,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 [\<style\>]: https://www.w3.org/TR/SVG11/styling.html#StyleAttribute
 [\<paint\>]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
 
-- All types implement from string (`FromStr`, `FromSpan`) and
+- All types implement from string (`FromStr`) and
   to string traits (`Display`, `WriteBuffer`).
 - The library doesn't store transform list as is. It will premultiplied.
 - `style` and `paint` types can only be parsed.
@@ -83,7 +83,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 ## Limitations
 
 - Accepts only [normalized](https://www.w3.org/TR/REC-xml/#AVNormalize) values,
-  e.g. an input text should not contains `&#x20;` or `&data;`.
+  e.g. an input text should not contain `&#x20;` or `&data;`.
 - All keywords must be lowercase.
   Case-insensitive parsing is supported only for colors (requires allocation for named colors).
 - The `<color>` followed by the `<icccolor>` is not supported. As the `<icccolor>` itself.

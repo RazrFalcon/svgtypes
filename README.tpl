@@ -11,8 +11,6 @@ This crate is a successor for the [`svgparser`](https://github.com/RazrFalcon/sv
 but it differs from it in many ways.
 
 - There is no XML parser or writer. You can use any you like.
-  But since it depends on [`xmlparser`](https://github.com/RazrFalcon/xmlparser)
-  and reexports it - you can use it too.
 - Unlike the `svgparser` this crate not only parse values but can also store and write them.
   Currently, it has a minimal API for manipulating this values.
 - No [`AttributeValue`](https://docs.rs/svgparser/0.8.0/svgparser/enum.AttributeValue.html).
@@ -20,16 +18,9 @@ but it differs from it in many ways.
 - No [`ValueId`](https://docs.rs/svgparser/0.8.0/svgparser/enum.ValueId.html).
   It's up to you how to store those values.
 
-### Usage
+### Dependency
 
-Dependency: [Rust](https://www.rust-lang.org/) >= 1.18
-
-Add this to your `Cargo.toml`:
-
-```toml
-[dependencies]
-{{crate}} = "0.2"
-```
+[Rust](https://www.rust-lang.org/) >= 1.18
 
 ### License
 
