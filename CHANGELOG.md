@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- `Length::from_str` will return an error if an input string has trailing data now.
+  So length like `1mmx` was previously parsed without errors.
 
 ## [0.3.0] - 2018-12-13
 ### Changed

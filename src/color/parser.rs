@@ -119,7 +119,6 @@ impl FromStr for Color {
         // which is not supported.
         s.skip_spaces();
         if !s.at_end() {
-            // TODO: to UnsupportedColor
             return Err(Error::UnexpectedData(s.calc_char_pos()));
         }
 

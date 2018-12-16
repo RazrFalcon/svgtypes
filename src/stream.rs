@@ -717,17 +717,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn integer_1() {
+    fn parse_integer_1() {
         let mut s = Stream::from("10");
         assert_eq!(s.parse_integer().unwrap(), 10);
     }
 
     #[test]
-    fn integer_err_1() {
+    fn parse_err_integer_1() {
         // error because of overflow
         let mut s = Stream::from("10000000000000");
         assert_eq!(s.parse_integer().unwrap_err().to_string(),
                    "invalid number at position 1");
+    }
+
+    #[test]
+    fn parse_length_1() {
+        let mut s = Stream::from("1,");
+        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
+    }
+
+    #[test]
+    fn parse_length_2() {
+        let mut s = Stream::from("1 ,");
+        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
+    }
+
+    #[test]
+    fn parse_length_3() {
+        let mut s = Stream::from("1 1");
+        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
     }
 
     #[test]

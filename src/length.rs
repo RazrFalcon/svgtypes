@@ -69,8 +69,13 @@ impl FromStr for Length {
     type Err = Error;
 
     fn from_str(text: &str) -> Result<Self> {
-        let mut ss = Stream::from(text);
-        let l = ss.parse_length()?;
+        let mut s = Stream::from(text);
+        let l = s.parse_length()?;
+
+        if !s.at_end() {
+            return Err(Error::UnexpectedData(s.calc_char_pos()));
+        }
+
         Ok(Length::new(l.num, l.unit))
     }
 }
@@ -132,12 +137,9 @@ mod tests {
     test_p!(parse_8,  "1pt", Length::new(1.0, LengthUnit::Pt));
     test_p!(parse_9,  "1pc", Length::new(1.0, LengthUnit::Pc));
     test_p!(parse_10, "1%",  Length::new(1.0, LengthUnit::Percent));
-    test_p!(parse_11, "1,",  Length::new(1.0, LengthUnit::None));
-    test_p!(parse_12, "1 ,", Length::new(1.0, LengthUnit::None));
-    test_p!(parse_13, "1 1", Length::new(1.0, LengthUnit::None));
-    test_p!(parse_14, "1e0", Length::new(1.0, LengthUnit::None));
-    test_p!(parse_15, "1.0e0", Length::new(1.0, LengthUnit::None));
-    test_p!(parse_16, "1.0e0em", Length::new(1.0, LengthUnit::Em));
+    test_p!(parse_11, "1e0", Length::new(1.0, LengthUnit::None));
+    test_p!(parse_12, "1.0e0", Length::new(1.0, LengthUnit::None));
+    test_p!(parse_13, "1.0e0em", Length::new(1.0, LengthUnit::Em));
 
     #[test]
     fn err_1() {
@@ -145,6 +147,12 @@ mod tests {
         assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
         assert_eq!(s.parse_length().unwrap_err().to_string(),
                    "invalid number at position 2");
+    }
+
+    #[test]
+    fn err_2() {
+        assert_eq!(Length::from_str("1mmx").unwrap_err().to_string(),
+                   "unexpected data at position 4");
     }
 
     macro_rules! test_w {
