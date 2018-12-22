@@ -52,6 +52,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 | [\<color\>]               | Color         | Stack   |                     |
 | [\<number\>]              | f64           | Stack   |                     |
 | [\<length\>]              | Length        | Stack   |                     |
+| [\<angle\>]               | Angle         | Stack   |                     |
 | [\<viewBox\>]             | ViewBox       | Stack   |                     |
 | [\<path\>]                | Path          | Heap    | PathParser          |
 | [\<list-of-numbers\>]     | NumberList    | Heap    | NumberListParser    |
@@ -64,6 +65,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 [\<color\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
 [\<number\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeNumber
 [\<length\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeLength
+[\<angle\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeAngle
 [\<viewBox\>]: https://www.w3.org/TR/SVG11/coords.html#ViewBoxAttribute
 [\<path\>]: https://www.w3.org/TR/SVG11/paths.html#PathData
 [\<list-of-numbers\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeList

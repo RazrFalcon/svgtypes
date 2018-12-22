@@ -125,6 +125,7 @@ extern crate phf;
 
 
 #[macro_use] mod traits;
+mod angle;
 mod aspect_ratio;
 mod attribute_id;
 mod color;
@@ -143,6 +144,7 @@ mod style;
 mod transform;
 mod viewbox;
 
+pub use angle::*;
 pub use aspect_ratio::*;
 pub use attribute_id::*;
 pub use color::*;

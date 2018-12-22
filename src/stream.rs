@@ -11,6 +11,8 @@ use std::str::{self, FromStr};
 use std::cmp;
 
 use {
+    Angle,
+    AngleUnit,
     Error,
     Length,
     LengthUnit,
@@ -648,6 +650,38 @@ impl<'a> Stream<'a> {
         self.skip_spaces();
         parse_list_separator(self);
         Ok(l)
+    }
+
+    /// Parses angle from the stream.
+    ///
+    /// <https://www.w3.org/TR/SVG11/types.html#DataTypeAngle>
+    ///
+    /// # Notes
+    ///
+    /// - Suffix must be lowercase, otherwise it will be an error.
+    pub fn parse_angle(&mut self) -> Result<Angle> {
+        self.skip_spaces();
+
+        let n = self.parse_number()?;
+
+        if self.at_end() {
+            return Ok(Angle::new(n, AngleUnit::Degrees));
+        }
+
+        let u = if self.starts_with(b"deg") {
+            self.advance(3);
+            AngleUnit::Degrees
+        } else if self.starts_with(b"grad") {
+            self.advance(4);
+            AngleUnit::Gradians
+        } else if self.starts_with(b"rad") {
+            self.advance(3);
+            AngleUnit::Radians
+        } else {
+            AngleUnit::Degrees
+        };
+
+        Ok(Angle::new(n, u))
     }
 
     /// Skips digits.

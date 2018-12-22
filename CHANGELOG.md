@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- An [`angle`](https://www.w3.org/TR/SVG11/types.html#DataTypeAngle) value type.
+
 ### Changed
 - `Length::from_str` will return an error if an input string has trailing data now.
   So length like `1mmx` was previously parsed without errors.
