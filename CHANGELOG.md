@@ -5,11 +5,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.4.0] - 2018-01-02
 ### Added
 - An [`angle`](https://www.w3.org/TR/SVG11/types.html#DataTypeAngle) value type.
 
 ### Changed
-- `Length::from_str` will return an error if an input string has trailing data now.
+- `Length::from_str` will return an error if an input string has trailing data.
   So length like `1mmx` was previously parsed without errors.
 
 ## [0.3.0] - 2018-12-13
@@ -50,7 +52,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `Paint::from_span` poor performance.
 
-[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/RazrFalcon/svgtypes/compare/v0.1.0...v0.1.1

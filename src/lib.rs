@@ -111,7 +111,7 @@ None.
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#![doc(html_root_url = "https://docs.rs/svgtypes/0.3.0")]
+#![doc(html_root_url = "https://docs.rs/svgtypes/0.4.0")]
 
 
 #![forbid(unsafe_code)]
