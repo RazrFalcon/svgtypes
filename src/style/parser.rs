@@ -65,6 +65,7 @@ impl<'a> Iterator for StyleParser<'a> {
                 match $expr {
                     Ok(value) => value,
                     Err(e) => {
+                        self.0.jump_to_end();
                         return Some(Err(e.into()));
                     }
                 }
@@ -117,7 +118,23 @@ fn parse_attribute<'a>(stream: &mut Stream<'a>) -> Result<(&'a str, &'a str)> {
         stream.consume_byte(b'\'')?;
         v
     } else {
-        stream.consume_bytes(|_, c| c != b';' && c != b'/')
+        let start = stream.pos();
+        loop {
+            stream.consume_bytes(|_, c| c != b';' && c != b'/');
+
+            // Check that current `/` is a start of a comment and not just a slash.
+            if let Ok(b'/') = stream.curr_byte() {
+                if let Ok(b'*') = stream.next_byte() {
+                    break;
+                } else {
+                    stream.advance(1);
+                }
+            } else {
+                break;
+            }
+        }
+
+        stream.slice_back(start)
     }.trim();
 
     if value.len() == 0 {
@@ -212,6 +229,14 @@ mod tests {
         ("fill", "green")
     );
 
+    test!(parse_15, "fill:url(#q/w)",
+        ("fill", "url(#q/w)")
+    );
+
+    test!(parse_16, "fill:#q/",
+        ("fill", "#q/")
+    );
+
     #[test]
     fn parse_err_1() {
         let mut s = StyleParser::from(":");
@@ -261,5 +286,13 @@ mod tests {
         s.next();
         assert_eq!(s.next().unwrap().unwrap_err().to_string(),
                    "expected '/', '-' not '&' at position 14");
+    }
+
+    #[test]
+    fn parse_err_8() {
+        let mut s = StyleParser::from("fill:#q/*");
+        s.next();
+        assert_eq!(s.next().unwrap().unwrap_err().to_string(),
+                   "unexpected end of stream");
     }
 }

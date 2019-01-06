@@ -345,7 +345,12 @@ impl<'a> Stream<'a> {
     /// # Errors
     ///
     /// - `InvalidChar`
+    /// - `UnexpectedEndOfStream`
     pub fn skip_string(&mut self, text: &[u8]) -> Result<()> {
+        if self.at_end() {
+            return Err(Error::UnexpectedEndOfStream);
+        }
+
         if !self.starts_with(text) {
             let len = cmp::min(text.len(), self.text.len() - self.pos);
             // Collect chars and do not slice a string,
@@ -691,7 +696,7 @@ impl<'a> Stream<'a> {
 
     /// Parses a [IRI].
     ///
-    /// By the SVG spec the ID must contain only [Name] characters,
+    /// By the SVG spec, the ID must contain only [Name] characters,
     /// but since no one fallows this it will parse any characters.
     ///
     /// [IRI]: https://www.w3.org/TR/SVG11/types.html#DataTypeIRI
@@ -713,7 +718,7 @@ impl<'a> Stream<'a> {
 
     /// Parses a [FuncIRI].
     ///
-    /// By the SVG spec the ID must contain only [Name] characters,
+    /// By the SVG spec, the ID must contain only [Name] characters,
     /// but since no one fallows this it will parse any characters.
     ///
     /// [FuncIRI]: https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI
