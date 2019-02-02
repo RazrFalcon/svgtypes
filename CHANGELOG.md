@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The `XmlByteExt` trait is private now.
 
 ## [0.4.1] - 2018-01-06
 ### Fixed

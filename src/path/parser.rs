@@ -129,7 +129,7 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment> {
         is_implicit_move_to = false;
         cmd = first_char;
         s.advance(1);
-    } else if is_digit(first_char) && has_prev_cmd {
+    } else if is_number_start(first_char) && has_prev_cmd {
         // unwrap is safe, because we checked 'has_prev_cmd'
         let p_cmd = prev_cmd.unwrap();
 
@@ -240,7 +240,7 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment> {
 
     *prev_cmd = Some(
         if is_implicit_move_to {
-            if is_absolute(cmd) { b'M' } else { b'm' }
+            if absolute { b'M' } else { b'm' }
         } else {
             cmd
         }
@@ -302,7 +302,7 @@ fn to_relative(c: u8) -> u8 {
     }
 }
 
-fn is_digit(c: u8) -> bool {
+fn is_number_start(c: u8) -> bool {
     match c {
         b'0'...b'9' | b'.' | b'-' | b'+' => true,
         _ => false,
@@ -310,15 +310,15 @@ fn is_digit(c: u8) -> bool {
 }
 
 // By the SVG spec 'large-arc' and 'sweep' must contain only one char
-// and can be written without any separators, aka: 10 20 30 01 10 20.
+// and can be written without any separators, e.g.: 10 20 30 01 10 20.
 fn parse_flag(s: &mut Stream) -> Result<bool> {
     s.skip_spaces();
-    let start = s.pos();
+
     let c = s.curr_byte()?;
     match c {
         b'0' | b'1' => {
             s.advance(1);
-            if s.curr_byte()? == b',' {
+            if s.is_curr_byte_eq(b',') {
                 s.advance(1);
             }
             s.skip_spaces();
@@ -326,7 +326,7 @@ fn parse_flag(s: &mut Stream) -> Result<bool> {
             Ok(c == b'1')
         }
         _ => {
-            Err(Error::UnexpectedData(s.calc_char_pos_at(start)))
+            Err(Error::UnexpectedData(s.calc_char_pos_at(s.pos())))
         }
     }
 }

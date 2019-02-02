@@ -115,23 +115,24 @@ mod tests {
     // test_number!(parse_24, "1e", 1.0); // TODO: this
 
     macro_rules! test_p_err {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr) => (
             #[test]
             fn $name() {
                 let mut s = Stream::from($text);
-                assert_eq!(s.parse_number().unwrap_err().to_string(), $result);
+                assert_eq!(s.parse_number().unwrap_err().to_string(),
+                           "invalid number at position 1");
             }
         )
     }
 
-    test_p_err!(parse_err_1, "q",    "invalid number at position 1");
-    test_p_err!(parse_err_2, "",     "invalid number at position 1");
-    test_p_err!(parse_err_3, "-",    "invalid number at position 1");
-    test_p_err!(parse_err_4, "+",    "invalid number at position 1");
-    test_p_err!(parse_err_5, "-q",   "invalid number at position 1");
-    test_p_err!(parse_err_6, ".",    "invalid number at position 1");
-    test_p_err!(parse_err_7, "99999999e99999999",  "invalid number at position 1");
-    test_p_err!(parse_err_8, "-99999999e99999999", "invalid number at position 1");
+    test_p_err!(parse_err_1, "q");
+    test_p_err!(parse_err_2, "");
+    test_p_err!(parse_err_3, "-");
+    test_p_err!(parse_err_4, "+");
+    test_p_err!(parse_err_5, "-q");
+    test_p_err!(parse_err_6, ".");
+    test_p_err!(parse_err_7, "99999999e99999999");
+    test_p_err!(parse_err_8, "-99999999e99999999");
 
     macro_rules! test_w {
         ($name:ident, $num:expr, $rm_zero:expr, $result:expr) => (

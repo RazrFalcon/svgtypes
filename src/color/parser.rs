@@ -12,12 +12,12 @@ use std::str::FromStr;
 use super::colors;
 
 use {
+    ByteExt,
     Color,
     Error,
     LengthUnit,
     Result,
     Stream,
-    XmlByteExt,
 };
 
 impl FromStr for Color {
@@ -60,7 +60,7 @@ impl FromStr for Color {
 
         if s.curr_byte()? == b'#' {
             s.advance(1);
-            let color_str = s.consume_bytes(|_, c| c.is_xml_hex_digit()).as_bytes();
+            let color_str = s.consume_bytes(|_, c| c.is_hex_digit()).as_bytes();
             // get color data len until first space or stream end
             match color_str.len() {
                 6 => {
@@ -71,9 +71,9 @@ impl FromStr for Color {
                 }
                 3 => {
                     // #rgb
-                    color.red = short_hex(color_str[0]);
+                    color.red   = short_hex(color_str[0]);
                     color.green = short_hex(color_str[1]);
-                    color.blue = short_hex(color_str[2]);
+                    color.blue  = short_hex(color_str[2]);
                 }
                 _ => {
                     return Err(Error::InvalidValue);
@@ -91,13 +91,13 @@ impl FromStr for Color {
                     bound(0, n, 255) as u8
                 }
 
-                color.red = from_percent(l.num);
+                color.red   = from_percent(l.num);
                 color.green = from_percent(s.parse_list_length()?.num);
-                color.blue = from_percent(s.parse_list_length()?.num);
+                color.blue  = from_percent(s.parse_list_length()?.num);
             } else {
-                color.red = bound(0, l.num as i32, 255) as u8;
+                color.red   = bound(0, l.num as i32, 255) as u8;
                 color.green = bound(0, s.parse_list_integer()?, 255) as u8;
-                color.blue = bound(0, s.parse_list_integer()?, 255) as u8;
+                color.blue  = bound(0, s.parse_list_integer()?, 255) as u8;
             }
 
             s.skip_spaces();

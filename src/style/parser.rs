@@ -12,7 +12,7 @@ use {
     Error,
     Result,
     Stream,
-    XmlByteExt,
+    ByteExt,
 };
 
 /// A pull-based style parser.
@@ -79,7 +79,7 @@ impl<'a> Iterator for StyleParser<'a> {
         } else if c == b'-' {
             try2!(parse_prefix(&mut self.0));
             self.next()
-        } else if c.is_ident_char() {
+        } else if c.is_ident() {
             Some(parse_attribute(&mut self.0))
         } else {
             // TODO: use custom error type

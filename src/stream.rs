@@ -21,36 +21,34 @@ use {
 
 
 /// Extension methods for XML-subset only operations.
-pub trait XmlByteExt {
+pub(crate) trait ByteExt {
     /// Checks if a byte is a digit.
     ///
     /// `[0-9]`
-    fn is_xml_digit(&self) -> bool;
+    fn is_digit(&self) -> bool;
 
     /// Checks if a byte is a hex digit.
     ///
     /// `[0-9A-Fa-f]`
-    fn is_xml_hex_digit(&self) -> bool;
+    fn is_hex_digit(&self) -> bool;
 
     /// Checks if a byte is a space.
     ///
     /// `[ \r\n\t]`
-    fn is_xml_space(&self) -> bool;
+    fn is_space(&self) -> bool;
 
     /// Checks if a byte is an ASCII char.
     ///
     /// `[A-Za-z]`
-    fn is_xml_letter(&self) -> bool;
+    fn is_letter(&self) -> bool;
 
     /// Checks if a byte is an XML ident char.
-    ///
-    /// `[A-Za-z]`
-    fn is_ident_char(&self) -> bool;
+    fn is_ident(&self) -> bool;
 }
 
-impl XmlByteExt for u8 {
+impl ByteExt for u8 {
     #[inline]
-    fn is_xml_digit(&self) -> bool {
+    fn is_digit(&self) -> bool {
         match *self {
             b'0'...b'9' => true,
             _ => false,
@@ -58,9 +56,9 @@ impl XmlByteExt for u8 {
     }
 
     #[inline]
-    fn is_xml_hex_digit(&self) -> bool {
+    fn is_hex_digit(&self) -> bool {
         match *self {
-            b'0'...b'9'
+              b'0'...b'9'
             | b'A'...b'F'
             | b'a'...b'f' => true,
             _ => false,
@@ -68,9 +66,9 @@ impl XmlByteExt for u8 {
     }
 
     #[inline]
-    fn is_xml_space(&self) -> bool {
+    fn is_space(&self) -> bool {
         match *self {
-            b' '
+              b' '
             | b'\t'
             | b'\n'
             | b'\r' => true,
@@ -79,7 +77,7 @@ impl XmlByteExt for u8 {
     }
 
     #[inline]
-    fn is_xml_letter(&self) -> bool {
+    fn is_letter(&self) -> bool {
         match *self {
             b'A'...b'Z' | b'a'...b'z' => true,
             _ => false,
@@ -87,9 +85,9 @@ impl XmlByteExt for u8 {
     }
 
     #[inline]
-    fn is_ident_char(&self) -> bool {
+    fn is_ident(&self) -> bool {
         match *self {
-            b'0'...b'9'
+              b'0'...b'9'
             | b'A'...b'Z'
             | b'a'...b'z'
             | b'-'
@@ -261,12 +259,8 @@ impl<'a> Stream<'a> {
     ///
     /// Accepted values: `' ' \n \r \t`.
     pub fn skip_spaces(&mut self) {
-        while !self.at_end() {
-            if self.curr_byte_unchecked().is_xml_space() {
-                self.advance(1);
-            } else {
-                break;
-            }
+        while !self.at_end() && self.curr_byte_unchecked().is_space() {
+            self.advance(1);
         }
     }
 
@@ -301,7 +295,7 @@ impl<'a> Stream<'a> {
 
         let c = self.curr_byte_unchecked();
 
-        if c.is_xml_space() {
+        if c.is_space() {
             is_space = true;
         }
 
@@ -396,7 +390,7 @@ impl<'a> Stream<'a> {
     /// Consumes bytes by the predicate and returns them.
     pub fn consume_ident(&mut self) -> &'a str {
         let start = self.pos;
-        self.skip_bytes(|_, c| c.is_ident_char());
+        self.skip_bytes(|_, c| c.is_ident());
         self.slice_back(start)
     }
 
@@ -413,7 +407,7 @@ impl<'a> Stream<'a> {
     /// Parses number from the stream.
     ///
     /// This method will detect a number length and then
-    /// will pass a substring to the `std::from_str` method.
+    /// will pass a substring to the `f64::from_str` method.
     ///
     /// <https://www.w3.org/TR/SVG11/types.html#DataTypeNumber>
     ///
@@ -431,72 +425,59 @@ impl<'a> Stream<'a> {
     /// assert_eq!(s.at_end(), true);
     /// ```
     pub fn parse_number(&mut self) -> Result<f64> {
-        // strip off leading blanks
+        // Strip off leading whitespaces.
         self.skip_spaces();
-
-        if self.at_end() {
-            // empty string
-            return Err(Error::InvalidNumber(self.calc_char_pos()));
-        }
 
         let start = self.pos();
 
-        macro_rules! gen_err {
-            () => ({
-                Err(Error::InvalidNumber(self.calc_char_pos_at(start)))
-            })
+        if self.at_end() {
+            return Err(Error::InvalidNumber(self.calc_char_pos_at(start)));
         }
 
-        // consume sign
-        if let Some(c) = self.get_curr_byte() {
-            if c == b'+' || c == b'-' {
-                self.advance(1);
-            }
+        self.parse_number_impl().map_err(|_| Error::InvalidNumber(self.calc_char_pos_at(start)))
+    }
+
+    fn parse_number_impl(&mut self) -> Result<f64> {
+        let start = self.pos();
+
+        let mut c = self.curr_byte()?;
+
+        // Consume sign.
+        if c == b'+' || c == b'-' {
+            self.advance(1);
+            c = self.curr_byte()?;
         }
 
-        // consume integer
-        if let Some(c) = self.get_curr_byte() {
-            // current char must be a digit or a dot
-            if c.is_xml_digit() {
-                self.skip_digits();
-            } else if c != b'.' {
-                return gen_err!();
-            }
-        } else {
-            return gen_err!();
+        // Consume integer.
+        match c {
+            b'0'...b'9' => self.skip_digits(),
+            b'.' => {}
+            _ => return Err(Error::InvalidNumber(0)),
         }
 
-        // consume fraction
-        if let Some(mut c) = self.get_curr_byte() {
-            // current char must be a dot or an exponent sign
-            if c == b'.' {
-                self.advance(1); // skip dot
-                self.skip_digits();
-                if let Some(c2) = self.get_curr_byte() {
-                    // Could have an exponent component.
-                    c = c2;
-                }
-            }
+        // Consume fraction.
+        if let Ok(b'.') = self.curr_byte() {
+            self.advance(1);
+            self.skip_digits();
+        }
 
-            // TODO: extremely slow for no reason
+        if let Ok(c) = self.curr_byte() {
             if c == b'e' || c == b'E' {
-                let c2 = if let Ok(c2) = self.next_byte() {
-                    c2
-                } else {
-                    return gen_err!();
-                };
-
+                let c2 = self.next_byte()?;
+                // Check for `em`/`ex`.
                 if c2 != b'm' && c2 != b'x' {
-                    self.advance(1); // skip 'e'
+                    self.advance(1);
 
-                    if let Some(c) = self.get_curr_byte() {
-                        if c == b'+' || c == b'-' {
-                            self.advance(1); // skip sign
+                    match self.curr_byte()? {
+                        b'+' | b'-' => {
+                            self.advance(1);
                             self.skip_digits();
-                        } else if c.is_xml_digit() {
-                            self.skip_digits();
-                        } else {
-                            // TODO: error
+                        }
+                        b'0'...b'9' => {
+                            self.skip_digits()
+                        }
+                        _ => {
+                            return Err(Error::InvalidNumber(0));
                         }
                     }
                 }
@@ -505,16 +486,15 @@ impl<'a> Stream<'a> {
 
         let s = self.slice_back(start);
 
-        // use default f64 parser now
-        let r = f64::from_str(s);
-        if let Ok(n) = r {
-            // inf, nan, etc. are an error
+        // Use the default f64 parser now.
+        if let Ok(n) = f64::from_str(s) {
+            // inf, nan, etc. are an error.
             if n.is_finite() {
                 return Ok(n);
             }
         }
 
-        gen_err!()
+        Err(Error::InvalidNumber(0))
     }
 
     /// Parses number from the list of numbers.
@@ -533,7 +513,7 @@ impl<'a> Stream<'a> {
     /// ```
     pub fn parse_list_number(&mut self) -> Result<f64> {
         if self.at_end() {
-            return Err(Error::UnexpectedEndOfStream.into());
+            return Err(Error::UnexpectedEndOfStream);
         }
 
         let n = self.parse_number()?;
@@ -556,20 +536,20 @@ impl<'a> Stream<'a> {
 
         let start = self.pos();
 
-        // consume sign
+        // Consume sign.
         match self.curr_byte()? {
             b'+' | b'-' => self.advance(1),
             _ => {}
         }
 
-        // current char must be a digit
-        if !self.curr_byte()?.is_xml_digit() {
+        // The current char must be a digit.
+        if !self.curr_byte()?.is_digit() {
             return Err(Error::InvalidNumber(self.calc_char_pos_at(start)));
         }
 
         self.skip_digits();
 
-        // use default i32 parser now
+        // Use the default i32 parser now.
         let s = self.slice_back(start);
         match i32::from_str(s) {
             Ok(n) => Ok(n),
@@ -580,7 +560,7 @@ impl<'a> Stream<'a> {
     /// Parses integer from the list of numbers.
     pub fn parse_list_integer(&mut self) -> Result<i32> {
         if self.at_end() {
-            return Err(Error::UnexpectedEndOfStream.into());
+            return Err(Error::UnexpectedEndOfStream);
         }
 
         let n = self.parse_integer()?;
@@ -648,7 +628,7 @@ impl<'a> Stream<'a> {
     /// Parses length from the list of lengths.
     pub fn parse_list_length(&mut self) -> Result<Length> {
         if self.at_end() {
-            return Err(Error::UnexpectedEndOfStream.into());
+            return Err(Error::UnexpectedEndOfStream);
         }
 
         let l = self.parse_length()?;
@@ -691,7 +671,7 @@ impl<'a> Stream<'a> {
 
     /// Skips digits.
     pub fn skip_digits(&mut self) {
-        self.skip_bytes(|_, c| c.is_xml_digit());
+        self.skip_bytes(|_, c| c.is_digit());
     }
 
     /// Parses a [IRI].
