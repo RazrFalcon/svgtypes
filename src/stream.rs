@@ -234,7 +234,7 @@ impl<'a> Stream<'a> {
     ///
     /// # Examples
     ///
-    /// ```rust,should_panic
+    /// ```should_panic
     /// use svgtypes::Stream;
     ///
     /// let mut s = Stream::from("text");

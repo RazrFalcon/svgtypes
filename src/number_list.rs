@@ -23,7 +23,7 @@ impl_debug_from_display!(NumberList);
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
 /// use svgtypes::NumberListParser;
 ///
 /// let mut p = NumberListParser::from("10, 20 -50");

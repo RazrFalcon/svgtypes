@@ -12,6 +12,12 @@ use {
 impl FromStr for Path {
     type Err = Error;
 
+    /// Parses a string as `Path`.
+    ///
+    /// # Errors
+    ///
+    /// Will always return `Ok`. If an error will occur during the parsing,
+    /// will return current segments. Even if there are none of them.
     fn from_str(text: &str) -> Result<Self> {
         let mut data = Vec::new();
         for token in PathParser::from(text) {
@@ -41,7 +47,7 @@ impl FromStr for Path {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
 /// use svgtypes::{PathParser, PathSegment};
 ///
 /// let mut segments = Vec::new();

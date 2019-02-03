@@ -53,7 +53,7 @@ pub enum TransformListToken {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
 /// use svgtypes::{TransformListParser, TransformListToken};
 ///
 /// let mut p = TransformListParser::from("scale(2) translate(10, -20)");

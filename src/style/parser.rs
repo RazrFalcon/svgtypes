@@ -23,7 +23,7 @@ use {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
 /// use svgtypes::StyleParser;
 ///
 /// let style = "/* comment */fill:red;";

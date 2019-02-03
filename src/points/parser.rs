@@ -24,7 +24,7 @@ use {
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
 /// use svgtypes::PointsParser;
 ///
 /// let mut p = PointsParser::from("10 20 30 40");

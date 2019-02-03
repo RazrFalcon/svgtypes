@@ -24,7 +24,7 @@ impl_debug_from_display!(LengthList);
 ///
 /// # Example
 ///
-/// ```rust
+/// ```
 /// use svgtypes::{Length, LengthUnit, LengthListParser};
 ///
 /// let mut p = LengthListParser::from("10px 20% 50mm");
