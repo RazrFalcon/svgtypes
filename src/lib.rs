@@ -115,6 +115,16 @@ extern crate float_cmp;
 extern crate phf;
 
 
+macro_rules! matches {
+    ($expression:expr, $($pattern:tt)+) => {
+        match $expression {
+            $($pattern)+ => true,
+            _ => false
+        }
+    }
+}
+
+
 #[macro_use] mod traits;
 mod angle;
 mod aspect_ratio;

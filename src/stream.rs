@@ -1,4 +1,3 @@
-use std::char;
 use std::str::{self, FromStr};
 use std::cmp;
 
@@ -14,6 +13,9 @@ use {
 
 /// Extension methods for XML-subset only operations.
 pub(crate) trait ByteExt {
+    /// Checks if a byte is a numeric sign.
+    fn is_sign(&self) -> bool;
+
     /// Checks if a byte is a digit.
     ///
     /// `[0-9]`
@@ -40,52 +42,33 @@ pub(crate) trait ByteExt {
 
 impl ByteExt for u8 {
     #[inline]
+    fn is_sign(&self) -> bool {
+        matches!(*self, b'+' | b'-')
+    }
+
+    #[inline]
     fn is_digit(&self) -> bool {
-        match *self {
-            b'0'...b'9' => true,
-            _ => false,
-        }
+        matches!(*self, b'0'...b'9')
     }
 
     #[inline]
     fn is_hex_digit(&self) -> bool {
-        match *self {
-              b'0'...b'9'
-            | b'A'...b'F'
-            | b'a'...b'f' => true,
-            _ => false,
-        }
+        matches!(*self, b'0'...b'9' | b'A'...b'F' | b'a'...b'f')
     }
 
     #[inline]
     fn is_space(&self) -> bool {
-        match *self {
-              b' '
-            | b'\t'
-            | b'\n'
-            | b'\r' => true,
-            _ => false,
-        }
+        matches!(*self, b' ' | b'\t' | b'\n' | b'\r')
     }
 
     #[inline]
     fn is_letter(&self) -> bool {
-        match *self {
-            b'A'...b'Z' | b'a'...b'z' => true,
-            _ => false,
-        }
+        matches!(*self, b'A'...b'Z' | b'a'...b'z')
     }
 
     #[inline]
     fn is_ident(&self) -> bool {
-        match *self {
-              b'0'...b'9'
-            | b'A'...b'Z'
-            | b'a'...b'z'
-            | b'-'
-            | b'_' => true,
-            _ => false,
-        }
+        matches!(*self, b'0'...b'9' | b'A'...b'Z' | b'a'...b'z' | b'-' | b'_')
     }
 }
 
@@ -159,6 +142,7 @@ impl<'a> Stream<'a> {
     /// # Errors
     ///
     /// - `UnexpectedEndOfStream`
+    #[inline]
     pub fn curr_byte(&self) -> Result<u8> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
@@ -210,24 +194,6 @@ impl<'a> Stream<'a> {
         }
 
         Ok(self.text.as_bytes()[self.pos + 1])
-    }
-
-    /// Returns a char from a current stream position.
-    ///
-    /// # Errors
-    ///
-    /// - `UnexpectedEndOfStream`
-    pub fn curr_char(&self) -> Result<char> {
-        if self.at_end() {
-            return Err(Error::UnexpectedEndOfStream);
-        }
-
-        Ok(self.curr_char_unchecked())
-    }
-
-    #[inline]
-    fn curr_char_unchecked(&self) -> char {
-        self.text[self.pos..].chars().next().unwrap()
     }
 
     /// Advances by `n` bytes.
@@ -435,7 +401,7 @@ impl<'a> Stream<'a> {
         let mut c = self.curr_byte()?;
 
         // Consume sign.
-        if c == b'+' || c == b'-' {
+        if c.is_sign() {
             self.advance(1);
             c = self.curr_byte()?;
         }
@@ -454,7 +420,7 @@ impl<'a> Stream<'a> {
         }
 
         if let Ok(c) = self.curr_byte() {
-            if c == b'e' || c == b'E' {
+            if matches!(c, b'e' | b'E') {
                 let c2 = self.next_byte()?;
                 // Check for `em`/`ex`.
                 if c2 != b'm' && c2 != b'x' {
@@ -529,9 +495,8 @@ impl<'a> Stream<'a> {
         let start = self.pos();
 
         // Consume sign.
-        match self.curr_byte()? {
-            b'+' | b'-' => self.advance(1),
-            _ => {}
+        if self.curr_byte()?.is_sign() {
+            self.advance(1);
         }
 
         // The current char must be a digit.

@@ -111,12 +111,9 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment> {
     }
 
     if !has_prev_cmd {
-        match first_char {
-            b'M' | b'm' => {}
-            _ => {
-                // The first segment must be a MoveTo.
-                return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
-            }
+        if !matches!(first_char, b'M' | b'm') {
+            // The first segment must be a MoveTo.
+            return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
         }
     }
 
@@ -250,7 +247,7 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment> {
 /// Returns `true` if the selected char is the command.
 fn is_cmd(c: u8) -> bool {
     match c {
-        b'M' | b'm'
+          b'M' | b'm'
         | b'Z' | b'z'
         | b'L' | b'l'
         | b'H' | b'h'
@@ -268,7 +265,7 @@ fn is_cmd(c: u8) -> bool {
 fn is_absolute(c: u8) -> bool {
     debug_assert!(is_cmd(c));
     match c {
-        b'M'
+          b'M'
         | b'Z'
         | b'L'
         | b'H'
@@ -300,11 +297,9 @@ fn to_relative(c: u8) -> u8 {
     }
 }
 
+#[inline]
 fn is_number_start(c: u8) -> bool {
-    match c {
-        b'0'...b'9' | b'.' | b'-' | b'+' => true,
-        _ => false,
-    }
+    matches!(c, b'0'...b'9' | b'.' | b'-' | b'+')
 }
 
 // By the SVG spec 'large-arc' and 'sweep' must contain only one char

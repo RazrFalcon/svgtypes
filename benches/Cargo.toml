@@ -1,0 +1,13 @@
+[package]
+name = "benchmark"
+version = "0.1.0"
+workspace = ".."
+
+[dependencies]
+svgtypes = { path = "../" }
+bencher = "0.1"
+
+[[bench]]
+name = "benchmark"
+path = "lib.rs"
+harness = false
