@@ -5,14 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.4.2] - 2019-03-15
 ### Changed
 - The `XmlByteExt` trait is private now.
 
-## [0.4.1] - 2018-01-06
+## [0.4.1] - 2019-01-06
 ### Fixed
 - Style with comments parsing.
 
-## [0.4.0] - 2018-01-02
+## [0.4.0] - 2019-01-02
 ### Added
 - An [`angle`](https://www.w3.org/TR/SVG11/types.html#DataTypeAngle) value type.
 
@@ -58,7 +60,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `Paint::from_span` poor performance.
 
-[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.2.0...v0.3.0
