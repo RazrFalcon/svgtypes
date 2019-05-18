@@ -115,6 +115,18 @@ impl Transform {
         self.f = tm.d[2][1];
     }
 
+    /// Prepends transform to the current transform.
+    pub fn prepend(&mut self, t: &Transform) {
+        // TODO: optimize. No need to create TransformMatrix each time.
+        let tm = t.to_matrix() * self.to_matrix();
+        self.a = tm.d[0][0];
+        self.c = tm.d[1][0];
+        self.e = tm.d[2][0];
+        self.b = tm.d[0][1];
+        self.d = tm.d[1][1];
+        self.f = tm.d[2][1];
+    }
+
     fn to_matrix(&self) -> TransformMatrix {
         let mut tm = TransformMatrix::default();
         tm.d[0][0] = self.a;
