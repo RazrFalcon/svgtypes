@@ -85,7 +85,7 @@ macro_rules! impl_display {
     )
 }
 
-/// A trait for fuzzy/approximate equality comparisons.
+/// A trait for fuzzy/approximate equality comparisons of float numbers.
 pub trait FuzzyEq<Rhs: ?Sized = Self> {
     /// Returns `true` if values are approximately equal.
     fn fuzzy_eq(&self, other: &Rhs) -> bool;
@@ -113,8 +113,8 @@ impl<T: FuzzyEq> FuzzyEq for Vec<T> {
     }
 }
 
-/// A trait for fuzzy/approximate comparisons of `f64` numbers.
-pub trait FuzzyZero {
+/// A trait for fuzzy/approximate comparisons of float numbers.
+pub trait FuzzyZero: FuzzyEq {
     /// Returns `true` if the number is approximately zero.
     fn is_fuzzy_zero(&self) -> bool;
 }

@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - `Transform::prepend`.
+- Implement `FuzzyEq` and `FuzzyZero` for `f32`.
 
 ## [0.4.2] - 2019-03-15
 ### Changed

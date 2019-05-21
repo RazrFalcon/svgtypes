@@ -10,6 +10,13 @@ use {
 };
 
 
+impl FuzzyEq for f32 {
+    #[inline]
+    fn fuzzy_eq(&self, other: &f32) -> bool {
+        self.approx_eq_ulps(other, 4)
+    }
+}
+
 impl FuzzyEq for f64 {
     #[inline]
     fn fuzzy_eq(&self, other: &f64) -> bool {
@@ -17,10 +24,17 @@ impl FuzzyEq for f64 {
     }
 }
 
+impl FuzzyZero for f32 {
+    #[inline]
+    fn is_fuzzy_zero(&self) -> bool {
+        self.fuzzy_eq(&0.0)
+    }
+}
+
 impl FuzzyZero for f64 {
     #[inline]
     fn is_fuzzy_zero(&self) -> bool {
-        self.approx_eq_ulps(&0.0, 4)
+        self.fuzzy_eq(&0.0)
     }
 }
 
