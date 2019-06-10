@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - `Transform::prepend`.
 - Implement `FuzzyEq` and `FuzzyZero` for `f32`.
+- Parsing of `Color`, `Paint`, `ElementId` and `AttributeId` can be disabled now.
 
 ## [0.4.2] - 2019-03-15
 ### Changed
