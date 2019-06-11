@@ -103,7 +103,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 None.
 */
 
-#![doc(html_root_url = "https://docs.rs/svgtypes/0.4.3")]
+#![doc(html_root_url = "https://docs.rs/svgtypes/0.4.4")]
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]

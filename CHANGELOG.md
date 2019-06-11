@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.4.4] - 2019-06-11
 - Update `float-cmp`.
 
 ## [0.4.3] - 2019-06-10
@@ -67,7 +69,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `Paint::from_span` poor performance.
 
-[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.3...HEAD
+[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.4...HEAD
+[0.4.4]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.0...v0.4.1
