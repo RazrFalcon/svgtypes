@@ -18,7 +18,7 @@ members = ["benches"]
 travis-ci = { repository = "RazrFalcon/svgtypes" }
 
 [dependencies]
-float-cmp = { version = "0.4.1", default-features = false }
+float-cmp = { version = "0.5", default-features = false }
 phf = { version = "0.7.24", optional = true }
 
 [features]
