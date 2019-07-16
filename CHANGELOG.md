@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Removed
+- `PathBuilder`. Use `Path::push_*` instead.
 
 ## [0.4.4] - 2019-06-11
 - Update `float-cmp`.

@@ -1,11 +1,9 @@
 mod parser;
 mod segment;
 mod writer;
-mod builder;
 
 pub use self::parser::*;
 pub use self::segment::*;
-pub use self::builder::*;
 
 /// Representation of the SVG [path data].
 ///
@@ -167,6 +165,116 @@ impl Path {
 
             prev_cmd = seg.cmd();
         }
+    }
+
+    /// Appends an absolute MoveTo segment.
+    pub fn push_move_to(&mut self, x: f64, y: f64) {
+        self.push(PathSegment::MoveTo { abs: true, x, y });
+    }
+
+    /// Appends a relative MoveTo segment.
+    pub fn push_rel_move_to(&mut self, x: f64, y: f64) {
+        self.push(PathSegment::MoveTo { abs: false, x, y });
+    }
+
+    /// Appends an absolute ClosePath segment.
+    pub fn push_close_path(&mut self) {
+        self.push(PathSegment::ClosePath { abs: true });
+    }
+
+    /// Appends a relative ClosePath segment.
+    pub fn push_rel_close_path(&mut self) {
+        self.push(PathSegment::ClosePath { abs: false });
+    }
+
+    /// Appends an absolute LineTo segment.
+    pub fn push_line_to(&mut self, x: f64, y: f64) {
+        self.push(PathSegment::LineTo { abs: true, x, y });
+    }
+
+    /// Appends a relative LineTo segment.
+    pub fn push_rel_line_to(&mut self, x: f64, y: f64) {
+        self.push(PathSegment::LineTo { abs: false, x, y });
+    }
+
+    /// Appends an absolute HorizontalLineTo segment.
+    pub fn push_hline_to(&mut self, x: f64) {
+        self.push(PathSegment::HorizontalLineTo { abs: true, x });
+    }
+
+    /// Appends a relative HorizontalLineTo segment.
+    pub fn push_rel_hline_to(&mut self, x: f64) {
+        self.push(PathSegment::HorizontalLineTo { abs: false, x });
+    }
+
+    /// Appends an absolute VerticalLineTo segment.
+    pub fn push_vline_to(&mut self, y: f64) {
+        self.push(PathSegment::VerticalLineTo { abs: true, y });
+    }
+
+    /// Appends a relative VerticalLineTo segment.
+    pub fn push_rel_vline_to(&mut self, y: f64) {
+        self.push(PathSegment::VerticalLineTo { abs: false, y });
+    }
+
+    /// Appends an absolute CurveTo segment.
+    pub fn push_curve_to(&mut self, x1: f64, y1: f64, x2: f64, y2: f64, x: f64, y: f64) {
+        self.push(PathSegment::CurveTo { abs: true, x1, y1, x2, y2, x, y });
+    }
+
+    /// Appends a relative CurveTo segment.
+    pub fn push_rel_curve_to(&mut self, x1: f64, y1: f64, x2: f64, y2: f64, x: f64, y: f64) {
+        self.push(PathSegment::CurveTo { abs: false, x1, y1, x2, y2, x, y });
+    }
+
+    /// Appends an absolute SmoothCurveTo segment.
+    pub fn push_smooth_curve_to(&mut self, x2: f64, y2: f64, x: f64, y: f64) {
+        self.push(PathSegment::SmoothCurveTo { abs: true, x2, y2, x, y });
+    }
+
+    /// Appends a relative SmoothCurveTo segment.
+    pub fn push_rel_smooth_curve_to(&mut self, x2: f64, y2: f64, x: f64, y: f64) {
+        self.push(PathSegment::SmoothCurveTo { abs: false, x2, y2, x, y });
+    }
+
+    /// Appends an absolute QuadTo segment.
+    pub fn push_quad_to(&mut self, x1: f64, y1: f64, x: f64, y: f64) {
+        self.push(PathSegment::Quadratic { abs: true, x1, y1, x, y });
+    }
+
+    /// Appends a relative QuadTo segment.
+    pub fn push_rel_quad_to(&mut self, x1: f64, y1: f64, x: f64, y: f64) {
+        self.push(PathSegment::Quadratic { abs: false, x1, y1, x, y });
+    }
+
+    /// Appends an absolute SmoothQuadTo segment.
+    pub fn push_smooth_quad_to(&mut self, x: f64, y: f64) {
+        self.push(PathSegment::SmoothQuadratic { abs: true, x, y });
+    }
+
+    /// Appends a relative SmoothQuadTo segment.
+    pub fn push_rel_smooth_quad_to(&mut self, x: f64, y: f64) {
+        self.push(PathSegment::SmoothQuadratic { abs: false, x, y });
+    }
+
+    /// Appends an absolute ArcTo segment.
+    pub fn push_arc_to(
+        &mut self,
+        rx: f64, ry: f64, x_axis_rotation: f64, large_arc: bool, sweep: bool, x: f64, y: f64,
+    ) {
+        self.push(PathSegment::EllipticalArc {
+            abs: true, rx, ry, x_axis_rotation, large_arc, sweep, x, y
+        });
+    }
+
+    /// Appends a relative ArcTo segment.
+    pub fn push_rel_arc_to(
+        &mut self,
+        rx: f64, ry: f64, x_axis_rotation: f64, large_arc: bool, sweep: bool, x: f64, y: f64,
+    ) {
+        self.push(PathSegment::EllipticalArc {
+            abs: false, rx, ry, x_axis_rotation, large_arc, sweep, x, y
+        });
     }
 }
 
