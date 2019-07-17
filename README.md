@@ -123,7 +123,7 @@ but it differs from it in many ways.
 
 ### Dependency
 
-[Rust](https://www.rust-lang.org/) >= 1.18
+[Rust](https://www.rust-lang.org/) >= 1.20
 
 ### License
 
