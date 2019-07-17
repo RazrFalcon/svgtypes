@@ -46,10 +46,15 @@ impl WriteBuffer for f64 {
 }
 
 fn write_num(num: &f64, rm_leading_zero: bool, buf: &mut Vec<u8>) {
+    // If number is an integer, it's faster to write it as i32.
+    if num.fract().is_fuzzy_zero() {
+        write!(buf, "{}", *num as i32).unwrap();
+        return;
+    }
+
     // Round numbers up to 11 digits to prevent writing
     // ugly numbers like 29.999999999999996.
     // It's not 100% correct, but differences are insignificant.
-
     let v = (num * 100_000_000_000.0).round() / 100_000_000_000.0;
 
     let start_pos = buf.len();
