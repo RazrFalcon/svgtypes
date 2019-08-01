@@ -1,5 +1,4 @@
 use std::f64;
-use std::ops::Mul;
 
 mod parser;
 mod writer;
@@ -104,38 +103,25 @@ impl Transform {
     }
 
     /// Appends transform to the current transform.
-    pub fn append(&mut self, t: &Transform) {
-        // TODO: optimize. No need to create TransformMatrix each time.
-        let tm = self.to_matrix() * t.to_matrix();
-        self.a = tm.d[0][0];
-        self.c = tm.d[1][0];
-        self.e = tm.d[2][0];
-        self.b = tm.d[0][1];
-        self.d = tm.d[1][1];
-        self.f = tm.d[2][1];
+    pub fn append(&mut self, other: &Transform) {
+        let ts = multiply(self, other);
+        self.a = ts.a;
+        self.b = ts.b;
+        self.c = ts.c;
+        self.d = ts.d;
+        self.e = ts.e;
+        self.f = ts.f;
     }
 
     /// Prepends transform to the current transform.
-    pub fn prepend(&mut self, t: &Transform) {
-        // TODO: optimize. No need to create TransformMatrix each time.
-        let tm = t.to_matrix() * self.to_matrix();
-        self.a = tm.d[0][0];
-        self.c = tm.d[1][0];
-        self.e = tm.d[2][0];
-        self.b = tm.d[0][1];
-        self.d = tm.d[1][1];
-        self.f = tm.d[2][1];
-    }
-
-    fn to_matrix(&self) -> TransformMatrix {
-        let mut tm = TransformMatrix::default();
-        tm.d[0][0] = self.a;
-        tm.d[1][0] = self.c;
-        tm.d[2][0] = self.e;
-        tm.d[0][1] = self.b;
-        tm.d[1][1] = self.d;
-        tm.d[2][1] = self.f;
-        tm
+    pub fn prepend(&mut self, other: &Transform) {
+        let ts = multiply(other, self);
+        self.a = ts.a;
+        self.b = ts.b;
+        self.c = ts.c;
+        self.d = ts.d;
+        self.e = ts.e;
+        self.f = ts.f;
     }
 
     /// Returns `true` if the transform is default, aka `(1 0 0 1 0 0)`.
@@ -242,6 +228,18 @@ impl Transform {
     }
 }
 
+#[inline]
+fn multiply(ts1: &Transform, ts2: &Transform) -> Transform {
+    Transform {
+        a: ts1.a * ts2.a + ts1.c * ts2.b,
+        b: ts1.b * ts2.a + ts1.d * ts2.b,
+        c: ts1.a * ts2.c + ts1.c * ts2.d,
+        d: ts1.b * ts2.c + ts1.d * ts2.d,
+        e: ts1.a * ts2.e + ts1.c * ts2.f + ts1.e,
+        f: ts1.b * ts2.e + ts1.d * ts2.f + ts1.f,
+    }
+}
+
 impl Default for Transform {
     fn default() -> Transform {
         Transform::new(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
@@ -259,37 +257,6 @@ impl FuzzyEq for Transform {
     }
 }
 
-struct TransformMatrix {
-    d: [[f64; 3]; 3]
-}
-
-impl Default for TransformMatrix {
-    fn default() -> TransformMatrix {
-        TransformMatrix {
-            d: [[1.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0],
-                [0.0, 0.0, 1.0]]
-        }
-    }
-}
-
-impl Mul for TransformMatrix {
-    type Output = TransformMatrix;
-
-    fn mul(self, other: TransformMatrix) -> TransformMatrix {
-        let mut res = TransformMatrix::default();
-        for row in 0..3 {
-            for col in 0..3 {
-                let mut sum = 0.0;
-                for j in 0..3 {
-                    sum += self.d[j][row] * other.d[col][j];
-                }
-                res.d[col][row] = sum;
-            }
-        }
-        res
-    }
-}
 
 #[cfg(test)]
 mod tests {
