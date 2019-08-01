@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- The minimum Rust version is 1.31
+
 ### Removed
 - `PathBuilder`. Use `Path::push_*` instead.
 
