@@ -1,5 +1,4 @@
 /*!
-
 *svgtypes* is a collection of parsers, containers and writers for
 [SVG 1.1](https://www.w3.org/TR/SVG11/) types.
 
@@ -54,7 +53,6 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 | [\<list-of-lengths\>]     | LengthList    | Heap    | LengthListParser    |
 | [\<transform-list\>]      | Transform     | Stack   | TransformListParser |
 | [\<list-of-points\>]      | Points        | Heap    | PointsParser        |
-| [\<style\>]               | -             | -       | StyleParser         |
 | [\<paint\>]               | -             | -       | Paint               |
 
 [\<color\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
@@ -66,13 +64,12 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 [\<list-of-lengths\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
 [\<transform-list\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList
 [\<list-of-points\>]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
-[\<style\>]: https://www.w3.org/TR/SVG11/styling.html#StyleAttribute
 [\<paint\>]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
 
 - All types implement from string (`FromStr`) and
   to string traits (`Display`, `WriteBuffer`).
 - The library doesn't store transform list as is. It will premultiplied.
-- `style` and `paint` types can only be parsed.
+- The `paint` type can only be parsed.
 
 ## Benefits
 
@@ -87,7 +84,6 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 - All keywords must be lowercase.
   Case-insensitive parsing is supported only for colors (requires allocation for named colors).
 - The `<color>` followed by the `<icccolor>` is not supported. As the `<icccolor>` itself.
-- Comments inside attributes value supported only for the `style` attribute.
 - [System colors](https://www.w3.org/TR/css3-color/#css2-system), like `fill="AppWorkspace"`,
   are not supported. They were deprecated anyway.
 - Implicit path commands are not supported. All commands will be parsed as explicit.
@@ -142,7 +138,6 @@ mod options;
 mod path;
 mod points;
 mod stream;
-mod style;
 mod transform;
 mod viewbox;
 
@@ -161,7 +156,6 @@ pub use options::*;
 pub use path::*;
 pub use points::*;
 pub use stream::*;
-pub use style::*;
 pub use traits::*;
 pub use transform::*;
 pub use viewbox::*;

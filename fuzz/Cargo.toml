@@ -30,9 +30,5 @@ name = "fuzz_length"
 path = "fuzz_targets/fuzz_length.rs"
 
 [[bin]]
-name = "fuzz_style"
-path = "fuzz_targets/fuzz_style.rs"
-
-[[bin]]
 name = "fuzz_path"
 path = "fuzz_targets/fuzz_path.rs"
