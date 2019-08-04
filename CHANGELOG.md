@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - `PathBuilder`. Use `Path::push_*` instead.
 - `Style` parser. Use an external CSS parser instead, like `simplecss`.
 - `ElementId` and `AttributeId`.
+- `phf` dependency. Only `siphasher` is used now.
 
 ## [0.4.4] - 2019-06-11
 - Update `float-cmp`.

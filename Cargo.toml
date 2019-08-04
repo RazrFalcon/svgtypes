@@ -19,13 +19,7 @@ travis-ci = { repository = "RazrFalcon/svgtypes" }
 
 [dependencies]
 float-cmp = { version = "0.5", default-features = false }
-phf = { version = "0.7.24", optional = true }
-
-[features]
-default = ["color"]
-# The features below are requiring a large data tables, so if you don't plan to parse
-# Color or Paint, you can simply disable it.
-color = ["phf"]
+siphasher = "0.2.3"
 
 [package.metadata.docs.rs]
 all-features = true

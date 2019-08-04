@@ -108,8 +108,7 @@ None.
 
 
 extern crate float_cmp;
-#[cfg(any(feature = "color", feature = "attribute-id", feature = "element-id"))]
-extern crate phf;
+extern crate siphasher;
 
 
 macro_rules! matches {
@@ -125,16 +124,14 @@ macro_rules! matches {
 #[macro_use] mod traits;
 mod angle;
 mod aspect_ratio;
-#[cfg(feature = "attribute-id")] mod attribute_id;
-#[cfg(feature = "color")] mod color;
-#[cfg(feature = "element-id")] mod element_id;
+mod color;
 mod error;
 mod length;
 mod length_list;
 mod number;
 mod number_list;
 mod options;
-#[cfg(feature = "color")] mod paint;
+mod paint;
 mod path;
 mod points;
 mod stream;
@@ -143,16 +140,14 @@ mod viewbox;
 
 pub use angle::*;
 pub use aspect_ratio::*;
-#[cfg(feature = "attribute-id")] pub use attribute_id::*;
-#[cfg(feature = "color")] pub use color::*;
-#[cfg(feature = "element-id")] pub use element_id::*;
+pub use color::*;
 pub use error::*;
 pub use length::*;
 pub use length_list::*;
 pub use number::*;
 pub use number_list::*;
 pub use options::*;
-#[cfg(feature = "color")] pub use paint::*;
+pub use paint::*;
 pub use path::*;
 pub use points::*;
 pub use stream::*;

@@ -2,9 +2,9 @@
 
 use Color;
 
-static COLORS: ::phf::Map<&'static str, Color> = ::phf::Map {
+static COLORS: Map<Color> = Map {
     key: 3213172566270843353,
-    disps: ::phf::Slice::Static(&[
+    disps: &[
         (3, 123),
         (2, 11),
         (1, 0),
@@ -35,8 +35,8 @@ static COLORS: ::phf::Map<&'static str, Color> = ::phf::Map {
         (0, 69),
         (0, 111),
         (0, 0),
-    ]),
-    entries: ::phf::Slice::Static(&[
+    ],
+    entries: &[
         ("lawngreen", Color { red: 124, green: 252, blue: 0 }),
         ("black", Color { red: 0, green: 0, blue: 0 }),
         ("dimgray", Color { red: 105, green: 105, blue: 105 }),
@@ -184,9 +184,65 @@ static COLORS: ::phf::Map<&'static str, Color> = ::phf::Map {
         ("whitesmoke", Color { red: 245, green: 245, blue: 245 }),
         ("beige", Color { red: 245, green: 245, blue: 220 }),
         ("olivedrab", Color { red: 107, green: 142, blue: 35 }),
-    ]),
+    ],
 };
 
 pub fn from_str(text: &str) -> Option<Color> {
     COLORS.get(text).cloned()
+}
+
+// A stripped down `phf` crate fork.
+//
+// https://github.com/sfackler/rust-phf
+
+use std::borrow::Borrow;
+use std::hash::Hasher;
+
+pub struct Map<V: 'static> {
+    pub key: u64,
+    pub disps: &'static [(u32, u32)],
+    pub entries: &'static[(&'static str, V)],
+}
+
+impl<V> Map<V> {
+    pub fn get(&self, key: &str) -> Option<&V> {
+        let hash = hash(key, self.key);
+        let index = get_index(hash, &*self.disps, self.entries.len());
+        let entry = &self.entries[index as usize];
+        let b = entry.0.borrow();
+        if b == key {
+            Some(&entry.1)
+        } else {
+            None
+        }
+    }
+}
+
+#[inline]
+fn hash(x: &str, key: u64) -> u64 {
+    let mut hasher = siphasher::sip::SipHasher13::new_with_keys(0, key);
+    hasher.write(x.as_bytes());
+    hasher.finish()
+}
+
+#[inline]
+fn get_index(hash: u64, disps: &[(u32, u32)], len: usize) -> u32 {
+    let (g, f1, f2) = split(hash);
+    let (d1, d2) = disps[(g % (disps.len() as u32)) as usize];
+    displace(f1, f2, d1, d2) % (len as u32)
+}
+
+#[inline]
+fn split(hash: u64) -> (u32, u32, u32) {
+    const BITS: u32 = 21;
+    const MASK: u64 = (1 << BITS) - 1;
+
+    ((hash & MASK) as u32,
+     ((hash >> BITS) & MASK) as u32,
+     ((hash >> (2 * BITS)) & MASK) as u32)
+}
+
+#[inline]
+fn displace(f1: u32, f2: u32, d1: u32, d2: u32) -> u32 {
+    d2 + f1 * d1 + f2
 }

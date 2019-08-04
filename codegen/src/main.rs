@@ -7,6 +7,63 @@ use std::fs;
 use std::io::{Read, Write};
 use std::str;
 
+
+const PHF_SRC: &str = "// A stripped down `phf` crate fork.
+//
+// https://github.com/sfackler/rust-phf
+
+use std::borrow::Borrow;
+use std::hash::Hasher;
+
+pub struct Map<V: 'static> {
+    pub key: u64,
+    pub disps: &'static [(u32, u32)],
+    pub entries: &'static[(&'static str, V)],
+}
+
+impl<V> Map<V> {
+    pub fn get(&self, key: &str) -> Option<&V> {
+        let hash = hash(key, self.key);
+        let index = get_index(hash, &*self.disps, self.entries.len());
+        let entry = &self.entries[index as usize];
+        let b = entry.0.borrow();
+        if b == key {
+            Some(&entry.1)
+        } else {
+            None
+        }
+    }
+}
+
+#[inline]
+fn hash(x: &str, key: u64) -> u64 {
+    let mut hasher = siphasher::sip::SipHasher13::new_with_keys(0, key);
+    hasher.write(x.as_bytes());
+    hasher.finish()
+}
+
+#[inline]
+fn get_index(hash: u64, disps: &[(u32, u32)], len: usize) -> u32 {
+    let (g, f1, f2) = split(hash);
+    let (d1, d2) = disps[(g % (disps.len() as u32)) as usize];
+    displace(f1, f2, d1, d2) % (len as u32)
+}
+
+#[inline]
+fn split(hash: u64) -> (u32, u32, u32) {
+    const BITS: u32 = 21;
+    const MASK: u64 = (1 << BITS) - 1;
+
+    ((hash & MASK) as u32,
+     ((hash >> BITS) & MASK) as u32,
+     ((hash >> (2 * BITS)) & MASK) as u32)
+}
+
+#[inline]
+fn displace(f1: u32, f2: u32, d1: u32, d2: u32) -> u32 {
+    d2 + f1 * d1 + f2
+}";
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let map_name = "COLORS";
     let struct_name = "Color";
@@ -24,7 +81,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut map_data = Vec::new();
     map.build(&mut map_data)?;
     let map_data = str::from_utf8(&map_data)?;
-
+    let map_data = map_data.replace("::phf::Map", "Map");
+    let map_data = map_data.replace("::phf::Slice::Static(", "");
+    let map_data = map_data.replace("]),", "],");
 
     let f = &mut fs::File::create("../src/color/colors.rs")?;
 
@@ -32,11 +91,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     writeln!(f, "use {};\n", struct_name)?;
 
-    writeln!(f, "static {}: ::phf::Map<&'static str, {}> = {};\n", map_name, struct_name, map_data)?;
+    writeln!(f, "static {}: Map<{}> = {};\n", map_name, struct_name, map_data)?;
 
     writeln!(f, "pub fn from_str(text: &str) -> Option<{}> {{", struct_name)?;
     writeln!(f, "    {}.get(text).cloned()", map_name)?;
     writeln!(f, "}}")?;
+    writeln!(f, "")?;
+    writeln!(f, "{}", PHF_SRC)?;
 
     Ok(())
 }
