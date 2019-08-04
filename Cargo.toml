@@ -22,13 +22,10 @@ float-cmp = { version = "0.5", default-features = false }
 phf = { version = "0.7.24", optional = true }
 
 [features]
-default = ["color", "attribute-id", "element-id"]
-# The features below are requiring a large data tables, so if you don't plan to parse:
-# Color, Paint, ElementId, AttributeId
-# you can simply disable them.
+default = ["color"]
+# The features below are requiring a large data tables, so if you don't plan to parse
+# Color or Paint, you can simply disable it.
 color = ["phf"]
-attribute-id = ["phf"]
-element-id = ["phf"]
 
 [package.metadata.docs.rs]
 all-features = true
