@@ -8,7 +8,7 @@ pub use self::segment::*;
 /// Representation of the SVG [path data].
 ///
 /// [path data]: https://www.w3.org/TR/SVG11/paths.html#PathData
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 pub struct Path(pub Vec<PathSegment>);
 
 impl Path {

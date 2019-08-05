@@ -57,6 +57,12 @@ impl Length {
     }
 }
 
+impl Default for Length {
+    fn default() -> Self {
+        Length::zero()
+    }
+}
+
 impl FromStr for Length {
     type Err = Error;
 

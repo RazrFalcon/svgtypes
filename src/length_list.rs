@@ -12,7 +12,7 @@ use {
 /// Representation of the [`<list-of-length>`] type.
 ///
 /// [`<list-of-length>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 pub struct LengthList(pub Vec<Length>);
 
 impl_from_vec!(LengthList, LengthList, Length);

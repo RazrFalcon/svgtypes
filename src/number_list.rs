@@ -11,7 +11,7 @@ use {
 /// Representation of the [`<list-of-numbers>`] type.
 ///
 /// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Default)]
 pub struct NumberList(pub Vec<f64>);
 
 impl_from_vec!(NumberList, NumberList, f64);
