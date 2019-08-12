@@ -3,7 +3,6 @@
 [![Crates.io](https://img.shields.io/crates/v/svgtypes.svg)](https://crates.io/crates/svgtypes)
 [![Documentation](https://docs.rs/svgtypes/badge.svg)](https://docs.rs/svgtypes)
 
-
 *svgtypes* is a collection of parsers, containers and writers for
 [SVG 1.1](https://www.w3.org/TR/SVG11/) types.
 
@@ -59,7 +58,6 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 | [\<list-of-lengths\>]     | LengthList    | Heap    | LengthListParser    |
 | [\<transform-list\>]      | Transform     | Stack   | TransformListParser |
 | [\<list-of-points\>]      | Points        | Heap    | PointsParser        |
-| [\<style\>]               | -             | -       | StyleParser         |
 | [\<paint\>]               | -             | -       | Paint               |
 
 [\<color\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
@@ -72,13 +70,12 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 [\<list-of-lengths\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
 [\<transform-list\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList
 [\<list-of-points\>]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
-[\<style\>]: https://www.w3.org/TR/SVG11/styling.html#StyleAttribute
 [\<paint\>]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
 
 - All types implement from string (`FromStr`) and
   to string traits (`Display`, `WriteBuffer`).
 - The library doesn't store transform list as is. It will premultiplied.
-- `style` and `paint` types can only be parsed.
+- The `paint` type can only be parsed.
 
 ### Benefits
 
@@ -93,7 +90,6 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 - All keywords must be lowercase.
   Case-insensitive parsing is supported only for colors (requires allocation for named colors).
 - The `<color>` followed by the `<icccolor>` is not supported. As the `<icccolor>` itself.
-- Comments inside attributes value supported only for the `style` attribute.
 - [System colors](https://www.w3.org/TR/css3-color/#css2-system), like `fill="AppWorkspace"`,
   are not supported. They were deprecated anyway.
 - Implicit path commands are not supported. All commands will be parsed as explicit.
@@ -123,7 +119,7 @@ but it differs from it in many ways.
 
 ### Dependency
 
-[Rust](https://www.rust-lang.org/) >= 1.20
+[Rust](https://www.rust-lang.org/) >= 1.31
 
 ### License
 

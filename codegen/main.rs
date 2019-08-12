@@ -69,7 +69,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let struct_name = "Color";
 
     let mut spec = String::new();
-    fs::File::open("spec/colors.txt")?.read_to_string(&mut spec)?;
+    fs::File::open("colors.txt")?.read_to_string(&mut spec)?;
 
     let mut map = phf_codegen::Map::new();
     for (line1, line2) in spec.split('\n').filter(|s| !s.is_empty()).tuples() {
