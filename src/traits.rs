@@ -78,6 +78,7 @@ impl<'a, T: WriteBuffer> fmt::Display for DisplaySvg<'a, T> {
 macro_rules! impl_display {
     ($t:ty) => (
         impl ::std::fmt::Display for $t {
+            #[inline]
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 write!(f, "{}", self.with_write_opt(&WriteOptions::default()))
             }
@@ -125,12 +126,14 @@ macro_rules! impl_vec_defer {
         impl ::std::ops::Deref for $t {
             type Target = Vec<$tt>;
 
+            #[inline]
             fn deref(&self) -> &Self::Target {
                 &self.0
             }
         }
 
         impl ::std::ops::DerefMut for $t {
+            #[inline]
             fn deref_mut(&mut self) -> &mut Self::Target {
                 &mut self.0
             }
@@ -141,6 +144,7 @@ macro_rules! impl_vec_defer {
 macro_rules! impl_from_vec {
     ($t:ty, $te:expr, $s:ty) => (
         impl From<Vec<$s>> for $t {
+            #[inline]
             fn from(v: Vec<$s>) -> Self {
                 $te(v)
             }

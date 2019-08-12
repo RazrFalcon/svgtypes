@@ -58,6 +58,7 @@ impl Length {
 }
 
 impl Default for Length {
+    #[inline]
     fn default() -> Self {
         Length::zero()
     }
@@ -66,6 +67,7 @@ impl Default for Length {
 impl FromStr for Length {
     type Err = Error;
 
+    #[inline]
     fn from_str(text: &str) -> Result<Self> {
         let mut s = Stream::from(text);
         let l = s.parse_length()?;

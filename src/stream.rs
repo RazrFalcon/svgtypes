@@ -81,6 +81,7 @@ pub struct Stream<'a> {
 }
 
 impl<'a> From<&'a str> for Stream<'a> {
+    #[inline]
     fn from(text: &'a str) -> Self {
         Stream {
             text,
@@ -91,6 +92,7 @@ impl<'a> From<&'a str> for Stream<'a> {
 
 impl<'a> Stream<'a> {
     /// Returns the current position in bytes.
+    #[inline]
     pub fn pos(&self) -> usize {
         self.pos
     }
@@ -117,6 +119,7 @@ impl<'a> Stream<'a> {
     /// Sets current position equal to the end.
     ///
     /// Used to indicate end of parsing on error.
+    #[inline]
     pub fn jump_to_end(&mut self) {
         self.pos = self.text.len();
     }
@@ -188,6 +191,7 @@ impl<'a> Stream<'a> {
     /// # Errors
     ///
     /// - `UnexpectedEndOfStream`
+    #[inline]
     pub fn next_byte(&self) -> Result<u8> {
         if self.pos + 1 >= self.text.len() {
             return Err(Error::UnexpectedEndOfStream);
@@ -353,11 +357,13 @@ impl<'a> Stream<'a> {
     }
 
     /// Slices data from `pos` to the current position.
+    #[inline]
     pub fn slice_back(&self, pos: usize) -> &'a str {
         &self.text[pos..self.pos]
     }
 
     /// Slices data from the current position to the end.
+    #[inline]
     pub fn slice_tail(&self) -> &'a str {
         &self.text[self.pos..]
     }

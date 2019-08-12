@@ -38,6 +38,7 @@ use {
 pub struct PointsParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for PointsParser<'a> {
+    #[inline]
     fn from(v: &'a str) -> Self {
         PointsParser(Stream::from(v))
     }

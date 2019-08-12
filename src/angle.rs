@@ -39,6 +39,7 @@ impl Angle {
 impl FromStr for Angle {
     type Err = Error;
 
+    #[inline]
     fn from_str(text: &str) -> Result<Self> {
         let mut s = Stream::from(text);
         let l = s.parse_angle()?;

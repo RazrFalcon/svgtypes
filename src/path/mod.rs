@@ -13,11 +13,13 @@ pub struct Path(pub Vec<PathSegment>);
 
 impl Path {
     /// Constructs a new path.
+    #[inline]
     pub fn new() -> Self {
         Path(Vec::new())
     }
 
     /// Constructs a new path with a specified capacity.
+    #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         Path(Vec::with_capacity(capacity))
     }
@@ -168,96 +170,115 @@ impl Path {
     }
 
     /// Appends an absolute MoveTo segment.
+    #[inline]
     pub fn push_move_to(&mut self, x: f64, y: f64) {
         self.push(PathSegment::MoveTo { abs: true, x, y });
     }
 
     /// Appends a relative MoveTo segment.
+    #[inline]
     pub fn push_rel_move_to(&mut self, x: f64, y: f64) {
         self.push(PathSegment::MoveTo { abs: false, x, y });
     }
 
     /// Appends an absolute ClosePath segment.
+    #[inline]
     pub fn push_close_path(&mut self) {
         self.push(PathSegment::ClosePath { abs: true });
     }
 
     /// Appends a relative ClosePath segment.
+    #[inline]
     pub fn push_rel_close_path(&mut self) {
         self.push(PathSegment::ClosePath { abs: false });
     }
 
     /// Appends an absolute LineTo segment.
+    #[inline]
     pub fn push_line_to(&mut self, x: f64, y: f64) {
         self.push(PathSegment::LineTo { abs: true, x, y });
     }
 
     /// Appends a relative LineTo segment.
+    #[inline]
     pub fn push_rel_line_to(&mut self, x: f64, y: f64) {
         self.push(PathSegment::LineTo { abs: false, x, y });
     }
 
     /// Appends an absolute HorizontalLineTo segment.
+    #[inline]
     pub fn push_hline_to(&mut self, x: f64) {
         self.push(PathSegment::HorizontalLineTo { abs: true, x });
     }
 
     /// Appends a relative HorizontalLineTo segment.
+    #[inline]
     pub fn push_rel_hline_to(&mut self, x: f64) {
         self.push(PathSegment::HorizontalLineTo { abs: false, x });
     }
 
     /// Appends an absolute VerticalLineTo segment.
+    #[inline]
     pub fn push_vline_to(&mut self, y: f64) {
         self.push(PathSegment::VerticalLineTo { abs: true, y });
     }
 
     /// Appends a relative VerticalLineTo segment.
+    #[inline]
     pub fn push_rel_vline_to(&mut self, y: f64) {
         self.push(PathSegment::VerticalLineTo { abs: false, y });
     }
 
     /// Appends an absolute CurveTo segment.
+    #[inline]
     pub fn push_curve_to(&mut self, x1: f64, y1: f64, x2: f64, y2: f64, x: f64, y: f64) {
         self.push(PathSegment::CurveTo { abs: true, x1, y1, x2, y2, x, y });
     }
 
     /// Appends a relative CurveTo segment.
+    #[inline]
     pub fn push_rel_curve_to(&mut self, x1: f64, y1: f64, x2: f64, y2: f64, x: f64, y: f64) {
         self.push(PathSegment::CurveTo { abs: false, x1, y1, x2, y2, x, y });
     }
 
     /// Appends an absolute SmoothCurveTo segment.
+    #[inline]
     pub fn push_smooth_curve_to(&mut self, x2: f64, y2: f64, x: f64, y: f64) {
         self.push(PathSegment::SmoothCurveTo { abs: true, x2, y2, x, y });
     }
 
     /// Appends a relative SmoothCurveTo segment.
+    #[inline]
     pub fn push_rel_smooth_curve_to(&mut self, x2: f64, y2: f64, x: f64, y: f64) {
         self.push(PathSegment::SmoothCurveTo { abs: false, x2, y2, x, y });
     }
 
     /// Appends an absolute QuadTo segment.
+    #[inline]
     pub fn push_quad_to(&mut self, x1: f64, y1: f64, x: f64, y: f64) {
         self.push(PathSegment::Quadratic { abs: true, x1, y1, x, y });
     }
 
     /// Appends a relative QuadTo segment.
+    #[inline]
     pub fn push_rel_quad_to(&mut self, x1: f64, y1: f64, x: f64, y: f64) {
         self.push(PathSegment::Quadratic { abs: false, x1, y1, x, y });
     }
 
     /// Appends an absolute SmoothQuadTo segment.
+    #[inline]
     pub fn push_smooth_quad_to(&mut self, x: f64, y: f64) {
         self.push(PathSegment::SmoothQuadratic { abs: true, x, y });
     }
 
     /// Appends a relative SmoothQuadTo segment.
+    #[inline]
     pub fn push_rel_smooth_quad_to(&mut self, x: f64, y: f64) {
         self.push(PathSegment::SmoothQuadratic { abs: false, x, y });
     }
 
     /// Appends an absolute ArcTo segment.
+    #[inline]
     pub fn push_arc_to(
         &mut self,
         rx: f64, ry: f64, x_axis_rotation: f64, large_arc: bool, sweep: bool, x: f64, y: f64,
@@ -268,6 +289,7 @@ impl Path {
     }
 
     /// Appends a relative ArcTo segment.
+    #[inline]
     pub fn push_rel_arc_to(
         &mut self,
         rx: f64, ry: f64, x_axis_rotation: f64, large_arc: bool, sweep: bool, x: f64, y: f64,

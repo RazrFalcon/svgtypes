@@ -39,6 +39,7 @@ impl_debug_from_display!(LengthList);
 pub struct LengthListParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for LengthListParser<'a> {
+    #[inline]
     fn from(v: &'a str) -> Self {
         LengthListParser(Stream::from(v))
     }

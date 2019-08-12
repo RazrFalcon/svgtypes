@@ -71,6 +71,7 @@ pub struct PathParser<'a> {
 }
 
 impl<'a> From<&'a str> for PathParser<'a> {
+    #[inline]
     fn from(v: &'a str) -> Self {
         PathParser {
             stream: Stream::from(v),
@@ -82,6 +83,7 @@ impl<'a> From<&'a str> for PathParser<'a> {
 impl<'a> Iterator for PathParser<'a> {
     type Item = Result<PathSegment>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let s = &mut self.stream;
 
@@ -245,6 +247,7 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment> {
 }
 
 /// Returns `true` if the selected char is the command.
+#[inline]
 fn is_cmd(c: u8) -> bool {
     match c {
           b'M' | b'm'
@@ -262,6 +265,7 @@ fn is_cmd(c: u8) -> bool {
 }
 
 /// Returns `true` if the selected char is the absolute command.
+#[inline]
 fn is_absolute(c: u8) -> bool {
     debug_assert!(is_cmd(c));
     match c {
@@ -280,6 +284,7 @@ fn is_absolute(c: u8) -> bool {
 }
 
 /// Converts the selected command char into the relative command char.
+#[inline]
 fn to_relative(c: u8) -> u8 {
     debug_assert!(is_cmd(c));
     match c {

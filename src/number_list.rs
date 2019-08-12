@@ -38,6 +38,7 @@ impl_debug_from_display!(NumberList);
 pub struct NumberListParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for NumberListParser<'a> {
+    #[inline]
     fn from(v: &'a str) -> Self {
         NumberListParser(Stream::from(v))
     }

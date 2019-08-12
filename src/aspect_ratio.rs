@@ -142,6 +142,7 @@ impl WriteBuffer for AspectRatio {
 impl_display!(AspectRatio);
 
 impl Default for AspectRatio {
+    #[inline]
     fn default() -> Self {
         AspectRatio {
             defer: false,

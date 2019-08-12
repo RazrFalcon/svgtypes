@@ -110,6 +110,7 @@ pub struct WriteOptions {
 }
 
 impl Default for WriteOptions {
+    #[inline]
     fn default() -> WriteOptions {
         WriteOptions {
             trim_hex_colors: false,
@@ -128,6 +129,7 @@ impl WriteOptions {
     /// Writes a selected separator to the output buffer.
     ///
     /// Uses `WriteOptions::list_separator` option.
+    #[inline]
     pub fn write_separator(&self, out: &mut Vec<u8>) {
         match self.list_separator {
             ListSeparator::Space => out.push(b' '),
