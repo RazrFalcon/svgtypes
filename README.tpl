@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/RazrFalcon/{{crate}}.svg?branch=master)](https://travis-ci.org/RazrFalcon/{{crate}})
 [![Crates.io](https://img.shields.io/crates/v/{{crate}}.svg)](https://crates.io/crates/{{crate}})
 [![Documentation](https://docs.rs/{{crate}}/badge.svg)](https://docs.rs/{{crate}})
+[![Rust 1.31+](https://img.shields.io/badge/rust-1.31+-orange.svg)](https://www.rust-lang.org)
 
 {{readme}}
 
@@ -17,10 +18,6 @@ but it differs from it in many ways.
   This crate provides only value parsers. You should match attributes and values by yourself.
 - No [`ValueId`](https://docs.rs/svgparser/0.8.0/svgparser/enum.ValueId.html).
   It's up to you how to store those values.
-
-### Dependency
-
-[Rust](https://www.rust-lang.org/) >= 1.31
 
 ### License
 

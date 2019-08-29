@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/RazrFalcon/svgtypes.svg?branch=master)](https://travis-ci.org/RazrFalcon/svgtypes)
 [![Crates.io](https://img.shields.io/crates/v/svgtypes.svg)](https://crates.io/crates/svgtypes)
 [![Documentation](https://docs.rs/svgtypes/badge.svg)](https://docs.rs/svgtypes)
+[![Rust 1.31+](https://img.shields.io/badge/rust-1.31+-orange.svg)](https://www.rust-lang.org)
 
 *svgtypes* is a collection of parsers, containers and writers for
 [SVG 1.1](https://www.w3.org/TR/SVG11/) types.
@@ -116,10 +117,6 @@ but it differs from it in many ways.
   This crate provides only value parsers. You should match attributes and values by yourself.
 - No [`ValueId`](https://docs.rs/svgparser/0.8.0/svgparser/enum.ValueId.html).
   It's up to you how to store those values.
-
-### Dependency
-
-[Rust](https://www.rust-lang.org/) >= 1.31
 
 ### License
 
