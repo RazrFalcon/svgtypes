@@ -551,7 +551,7 @@ impl<'a> Stream<'a> {
     pub fn parse_length(&mut self) -> Result<Length> {
         self.skip_spaces();
 
-        let n = self.parse_number()?;
+        let n = self.parse_number().unwrap_or(0.0);
 
         if self.at_end() {
             return Ok(Length::new(n, LengthUnit::None));
