@@ -1,13 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Error,
-    FuzzyEq,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
+use {Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
 
 /// List of all SVG angle units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -57,9 +50,9 @@ impl WriteBuffer for Angle {
         self.num.write_buf_opt(opt, buf);
 
         let t: &[u8] = match self.unit {
-            AngleUnit::Degrees  => b"deg",
+            AngleUnit::Degrees => b"deg",
             AngleUnit::Gradians => b"grad",
-            AngleUnit::Radians  => b"rad",
+            AngleUnit::Radians => b"rad",
         };
 
         buf.extend_from_slice(t);
@@ -84,44 +77,51 @@ mod tests {
     use std::str::FromStr;
 
     macro_rules! test_p {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr, $result:expr) => {
             #[test]
             fn $name() {
                 assert_eq!(Angle::from_str($text).unwrap(), $result);
             }
-        )
+        };
     }
 
-    test_p!(parse_1,  "1",   Angle::new(1.0, AngleUnit::Degrees));
-    test_p!(parse_2,  "1deg", Angle::new(1.0, AngleUnit::Degrees));
-    test_p!(parse_3,  "1grad", Angle::new(1.0, AngleUnit::Gradians));
-    test_p!(parse_4,  "1rad", Angle::new(1.0, AngleUnit::Radians));
+    test_p!(parse_1, "1", Angle::new(1.0, AngleUnit::Degrees));
+    test_p!(parse_2, "1deg", Angle::new(1.0, AngleUnit::Degrees));
+    test_p!(parse_3, "1grad", Angle::new(1.0, AngleUnit::Gradians));
+    test_p!(parse_4, "1rad", Angle::new(1.0, AngleUnit::Radians));
 
     #[test]
     fn err_1() {
         let mut s = Stream::from("1q");
-        assert_eq!(s.parse_angle().unwrap(), Angle::new(1.0, AngleUnit::Degrees));
-        assert_eq!(s.parse_angle().unwrap_err().to_string(),
-                   "invalid number at position 2");
+        assert_eq!(
+            s.parse_angle().unwrap(),
+            Angle::new(1.0, AngleUnit::Degrees)
+        );
+        assert_eq!(
+            s.parse_angle().unwrap_err().to_string(),
+            "invalid number at position 2"
+        );
     }
 
     #[test]
     fn err_2() {
-        assert_eq!(Angle::from_str("1degq").unwrap_err().to_string(),
-                   "unexpected data at position 5");
+        assert_eq!(
+            Angle::from_str("1degq").unwrap_err().to_string(),
+            "unexpected data at position 5"
+        );
     }
 
     macro_rules! test_w {
-        ($name:ident, $len:expr, $unit:expr, $result:expr) => (
+        ($name:ident, $len:expr, $unit:expr, $result:expr) => {
             #[test]
             fn $name() {
                 let l = Angle::new($len, $unit);
                 assert_eq!(l.to_string(), $result);
             }
-        )
+        };
     }
 
-    test_w!(write_1,  1.0, AngleUnit::Degrees, "1deg");
-    test_w!(write_2,  1.0, AngleUnit::Gradians, "1grad");
-    test_w!(write_3,  1.0, AngleUnit::Radians, "1rad");
+    test_w!(write_1, 1.0, AngleUnit::Degrees, "1deg");
+    test_w!(write_2, 1.0, AngleUnit::Gradians, "1grad");
+    test_w!(write_3, 1.0, AngleUnit::Radians, "1rad");
 }

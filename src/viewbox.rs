@@ -1,14 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Error,
-    FuzzyEq,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
-
+use {Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<viewBox>`] type.
 ///
@@ -64,10 +56,10 @@ impl_display!(ViewBox);
 
 impl FuzzyEq for ViewBox {
     fn fuzzy_eq(&self, other: &Self) -> bool {
-           self.x.fuzzy_eq(&other.x)
-        && self.y.fuzzy_eq(&other.y)
-        && self.w.fuzzy_eq(&other.w)
-        && self.h.fuzzy_eq(&other.h)
+        self.x.fuzzy_eq(&other.x)
+            && self.y.fuzzy_eq(&other.y)
+            && self.w.fuzzy_eq(&other.w)
+            && self.h.fuzzy_eq(&other.h)
     }
 }
 
@@ -77,31 +69,59 @@ mod tests {
     use std::str::FromStr;
 
     macro_rules! test {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr, $result:expr) => {
             #[test]
             fn $name() {
                 let v = ViewBox::from_str($text).unwrap();
                 assert!(v.fuzzy_eq(&$result));
             }
-        )
+        };
     }
 
-    test!(parse_1, "-20 30 100 500", ViewBox::new(-20.0, 30.0, 100.0, 500.0));
+    test!(
+        parse_1,
+        "-20 30 100 500",
+        ViewBox::new(-20.0, 30.0, 100.0, 500.0)
+    );
 
     macro_rules! test_err {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr, $result:expr) => {
             #[test]
             fn $name() {
                 assert_eq!(ViewBox::from_str($text).unwrap_err().to_string(), $result);
             }
-        )
+        };
     }
 
     test_err!(parse_err_1, "qwe", "invalid number at position 1");
-    test_err!(parse_err_2, "10 20 30 0", "viewBox should have a positive size");
-    test_err!(parse_err_3, "10 20 0 40", "viewBox should have a positive size");
-    test_err!(parse_err_4, "10 20 0 0", "viewBox should have a positive size");
-    test_err!(parse_err_5, "10 20 -30 0", "viewBox should have a positive size");
-    test_err!(parse_err_6, "10 20 30 -40", "viewBox should have a positive size");
-    test_err!(parse_err_7, "10 20 -30 -40", "viewBox should have a positive size");
+    test_err!(
+        parse_err_2,
+        "10 20 30 0",
+        "viewBox should have a positive size"
+    );
+    test_err!(
+        parse_err_3,
+        "10 20 0 40",
+        "viewBox should have a positive size"
+    );
+    test_err!(
+        parse_err_4,
+        "10 20 0 0",
+        "viewBox should have a positive size"
+    );
+    test_err!(
+        parse_err_5,
+        "10 20 -30 0",
+        "viewBox should have a positive size"
+    );
+    test_err!(
+        parse_err_6,
+        "10 20 30 -40",
+        "viewBox should have a positive size"
+    );
+    test_err!(
+        parse_err_7,
+        "10 20 -30 -40",
+        "viewBox should have a positive size"
+    );
 }

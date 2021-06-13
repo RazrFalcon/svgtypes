@@ -1,12 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Error,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
+use {Error, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<list-of-numbers>`] type.
 ///

@@ -25,7 +25,7 @@ impl Transform {
     /// Constructs a new transform.
     #[inline]
     pub fn new(a: f64, b: f64, c: f64, d: f64, e: f64, f: f64) -> Self {
-        Transform { a, b, c, d, e, f, }
+        Transform { a, b, c, d, e, f }
     }
 
     /// Constructs a new translate transform.
@@ -44,10 +44,10 @@ impl Transform {
     #[inline]
     pub fn new_rotate(angle: f64) -> Self {
         let v = angle.to_radians();
-        let a =  v.cos();
-        let b =  v.sin();
+        let a = v.cos();
+        let b = v.sin();
         let c = -b;
-        let d =  a;
+        let d = a;
         Transform::new(a, b, c, d, 0.0, 0.0)
     }
 
@@ -139,30 +139,30 @@ impl Transform {
 
     /// Returns `true` if the transform is default, aka `(1 0 0 1 0 0)`.
     pub fn is_default(&self) -> bool {
-           self.a.fuzzy_eq(&1.0)
-        && self.b.fuzzy_eq(&0.0)
-        && self.c.fuzzy_eq(&0.0)
-        && self.d.fuzzy_eq(&1.0)
-        && self.e.fuzzy_eq(&0.0)
-        && self.f.fuzzy_eq(&0.0)
+        self.a.fuzzy_eq(&1.0)
+            && self.b.fuzzy_eq(&0.0)
+            && self.c.fuzzy_eq(&0.0)
+            && self.d.fuzzy_eq(&1.0)
+            && self.e.fuzzy_eq(&0.0)
+            && self.f.fuzzy_eq(&0.0)
     }
 
     /// Returns `true` if the transform contains only translate part, aka `(1 0 0 1 x y)`.
     pub fn is_translate(&self) -> bool {
-           self.a.fuzzy_eq(&1.0)
-        && self.b.fuzzy_eq(&0.0)
-        && self.c.fuzzy_eq(&0.0)
-        && self.d.fuzzy_eq(&1.0)
-        && (self.e.fuzzy_ne(&0.0) || self.f.fuzzy_ne(&0.0))
+        self.a.fuzzy_eq(&1.0)
+            && self.b.fuzzy_eq(&0.0)
+            && self.c.fuzzy_eq(&0.0)
+            && self.d.fuzzy_eq(&1.0)
+            && (self.e.fuzzy_ne(&0.0) || self.f.fuzzy_ne(&0.0))
     }
 
     /// Returns `true` if the transform contains only scale part, aka `(sx 0 0 sy 0 0)`.
     pub fn is_scale(&self) -> bool {
-          (self.a.fuzzy_ne(&1.0) || self.d.fuzzy_ne(&1.0))
-        && self.b.fuzzy_eq(&0.0)
-        && self.c.fuzzy_eq(&0.0)
-        && self.e.fuzzy_eq(&0.0)
-        && self.f.fuzzy_eq(&0.0)
+        (self.a.fuzzy_ne(&1.0) || self.d.fuzzy_ne(&1.0))
+            && self.b.fuzzy_eq(&0.0)
+            && self.c.fuzzy_eq(&0.0)
+            && self.e.fuzzy_eq(&0.0)
+            && self.f.fuzzy_eq(&0.0)
     }
 
     /// Returns `true` if the transform contains translate part.
@@ -220,7 +220,7 @@ impl Transform {
     /// Returns transform's rotate part.
     #[inline]
     pub fn get_rotate(&self) -> f64 {
-        let mut angle = (-self.b/self.a).atan().to_degrees();
+        let mut angle = (-self.b / self.a).atan().to_degrees();
         if self.b < self.c || self.b > self.c {
             angle = -angle;
         }
@@ -266,20 +266,19 @@ impl Default for Transform {
 
 impl FuzzyEq for Transform {
     fn fuzzy_eq(&self, other: &Self) -> bool {
-           self.a.fuzzy_eq(&other.a)
-        && self.b.fuzzy_eq(&other.b)
-        && self.c.fuzzy_eq(&other.c)
-        && self.d.fuzzy_eq(&other.d)
-        && self.e.fuzzy_eq(&other.e)
-        && self.f.fuzzy_eq(&other.f)
+        self.a.fuzzy_eq(&other.a)
+            && self.b.fuzzy_eq(&other.b)
+            && self.c.fuzzy_eq(&other.c)
+            && self.d.fuzzy_eq(&other.d)
+            && self.e.fuzzy_eq(&other.e)
+            && self.f.fuzzy_eq(&other.f)
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn api_1() {

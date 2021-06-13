@@ -1,11 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Color,
-    Error,
-    Result,
-    Stream,
-};
+use {Color, Error, Result, Stream};
 
 /// Representation of the fallback part of the [`<paint>`] type.
 ///
@@ -85,9 +80,7 @@ impl<'a> Paint<'a> {
                             if !s.at_end() {
                                 let fallback = s.slice_tail();
                                 match fallback {
-                                    "none" => {
-                                        Ok(Paint::FuncIRI(link, Some(PaintFallback::None)))
-                                    }
+                                    "none" => Ok(Paint::FuncIRI(link, Some(PaintFallback::None))),
                                     "currentColor" => {
                                         Ok(Paint::FuncIRI(link, Some(PaintFallback::CurrentColor)))
                                     }
@@ -100,9 +93,7 @@ impl<'a> Paint<'a> {
                                 Ok(Paint::FuncIRI(link, None))
                             }
                         }
-                        Err(_) => {
-                            Err(Error::InvalidValue)
-                        }
+                        Err(_) => Err(Error::InvalidValue),
                     }
                 } else {
                     match Color::from_str(text) {
@@ -120,12 +111,12 @@ mod tests {
     use super::*;
 
     macro_rules! test {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr, $result:expr) => {
             #[test]
             fn $name() {
                 assert_eq!(Paint::from_str($text).unwrap(), $result);
             }
-        )
+        };
     }
 
     test!(parse_1, "none", Paint::None);
@@ -134,21 +125,37 @@ mod tests {
     test!(parse_4, " currentColor ", Paint::CurrentColor);
     test!(parse_5, " red ", Paint::Color(Color::red()));
     test!(parse_6, " url(#qwe) ", Paint::FuncIRI("qwe", None));
-    test!(parse_7, " url(#qwe) none ", Paint::FuncIRI("qwe", Some(PaintFallback::None)));
-    test!(parse_8, " url(#qwe) currentColor ", Paint::FuncIRI("qwe", Some(PaintFallback::CurrentColor)));
-    test!(parse_9, " url(#qwe) red ", Paint::FuncIRI("qwe", Some(PaintFallback::Color(Color::red()))));
+    test!(
+        parse_7,
+        " url(#qwe) none ",
+        Paint::FuncIRI("qwe", Some(PaintFallback::None))
+    );
+    test!(
+        parse_8,
+        " url(#qwe) currentColor ",
+        Paint::FuncIRI("qwe", Some(PaintFallback::CurrentColor))
+    );
+    test!(
+        parse_9,
+        " url(#qwe) red ",
+        Paint::FuncIRI("qwe", Some(PaintFallback::Color(Color::red())))
+    );
 
     macro_rules! test_err {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr, $result:expr) => {
             #[test]
             fn $name() {
                 assert_eq!(Paint::from_str($text).unwrap_err().to_string(), $result);
             }
-        )
+        };
     }
 
     test_err!(parse_err_1, "qwe", "invalid value");
-    test_err!(parse_err_2, "red icc-color(acmecmyk, 0.11, 0.48, 0.83, 0.00)", "invalid value");
+    test_err!(
+        parse_err_2,
+        "red icc-color(acmecmyk, 0.11, 0.48, 0.83, 0.00)",
+        "invalid value"
+    );
     // TODO: this
-//    test_err!(parse_err_3, "url(#qwe) red icc-color(acmecmyk, 0.11, 0.48, 0.83, 0.00)", "invalid color at 1:15");
+    //    test_err!(parse_err_3, "url(#qwe) red icc-color(acmecmyk, 0.11, 0.48, 0.83, 0.00)", "invalid color at 1:15");
 }

@@ -1,8 +1,4 @@
-use {
-    Color,
-    WriteBuffer,
-    WriteOptions,
-};
+use {Color, WriteBuffer, WriteOptions};
 
 static CHARS: &[u8] = b"0123456789abcdef";
 
@@ -41,17 +37,17 @@ impl_display!(Color);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use {WriteOptions, WriteBuffer};
+    use {WriteBuffer, WriteOptions};
 
     macro_rules! test {
-        ($name:ident, $c:expr, $trim:expr, $result:expr) => (
+        ($name:ident, $c:expr, $trim:expr, $result:expr) => {
             #[test]
             fn $name() {
                 let mut opt = WriteOptions::default();
                 opt.trim_hex_colors = $trim;
                 assert_eq!($c.with_write_opt(&opt).to_string(), $result);
             }
-        )
+        };
     }
 
     test!(write_1, Color::new(255, 0, 0), false, "#ff0000");

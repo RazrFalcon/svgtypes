@@ -3,14 +3,7 @@ use std::str::FromStr;
 
 use super::colors;
 
-use {
-    ByteExt,
-    Color,
-    Error,
-    LengthUnit,
-    Result,
-    Stream,
-};
+use {ByteExt, Color, Error, LengthUnit, Result, Stream};
 
 impl FromStr for Color {
     type Err = Error;
@@ -57,15 +50,15 @@ impl FromStr for Color {
             match color_str.len() {
                 6 => {
                     // #rrggbb
-                    color.red   = hex_pair(color_str[0], color_str[1]);
+                    color.red = hex_pair(color_str[0], color_str[1]);
                     color.green = hex_pair(color_str[2], color_str[3]);
-                    color.blue  = hex_pair(color_str[4], color_str[5]);
+                    color.blue = hex_pair(color_str[4], color_str[5]);
                 }
                 3 => {
                     // #rgb
-                    color.red   = short_hex(color_str[0]);
+                    color.red = short_hex(color_str[0]);
                     color.green = short_hex(color_str[1]);
-                    color.blue  = short_hex(color_str[2]);
+                    color.blue = short_hex(color_str[2]);
                 }
                 _ => {
                     return Err(Error::InvalidValue);
@@ -83,13 +76,13 @@ impl FromStr for Color {
                     bound(0, n, 255) as u8
                 }
 
-                color.red   = from_percent(l.num);
+                color.red = from_percent(l.num);
                 color.green = from_percent(s.parse_list_length()?.num);
-                color.blue  = from_percent(s.parse_list_length()?.num);
+                color.blue = from_percent(s.parse_list_length()?.num);
             } else {
-                color.red   = bound(0, l.num as i32, 255) as u8;
+                color.red = bound(0, l.num as i32, 255) as u8;
                 color.green = bound(0, s.parse_list_integer()?, 255) as u8;
-                color.blue  = bound(0, s.parse_list_integer()?, 255) as u8;
+                color.blue = bound(0, s.parse_list_integer()?, 255) as u8;
             }
 
             s.skip_spaces();
@@ -174,35 +167,15 @@ mod tests {
         };
     }
 
-    test!(
-        rrggbb,
-        "#ff0000",
-        Color::new(255, 0, 0)
-    );
+    test!(rrggbb, "#ff0000", Color::new(255, 0, 0));
 
-    test!(
-        rrggbb_upper,
-        "#FF0000",
-        Color::new(255, 0, 0)
-    );
+    test!(rrggbb_upper, "#FF0000", Color::new(255, 0, 0));
 
-    test!(
-        rgb_hex,
-        "#f00",
-        Color::new(255, 0, 0)
-    );
+    test!(rgb_hex, "#f00", Color::new(255, 0, 0));
 
-    test!(
-        rrggbb_spaced,
-        "  #ff0000  ",
-        Color::new(255, 0, 0)
-    );
+    test!(rrggbb_spaced, "  #ff0000  ", Color::new(255, 0, 0));
 
-    test!(
-        rgb_numeric,
-        "rgb(254, 203, 231)",
-        Color::new(254, 203, 231)
-    );
+    test!(rgb_numeric, "rgb(254, 203, 231)", Color::new(254, 203, 231));
 
     test!(
         rgb_numeric_spaced,
@@ -240,29 +213,13 @@ mod tests {
         Color::new(254, 203, 231)
     );
 
-    test!(
-        name_red,
-        "red",
-        Color::new(255, 0, 0)
-    );
+    test!(name_red, "red", Color::new(255, 0, 0));
 
-    test!(
-        name_red_spaced,
-        " red ",
-        Color::new(255, 0, 0)
-    );
+    test!(name_red_spaced, " red ", Color::new(255, 0, 0));
 
-    test!(
-        name_red_upper_case,
-        "RED",
-        Color::new(255, 0, 0)
-    );
+    test!(name_red_upper_case, "RED", Color::new(255, 0, 0));
 
-    test!(
-        name_red_mixed_case,
-        "ReD",
-        Color::new(255, 0, 0)
-    );
+    test!(name_red_mixed_case, "ReD", Color::new(255, 0, 0));
 
     test!(
         name_cornflowerblue,
@@ -279,11 +236,7 @@ mod tests {
         };
     }
 
-    test_err!(
-        not_a_color_1,
-        "text",
-        "invalid value"
-    );
+    test_err!(not_a_color_1, "text", "invalid value");
 
     test_err!(
         icc_color_not_supported_1,
@@ -297,15 +250,7 @@ mod tests {
         "unexpected data at position 5"
     );
 
-    test_err!(
-        invalid_input_1,
-        "rgb(-0\x0d",
-        "unexpected end of stream"
-    );
+    test_err!(invalid_input_1, "rgb(-0\x0d", "unexpected end of stream");
 
-    test_err!(
-        invalid_input_2,
-        "#9ߞpx! ;",
-        "invalid value"
-    );
+    test_err!(invalid_input_2, "#9ߞpx! ;", "invalid value");
 }

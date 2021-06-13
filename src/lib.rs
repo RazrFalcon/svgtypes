@@ -102,16 +102,13 @@ None.
 */
 
 #![doc(html_root_url = "https://docs.rs/svgtypes/0.5.0")]
-
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
 #![deny(missing_copy_implementations)]
 
-
 extern crate float_cmp;
 extern crate siphasher;
-
 
 macro_rules! matches {
     ($expression:expr, $($pattern:tt)+) => {
@@ -122,8 +119,8 @@ macro_rules! matches {
     }
 }
 
-
-#[macro_use] mod traits;
+#[macro_use]
+mod traits;
 mod angle;
 mod aspect_ratio;
 mod color;

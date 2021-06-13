@@ -1,15 +1,7 @@
-use std::str::{self, FromStr};
 use std::cmp;
+use std::str::{self, FromStr};
 
-use {
-    Angle,
-    AngleUnit,
-    Error,
-    Length,
-    LengthUnit,
-    Result,
-};
-
+use {Angle, AngleUnit, Error, Length, LengthUnit, Result};
 
 /// Extension methods for XML-subset only operations.
 pub(crate) trait ByteExt {
@@ -72,7 +64,6 @@ impl ByteExt for u8 {
     }
 }
 
-
 /// A streaming text parsing interface.
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Stream<'a> {
@@ -83,10 +74,7 @@ pub struct Stream<'a> {
 impl<'a> From<&'a str> for Stream<'a> {
     #[inline]
     fn from(text: &'a str) -> Self {
-        Stream {
-            text,
-            pos: 0,
-        }
+        Stream { text, pos: 0 }
     }
 }
 
@@ -284,12 +272,10 @@ impl<'a> Stream<'a> {
     /// ```
     pub fn consume_byte(&mut self, c: u8) -> Result<()> {
         if self.curr_byte()? != c {
-            return Err(
-                Error::InvalidChar(
-                    vec![self.curr_byte_unchecked(), c],
-                    self.calc_char_pos(),
-                )
-            );
+            return Err(Error::InvalidChar(
+                vec![self.curr_byte_unchecked(), c],
+                self.calc_char_pos(),
+            ));
         }
 
         self.advance(1);
@@ -317,7 +303,10 @@ impl<'a> Stream<'a> {
             // Assume that all input `text` are valid UTF-8 strings, so unwrap is safe.
             let expected = str::from_utf8(text).unwrap().to_owned();
 
-            return Err(Error::InvalidString(vec![actual, expected], self.calc_char_pos()));
+            return Err(Error::InvalidString(
+                vec![actual, expected],
+                self.calc_char_pos(),
+            ));
         }
 
         self.advance(text.len());
@@ -328,7 +317,8 @@ impl<'a> Stream<'a> {
     ///
     /// The result can be empty.
     pub fn consume_bytes<F>(&mut self, f: F) -> &'a str
-        where F: Fn(&Stream, u8) -> bool
+    where
+        F: Fn(&Stream, u8) -> bool,
     {
         let start = self.pos();
         self.skip_bytes(f);
@@ -337,7 +327,8 @@ impl<'a> Stream<'a> {
 
     /// Consumes bytes by the predicate.
     pub fn skip_bytes<F>(&mut self, f: F)
-        where F: Fn(&Stream, u8) -> bool
+    where
+        F: Fn(&Stream, u8) -> bool,
     {
         while !self.at_end() {
             let c = self.curr_byte_unchecked();
@@ -398,7 +389,8 @@ impl<'a> Stream<'a> {
             return Err(Error::InvalidNumber(self.calc_char_pos_at(start)));
         }
 
-        self.parse_number_impl().map_err(|_| Error::InvalidNumber(self.calc_char_pos_at(start)))
+        self.parse_number_impl()
+            .map_err(|_| Error::InvalidNumber(self.calc_char_pos_at(start)))
     }
 
     fn parse_number_impl(&mut self) -> Result<f64> {
@@ -437,9 +429,7 @@ impl<'a> Stream<'a> {
                             self.advance(1);
                             self.skip_digits();
                         }
-                        b'0'..=b'9' => {
-                            self.skip_digits()
-                        }
+                        b'0'..=b'9' => self.skip_digits(),
                         _ => {
                             return Err(Error::InvalidNumber(0));
                         }
@@ -708,26 +698,37 @@ mod tests {
     fn parse_err_integer_1() {
         // error because of overflow
         let mut s = Stream::from("10000000000000");
-        assert_eq!(s.parse_integer().unwrap_err().to_string(),
-                   "invalid number at position 1");
+        assert_eq!(
+            s.parse_integer().unwrap_err().to_string(),
+            "invalid number at position 1"
+        );
     }
 
     #[test]
     fn parse_length_1() {
         let mut s = Stream::from("1,");
-        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
+        assert_eq!(
+            s.parse_length().unwrap(),
+            Length::new(1.0, LengthUnit::None)
+        );
     }
 
     #[test]
     fn parse_length_2() {
         let mut s = Stream::from("1 ,");
-        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
+        assert_eq!(
+            s.parse_length().unwrap(),
+            Length::new(1.0, LengthUnit::None)
+        );
     }
 
     #[test]
     fn parse_length_3() {
         let mut s = Stream::from("1 1");
-        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
+        assert_eq!(
+            s.parse_length().unwrap(),
+            Length::new(1.0, LengthUnit::None)
+        );
     }
 
     #[test]
@@ -752,8 +753,10 @@ mod tests {
 
     #[test]
     fn parse_err_iri_1() {
-        assert_eq!(Stream::from("# id").parse_iri().unwrap_err().to_string(),
-                   "invalid value");
+        assert_eq!(
+            Stream::from("# id").parse_iri().unwrap_err().to_string(),
+            "invalid value"
+        );
     }
 
     #[test]
@@ -768,24 +771,44 @@ mod tests {
 
     #[test]
     fn parse_func_iri_3() {
-        assert_eq!(Stream::from("    url(    #id    )   ").parse_func_iri().unwrap(), "id");
+        assert_eq!(
+            Stream::from("    url(    #id    )   ")
+                .parse_func_iri()
+                .unwrap(),
+            "id"
+        );
     }
 
     #[test]
     fn parse_err_func_iri_1() {
-        assert_eq!(Stream::from("url ( #1 )").parse_func_iri().unwrap_err().to_string(),
-                   "invalid value");
+        assert_eq!(
+            Stream::from("url ( #1 )")
+                .parse_func_iri()
+                .unwrap_err()
+                .to_string(),
+            "invalid value"
+        );
     }
 
     #[test]
     fn parse_err_func_iri_2() {
-        assert_eq!(Stream::from("url(#)").parse_func_iri().unwrap_err().to_string(),
-                   "invalid value");
+        assert_eq!(
+            Stream::from("url(#)")
+                .parse_func_iri()
+                .unwrap_err()
+                .to_string(),
+            "invalid value"
+        );
     }
 
     #[test]
     fn parse_err_func_iri_3() {
-        assert_eq!(Stream::from("url(# id)").parse_func_iri().unwrap_err().to_string(),
-                   "invalid value");
+        assert_eq!(
+            Stream::from("url(# id)")
+                .parse_func_iri()
+                .unwrap_err()
+                .to_string(),
+            "invalid value"
+        );
     }
 }

@@ -1,9 +1,4 @@
-use {
-    ListSeparator,
-    Points,
-    WriteBuffer,
-    WriteOptions,
-};
+use {ListSeparator, Points, WriteBuffer, WriteOptions};
 
 impl WriteBuffer for (f64, f64) {
     fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {

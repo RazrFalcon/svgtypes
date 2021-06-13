@@ -1,11 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Error,
-    Points,
-    Result,
-    Stream,
-};
+use {Error, Points, Result, Stream};
 
 /// A pull-based [`<list-of-points>`] parser.
 ///
@@ -77,9 +72,9 @@ impl FromStr for Points {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use super::*;
-    use {WriteBuffer, WriteOptions, ListSeparator};
+    use std::str::FromStr;
+    use {ListSeparator, WriteBuffer, WriteOptions};
 
     #[test]
     fn parse_1() {
@@ -105,7 +100,7 @@ mod tests {
 
         let opt = WriteOptions {
             list_separator: ListSeparator::Comma,
-            .. WriteOptions::default()
+            ..WriteOptions::default()
         };
 
         assert_eq!(points.with_write_opt(&opt).to_string(), "10,20,30,40");

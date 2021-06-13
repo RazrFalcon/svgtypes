@@ -1,8 +1,6 @@
 use std::fmt;
 
-use {
-    WriteOptions,
-};
+use WriteOptions;
 
 /// A trait for writing data to the buffer.
 pub trait WriteBuffer {
@@ -16,7 +14,8 @@ pub trait WriteBuffer {
 
     /// Returns an object that implements `fmt::Display` using provided write options.
     fn with_write_opt<'a>(&'a self, opt: &'a WriteOptions) -> DisplaySvg<'a, Self>
-        where Self: Sized
+    where
+        Self: Sized,
     {
         DisplaySvg { value: self, opt }
     }
@@ -76,14 +75,14 @@ impl<'a, T: WriteBuffer> fmt::Display for DisplaySvg<'a, T> {
 }
 
 macro_rules! impl_display {
-    ($t:ty) => (
+    ($t:ty) => {
         impl ::std::fmt::Display for $t {
             #[inline]
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 write!(f, "{}", self.with_write_opt(&WriteOptions::default()))
             }
         }
-    )
+    };
 }
 
 /// A trait for fuzzy/approximate equality comparisons of float numbers.
@@ -120,9 +119,8 @@ pub trait FuzzyZero: FuzzyEq {
     fn is_fuzzy_zero(&self) -> bool;
 }
 
-
 macro_rules! impl_vec_defer {
-    ($t:ty, $tt:ty) => (
+    ($t:ty, $tt:ty) => {
         impl ::std::ops::Deref for $t {
             type Target = Vec<$tt>;
 
@@ -138,27 +136,27 @@ macro_rules! impl_vec_defer {
                 &mut self.0
             }
         }
-    )
+    };
 }
 
 macro_rules! impl_from_vec {
-    ($t:ty, $te:expr, $s:ty) => (
+    ($t:ty, $te:expr, $s:ty) => {
         impl From<Vec<$s>> for $t {
             #[inline]
             fn from(v: Vec<$s>) -> Self {
                 $te(v)
             }
         }
-    )
+    };
 }
 
 macro_rules! impl_debug_from_display {
-    ($t:ty) => (
+    ($t:ty) => {
         impl ::std::fmt::Debug for $t {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 // Overload Display.
                 write!(f, "{}", &self)
             }
         }
-    )
+    };
 }

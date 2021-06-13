@@ -1,13 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Error,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
-
+use {Error, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the `align` value of the [`preserveAspectRatio`] attribute.
 ///
@@ -83,9 +76,7 @@ impl FromStr for AspectRatio {
             "xMinYMax" => Align::XMinYMax,
             "xMidYMax" => Align::XMidYMax,
             "xMaxYMax" => Align::XMaxYMax,
-            _ => {
-                return Err(Error::UnexpectedData(s.calc_char_pos_at(start)))
-            }
+            _ => return Err(Error::UnexpectedData(s.calc_char_pos_at(start))),
         };
 
         s.skip_spaces();
@@ -98,9 +89,7 @@ impl FromStr for AspectRatio {
                 "meet" => {}
                 "slice" => slice = true,
                 "" => {}
-                _ => {
-                    return Err(Error::UnexpectedData(s.calc_char_pos_at(start)))
-                }
+                _ => return Err(Error::UnexpectedData(s.calc_char_pos_at(start))),
             };
         }
 
@@ -119,7 +108,7 @@ impl WriteBuffer for AspectRatio {
         }
 
         let align = match self.align {
-            Align::None     => "none",
+            Align::None => "none",
             Align::XMinYMin => "xMinYMin",
             Align::XMidYMin => "xMidYMin",
             Align::XMaxYMin => "xMaxYMin",
@@ -158,44 +147,64 @@ mod tests {
     use std::str::FromStr;
 
     macro_rules! test {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr, $result:expr) => {
             #[test]
             fn $name() {
                 let v = AspectRatio::from_str($text).unwrap();
                 assert_eq!(v, $result);
             }
-        )
+        };
     }
 
-    test!(parse_1, "none", AspectRatio {
-        defer: false,
-        align: Align::None,
-        slice: false,
-    });
+    test!(
+        parse_1,
+        "none",
+        AspectRatio {
+            defer: false,
+            align: Align::None,
+            slice: false,
+        }
+    );
 
-    test!(parse_2, "defer none", AspectRatio {
-        defer: true,
-        align: Align::None,
-        slice: false,
-    });
+    test!(
+        parse_2,
+        "defer none",
+        AspectRatio {
+            defer: true,
+            align: Align::None,
+            slice: false,
+        }
+    );
 
-    test!(parse_3, "xMinYMid", AspectRatio {
-        defer: false,
-        align: Align::XMinYMid,
-        slice: false,
-    });
+    test!(
+        parse_3,
+        "xMinYMid",
+        AspectRatio {
+            defer: false,
+            align: Align::XMinYMid,
+            slice: false,
+        }
+    );
 
-    test!(parse_4, "xMinYMid slice", AspectRatio {
-        defer: false,
-        align: Align::XMinYMid,
-        slice: true,
-    });
+    test!(
+        parse_4,
+        "xMinYMid slice",
+        AspectRatio {
+            defer: false,
+            align: Align::XMinYMid,
+            slice: true,
+        }
+    );
 
-    test!(parse_5, "xMinYMid meet", AspectRatio {
-        defer: false,
-        align: Align::XMinYMid,
-        slice: false,
-    });
+    test!(
+        parse_5,
+        "xMinYMid meet",
+        AspectRatio {
+            defer: false,
+            align: Align::XMinYMid,
+            slice: false,
+        }
+    );
 
     #[test]
     fn write_1() {
@@ -204,10 +213,14 @@ mod tests {
 
     #[test]
     fn write_2() {
-        assert_eq!(AspectRatio {
-            defer: true,
-            align: Align::None,
-            slice: true,
-        }.to_string(), "defer none slice");
+        assert_eq!(
+            AspectRatio {
+                defer: true,
+                align: Align::None,
+                slice: true,
+            }
+            .to_string(),
+            "defer none slice"
+        );
     }
 }

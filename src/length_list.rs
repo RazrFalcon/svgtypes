@@ -1,13 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Error,
-    Length,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
+use {Error, Length, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<list-of-length>`] type.
 ///

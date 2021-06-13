@@ -1,11 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Error,
-    Result,
-    Stream,
-    Transform,
-};
+use {Error, Result, Stream, Transform};
 
 /// Transform list token.
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -86,17 +81,12 @@ impl<'a> Iterator for TransformListParser<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(a) = self.last_angle {
             self.last_angle = None;
-            return Some(Ok(TransformListToken::Rotate {
-                angle: a,
-            }));
+            return Some(Ok(TransformListToken::Rotate { angle: a }));
         }
 
         if let Some((x, y)) = self.rotate_ts {
             self.rotate_ts = None;
-            return Some(Ok(TransformListToken::Translate {
-                tx: -x,
-                ty: -y,
-            }));
+            return Some(Ok(TransformListToken::Translate { tx: -x, ty: -y }));
         }
 
         self.stream.skip_spaces();
@@ -125,16 +115,14 @@ impl<'a> TransformListParser<'a> {
         s.consume_byte(b'(')?;
 
         let t = match name.as_bytes() {
-            b"matrix" => {
-                TransformListToken::Matrix {
-                    a: s.parse_list_number()?,
-                    b: s.parse_list_number()?,
-                    c: s.parse_list_number()?,
-                    d: s.parse_list_number()?,
-                    e: s.parse_list_number()?,
-                    f: s.parse_list_number()?,
-                }
-            }
+            b"matrix" => TransformListToken::Matrix {
+                a: s.parse_list_number()?,
+                b: s.parse_list_number()?,
+                c: s.parse_list_number()?,
+                d: s.parse_list_number()?,
+                e: s.parse_list_number()?,
+                f: s.parse_list_number()?,
+            },
             b"translate" => {
                 let x = s.parse_list_number()?;
                 s.skip_spaces();
@@ -146,10 +134,7 @@ impl<'a> TransformListParser<'a> {
                     s.parse_list_number()?
                 };
 
-                TransformListToken::Translate {
-                    tx: x,
-                    ty: y,
-                }
+                TransformListToken::Translate { tx: x, ty: y }
             }
             b"scale" => {
                 let x = s.parse_list_number()?;
@@ -162,10 +147,7 @@ impl<'a> TransformListParser<'a> {
                     s.parse_list_number()?
                 };
 
-                TransformListToken::Scale {
-                    sx: x,
-                    sy: y,
-                }
+                TransformListToken::Scale { sx: x, sy: y }
             }
             b"rotate" => {
                 let a = s.parse_list_number()?;
@@ -181,26 +163,17 @@ impl<'a> TransformListParser<'a> {
                     self.rotate_ts = Some((cx, cy));
                     self.last_angle = Some(a);
 
-                    TransformListToken::Translate {
-                        tx: cx,
-                        ty: cy,
-                    }
+                    TransformListToken::Translate { tx: cx, ty: cy }
                 } else {
-                    TransformListToken::Rotate {
-                        angle: a,
-                    }
+                    TransformListToken::Rotate { angle: a }
                 }
             }
-            b"skewX" => {
-                TransformListToken::SkewX {
-                    angle: s.parse_list_number()?,
-                }
-            }
-            b"skewY" => {
-                TransformListToken::SkewY {
-                    angle: s.parse_list_number()?,
-                }
-            }
+            b"skewX" => TransformListToken::SkewX {
+                angle: s.parse_list_number()?,
+            },
+            b"skewY" => TransformListToken::SkewY {
+                angle: s.parse_list_number()?,
+            },
             _ => {
                 return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
             }
@@ -227,13 +200,24 @@ impl FromStr for Transform {
 
         for token in tokens {
             match token? {
-                TransformListToken::Matrix { a, b, c, d, e, f } =>
-                    { transform.append(&Transform::new(a, b, c, d, e, f)); }
-                TransformListToken::Translate { tx, ty } => { transform.translate(tx, ty); }
-                TransformListToken::Scale { sx, sy } => { transform.scale(sx, sy); }
-                TransformListToken::Rotate { angle } => { transform.rotate(angle); }
-                TransformListToken::SkewX { angle } => { transform.skew_x(angle); }
-                TransformListToken::SkewY { angle } => { transform.skew_y(angle); }
+                TransformListToken::Matrix { a, b, c, d, e, f } => {
+                    transform.append(&Transform::new(a, b, c, d, e, f));
+                }
+                TransformListToken::Translate { tx, ty } => {
+                    transform.translate(tx, ty);
+                }
+                TransformListToken::Scale { sx, sy } => {
+                    transform.scale(sx, sy);
+                }
+                TransformListToken::Rotate { angle } => {
+                    transform.rotate(angle);
+                }
+                TransformListToken::SkewX { angle } => {
+                    transform.skew_x(angle);
+                }
+                TransformListToken::SkewY { angle } => {
+                    transform.skew_y(angle);
+                }
             }
         }
 
@@ -245,71 +229,60 @@ impl FromStr for Transform {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use super::*;
+    use std::str::FromStr;
 
     macro_rules! test {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr, $result:expr) => {
             #[test]
             fn $name() {
                 assert_eq!(Transform::from_str($text).unwrap().to_string(), $result);
             }
-        )
+        };
     }
 
-    test!(parse_1,
-        "matrix(1 0 0 1 10 20)",
-        "matrix(1 0 0 1 10 20)"
-    );
+    test!(parse_1, "matrix(1 0 0 1 10 20)", "matrix(1 0 0 1 10 20)");
 
-    test!(parse_2,
-        "translate(10 20)",
-        "matrix(1 0 0 1 10 20)"
-    );
+    test!(parse_2, "translate(10 20)", "matrix(1 0 0 1 10 20)");
 
-    test!(parse_3,
-        "scale(2 3)",
-        "matrix(2 0 0 3 0 0)"
-    );
+    test!(parse_3, "scale(2 3)", "matrix(2 0 0 3 0 0)");
 
-    test!(parse_4,
+    test!(
+        parse_4,
         "rotate(30)",
         "matrix(0.86602540378 0.5 -0.5 0.86602540378 0 0)"
     );
 
-    test!(parse_5,
+    test!(
+        parse_5,
         "rotate(30 10 20)",
         "matrix(0.86602540378 0.5 -0.5 0.86602540378 11.33974596216 -2.32050807569)"
     );
 
-    test!(parse_6,
+    test!(
+        parse_6,
         "translate(10 15) translate(0 5)",
         "matrix(1 0 0 1 10 20)"
     );
 
-    test!(parse_7,
-        "translate(10) scale(2)",
-        "matrix(2 0 0 2 10 0)"
-    );
+    test!(parse_7, "translate(10) scale(2)", "matrix(2 0 0 2 10 0)");
 
-    test!(parse_8,
+    test!(
+        parse_8,
         "translate(25 215) scale(2) skewX(45)",
         "matrix(2 0 2 2 25 215)"
     );
 
-    test!(parse_9,
-        "skewX(45)",
-        "matrix(1 0 1 1 0 0)"
-    );
+    test!(parse_9, "skewX(45)", "matrix(1 0 1 1 0 0)");
 
     macro_rules! test_err {
-        ($name:ident, $text:expr, $result:expr) => (
+        ($name:ident, $text:expr, $result:expr) => {
             #[test]
             fn $name() {
                 let ts = Transform::from_str($text);
                 assert_eq!(ts.unwrap_err().to_string(), $result);
             }
-        )
+        };
     }
 
     test_err!(parse_err_1, "text", "unexpected end of stream");
@@ -318,8 +291,10 @@ mod tests {
     fn parse_err_2() {
         let mut ts = TransformListParser::from("scale(2) text");
         let _ = ts.next().unwrap();
-        assert_eq!(ts.next().unwrap().unwrap_err().to_string(),
-                   "unexpected end of stream");
+        assert_eq!(
+            ts.next().unwrap().unwrap_err().to_string(),
+            "unexpected end of stream"
+        );
     }
 
     test_err!(parse_err_3, "???G", "expected '(' not '?' at position 1");
@@ -338,5 +313,9 @@ mod tests {
 
     test_err!(parse_err_6, "rect()", "unexpected data at position 1");
 
-    test_err!(parse_err_7, "scale(2) rect()", "unexpected data at position 10");
+    test_err!(
+        parse_err_7,
+        "scale(2) rect()",
+        "unexpected data at position 10"
+    );
 }
