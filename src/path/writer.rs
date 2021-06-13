@@ -44,11 +44,10 @@ fn write_cmd(
         // check that previous command is the same as current
         if let Some(ref pcmd) = *prev_cmd {
             // MoveTo commands can't be skipped
-            if pcmd.cmd != PathCommand::MoveTo {
-                if seg.cmd() == pcmd.cmd && seg.is_absolute() == pcmd.absolute {
+            if pcmd.cmd != PathCommand::MoveTo && seg.cmd() == pcmd.cmd && seg.is_absolute() == pcmd.absolute {
                     print_cmd = false;
                 }
-            }
+
         }
     }
 

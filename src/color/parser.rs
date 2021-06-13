@@ -121,9 +121,9 @@ impl FromStr for Color {
 #[inline]
 fn from_hex(c: u8) -> u8 {
     match c {
-        b'0'...b'9' => c - b'0',
-        b'a'...b'f' => c - b'a' + 10,
-        b'A'...b'F' => c - b'A' + 10,
+        b'0'..=b'9' => c - b'0',
+        b'a'..=b'f' => c - b'a' + 10,
+        b'A'..=b'F' => c - b'A' + 10,
         _ => b'0',
     }
 }
@@ -142,7 +142,7 @@ fn hex_pair(c1: u8, c2: u8) -> u8 {
 }
 
 fn is_rgb(s: &Stream) -> bool {
-    let mut s = s.clone();
+    let mut s = *s;
     let prefix = s.consume_bytes(|_, c| c != b'(');
     if s.consume_byte(b'(').is_err() {
         return false;

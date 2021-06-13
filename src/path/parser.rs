@@ -112,12 +112,10 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment> {
         return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
     }
 
-    if !has_prev_cmd {
-        if !matches!(first_char, b'M' | b'm') {
+    if !has_prev_cmd && !matches!(first_char, b'M' | b'm') {
             // The first segment must be a MoveTo.
             return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
         }
-    }
 
     // TODO: simplify
     let is_implicit_move_to;
@@ -304,7 +302,7 @@ fn to_relative(c: u8) -> u8 {
 
 #[inline]
 fn is_number_start(c: u8) -> bool {
-    matches!(c, b'0'...b'9' | b'.' | b'-' | b'+')
+    matches!(c, b'0'..=b'9' | b'.' | b'-' | b'+')
 }
 
 // By the SVG spec 'large-arc' and 'sweep' must contain only one char

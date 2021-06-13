@@ -138,8 +138,7 @@ impl Path {
                     prev_x = seg.x().unwrap();
                     prev_y = seg.y().unwrap();
                 }
-            } else {
-                if seg.cmd() == PathCommand::HorizontalLineTo {
+            } else if seg.cmd() == PathCommand::HorizontalLineTo {
                     prev_x += seg.x().unwrap();
                 } else if seg.cmd() == PathCommand::VerticalLineTo {
                     prev_y += seg.y().unwrap();
@@ -147,7 +146,7 @@ impl Path {
                     prev_x += seg.x().unwrap();
                     prev_y += seg.y().unwrap();
                 }
-            }
+
 
             if seg.cmd() == PathCommand::MoveTo {
                 if seg.is_absolute() {
