@@ -48,12 +48,12 @@ impl ByteExt for u8 {
 
     #[inline]
     fn is_digit(&self) -> bool {
-        matches!(*self, b'0'...b'9')
+        matches!(*self, b'0'..=b'9')
     }
 
     #[inline]
     fn is_hex_digit(&self) -> bool {
-        matches!(*self, b'0'...b'9' | b'A'...b'F' | b'a'...b'f')
+        matches!(*self, b'0'..=b'9' | b'A'..=b'F' | b'a'..=b'f')
     }
 
     #[inline]
@@ -63,12 +63,12 @@ impl ByteExt for u8 {
 
     #[inline]
     fn is_letter(&self) -> bool {
-        matches!(*self, b'A'...b'Z' | b'a'...b'z')
+        matches!(*self, b'A'..=b'Z' | b'a'..=b'z')
     }
 
     #[inline]
     fn is_ident(&self) -> bool {
-        matches!(*self, b'0'...b'9' | b'A'...b'Z' | b'a'...b'z' | b'-' | b'_')
+        matches!(*self, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' | b'-' | b'_')
     }
 }
 
@@ -414,7 +414,7 @@ impl<'a> Stream<'a> {
 
         // Consume integer.
         match c {
-            b'0'...b'9' => self.skip_digits(),
+            b'0'..=b'9' => self.skip_digits(),
             b'.' => {}
             _ => return Err(Error::InvalidNumber(0)),
         }
@@ -437,7 +437,7 @@ impl<'a> Stream<'a> {
                             self.advance(1);
                             self.skip_digits();
                         }
-                        b'0'...b'9' => {
+                        b'0'..=b'9' => {
                             self.skip_digits()
                         }
                         _ => {

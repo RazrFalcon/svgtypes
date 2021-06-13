@@ -304,7 +304,7 @@ fn to_relative(c: u8) -> u8 {
 
 #[inline]
 fn is_number_start(c: u8) -> bool {
-    matches!(c, b'0'...b'9' | b'.' | b'-' | b'+')
+    matches!(c, b'0'..=b'9' | b'.' | b'-' | b'+')
 }
 
 // By the SVG spec 'large-arc' and 'sweep' must contain only one char
