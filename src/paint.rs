@@ -75,7 +75,6 @@ impl<'a> Paint<'a> {
             "currentColor" => Ok(Paint::CurrentColor),
             _ => {
                 let mut s = Stream::from(text);
-                s.skip_spaces();
                 if s.starts_with(b"url(") {
                     match s.parse_func_iri() {
                         Ok(link) => {

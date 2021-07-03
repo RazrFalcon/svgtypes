@@ -302,7 +302,7 @@ impl<'a> Stream<'a> {
     ///
     /// - `InvalidChar`
     /// - `UnexpectedEndOfStream`
-    pub fn skip_string(&mut self, text: &[u8]) -> Result<()> {
+    pub fn consume_string(&mut self, text: &[u8]) -> Result<()> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
         }
@@ -669,7 +669,7 @@ impl<'a> Stream<'a> {
     pub fn parse_func_iri(&mut self) -> Result<&'a str> {
         let mut _impl = || -> Result<&'a str> {
             self.skip_spaces();
-            self.skip_string(b"url(")?;
+            self.consume_string(b"url(")?;
             self.skip_spaces();
             self.consume_byte(b'#')?;
             let link = self.consume_bytes(|_, c| c != b' ' && c != b')');

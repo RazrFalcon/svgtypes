@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Rename `Stream::skip_string` into `Stream::consume_string`.
 
 ## [0.5.0] - 2019-08-12
 ### Added
