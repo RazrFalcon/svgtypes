@@ -1,5 +1,5 @@
 ## {{crate}}
-[![Build Status](https://travis-ci.org/RazrFalcon/{{crate}}.svg?branch=master)](https://travis-ci.org/RazrFalcon/{{crate}})
+![Build Status](https://github.com/RazrFalcon/{{crate}}/workflows/{{crate}}/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/{{crate}}.svg)](https://crates.io/crates/{{crate}})
 [![Documentation](https://docs.rs/{{crate}}/badge.svg)](https://docs.rs/{{crate}})
 [![Rust 1.31+](https://img.shields.io/badge/rust-1.31+-orange.svg)](https://www.rust-lang.org)

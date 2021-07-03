@@ -1,5 +1,5 @@
 ## svgtypes
-[![Build Status](https://travis-ci.org/RazrFalcon/svgtypes.svg?branch=master)](https://travis-ci.org/RazrFalcon/svgtypes)
+![Build Status](https://github.com/RazrFalcon/svgtypes/workflows/svgtypes/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/svgtypes.svg)](https://crates.io/crates/svgtypes)
 [![Documentation](https://docs.rs/svgtypes/badge.svg)](https://docs.rs/svgtypes)
 [![Rust 1.31+](https://img.shields.io/badge/rust-1.31+-orange.svg)](https://www.rust-lang.org)
