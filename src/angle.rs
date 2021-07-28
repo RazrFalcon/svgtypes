@@ -1,13 +1,4 @@
-use std::str::FromStr;
-
-use {
-    Error,
-    FuzzyEq,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
+use crate::{Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
 
 /// List of all SVG angle units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -36,7 +27,7 @@ impl Angle {
     }
 }
 
-impl FromStr for Angle {
+impl std::str::FromStr for Angle {
     type Err = Error;
 
     #[inline]

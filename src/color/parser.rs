@@ -1,18 +1,8 @@
-use std::cmp;
-use std::str::FromStr;
-
 use super::colors;
 
-use {
-    ByteExt,
-    Color,
-    Error,
-    LengthUnit,
-    Result,
-    Stream,
-};
+use crate::{ByteExt, Color, Error, LengthUnit, Result, Stream};
 
-impl FromStr for Color {
+impl std::str::FromStr for Color {
     type Err = Error;
 
     /// Parses `Color` from `StrSpan`.
@@ -157,13 +147,13 @@ fn is_rgb(s: &Stream) -> bool {
 
 #[inline]
 fn bound<T: Ord>(min: T, val: T, max: T) -> T {
-    cmp::max(min, cmp::min(max, val))
+    std::cmp::max(min, std::cmp::min(max, val))
 }
 
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;
-    use Color;
+    use crate::Color;
 
     macro_rules! test {
         ($name:ident, $text:expr, $color:expr) => {

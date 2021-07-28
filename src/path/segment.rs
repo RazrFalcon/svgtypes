@@ -1,6 +1,4 @@
-use {
-    FuzzyEq,
-};
+use crate::FuzzyEq;
 
 /// List of all path commands.
 #[derive(Clone, Copy, PartialEq, Debug)]

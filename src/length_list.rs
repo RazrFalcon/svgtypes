@@ -1,13 +1,4 @@
-use std::str::FromStr;
-
-use {
-    Error,
-    Length,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
+use crate::{Error, Length, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<list-of-length>`] type.
 ///
@@ -62,7 +53,7 @@ impl<'a> Iterator for LengthListParser<'a> {
     }
 }
 
-impl FromStr for LengthList {
+impl std::str::FromStr for LengthList {
     type Err = Error;
 
     fn from_str(text: &str) -> Result<Self> {

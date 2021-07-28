@@ -1,6 +1,7 @@
 [package]
 name = "benchmark"
 version = "0.1.0"
+edition = "2018"
 workspace = ".."
 
 [dependencies]
@@ -9,5 +10,5 @@ bencher = "0.1"
 
 [[bench]]
 name = "benchmark"
-path = "lib.rs"
+path = "benchmark.rs"
 harness = false

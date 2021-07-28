@@ -1,15 +1,6 @@
-use std::str::{self, FromStr};
-use std::cmp;
+use std::str::FromStr;
 
-use {
-    Angle,
-    AngleUnit,
-    Error,
-    Length,
-    LengthUnit,
-    Result,
-};
-
+use crate::{Angle, AngleUnit, Error, Length, LengthUnit, Result};
 
 /// Extension methods for XML-subset only operations.
 pub(crate) trait ByteExt {
@@ -308,14 +299,14 @@ impl<'a> Stream<'a> {
         }
 
         if !self.starts_with(text) {
-            let len = cmp::min(text.len(), self.text.len() - self.pos);
+            let len = std::cmp::min(text.len(), self.text.len() - self.pos);
             // Collect chars and do not slice a string,
             // because the `len` can be on the char boundary.
             // Which lead to a panic.
             let actual = self.text[self.pos..].chars().take(len).collect();
 
             // Assume that all input `text` are valid UTF-8 strings, so unwrap is safe.
-            let expected = str::from_utf8(text).unwrap().to_owned();
+            let expected = std::str::from_utf8(text).unwrap().to_owned();
 
             return Err(Error::InvalidString(vec![actual, expected], self.calc_char_pos()));
         }

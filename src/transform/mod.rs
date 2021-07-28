@@ -5,7 +5,7 @@ mod writer;
 
 pub use self::parser::*;
 
-use FuzzyEq;
+use crate::FuzzyEq;
 
 /// Representation of the [`<transform>`] type.
 ///

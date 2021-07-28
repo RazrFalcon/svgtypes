@@ -1,13 +1,4 @@
-use std::str::FromStr;
-
-use {
-    Error,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
-
+use crate::{Error, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the `align` value of the [`preserveAspectRatio`] attribute.
 ///
@@ -55,7 +46,7 @@ pub struct AspectRatio {
     pub slice: bool,
 }
 
-impl FromStr for AspectRatio {
+impl std::str::FromStr for AspectRatio {
     type Err = Error;
 
     fn from_str(text: &str) -> Result<Self> {

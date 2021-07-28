@@ -1,11 +1,4 @@
-use std::str::FromStr;
-
-use {
-    Error,
-    Result,
-    Stream,
-    Transform,
-};
+use crate::{Error, Result, Stream, Transform};
 
 /// Transform list token.
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -218,7 +211,7 @@ impl<'a> TransformListParser<'a> {
     }
 }
 
-impl FromStr for Transform {
+impl std::str::FromStr for Transform {
     type Err = Error;
 
     fn from_str(text: &str) -> Result<Self> {

@@ -1,21 +1,18 @@
 [package]
 name = "svgtypes"
-# When updating version, also modify html_root_url in the lib.rs
 version = "0.5.0"
-authors = ["Evgeniy Reizner <razrfalcon@gmail.com>"]
+authors = ["Yevhenii Reizner <razrfalcon@gmail.com>"]
 categories = ["parser-implementations"]
 description = "SVG types parser and writer."
 documentation = "https://docs.rs/svgtypes/"
 keywords = ["svg", "parser", "tokenizer"]
 license = "MIT/Apache-2.0"
+edition = "2018"
 readme = "README.md"
 repository = "https://github.com/RazrFalcon/svgtypes"
 
 [workspace]
 members = ["benches"]
-
-[badges]
-travis-ci = { repository = "RazrFalcon/svgtypes" }
 
 [dependencies]
 float-cmp = { version = "0.8", default-features = false, features = ["std"] }

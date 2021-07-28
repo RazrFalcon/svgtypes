@@ -1,8 +1,4 @@
-use {
-    Color,
-    WriteBuffer,
-    WriteOptions,
-};
+use crate::{Color, WriteBuffer, WriteOptions};
 
 static CHARS: &[u8] = b"0123456789abcdef";
 
@@ -41,7 +37,7 @@ impl_display!(Color);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use {WriteOptions, WriteBuffer};
+    use crate::{WriteOptions, WriteBuffer};
 
     macro_rules! test {
         ($name:ident, $c:expr, $trim:expr, $result:expr) => (

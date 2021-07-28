@@ -1,11 +1,4 @@
-use std::str::FromStr;
-
-use {
-    Error,
-    Points,
-    Result,
-    Stream,
-};
+use crate::{Error, Points, Result, Stream};
 
 /// A pull-based [`<list-of-points>`] parser.
 ///
@@ -66,7 +59,7 @@ impl<'a> Iterator for PointsParser<'a> {
     }
 }
 
-impl FromStr for Points {
+impl std::str::FromStr for Points {
     type Err = Error;
 
     fn from_str(text: &str) -> Result<Self> {
@@ -79,7 +72,7 @@ impl FromStr for Points {
 mod tests {
     use std::str::FromStr;
     use super::*;
-    use {WriteBuffer, WriteOptions, ListSeparator};
+    use crate::{WriteBuffer, WriteOptions, ListSeparator};
 
     #[test]
     fn parse_1() {

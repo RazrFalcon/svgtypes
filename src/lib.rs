@@ -109,10 +109,6 @@ None.
 #![deny(missing_copy_implementations)]
 
 
-extern crate float_cmp;
-extern crate siphasher;
-
-
 macro_rules! matches {
     ($expression:expr, $($pattern:tt)+) => {
         match $expression {
@@ -140,19 +136,19 @@ mod stream;
 mod transform;
 mod viewbox;
 
-pub use angle::*;
-pub use aspect_ratio::*;
-pub use color::*;
-pub use error::*;
-pub use length::*;
-pub use length_list::*;
-pub use number::*;
-pub use number_list::*;
-pub use options::*;
-pub use paint::*;
-pub use path::*;
-pub use points::*;
-pub use stream::*;
-pub use traits::*;
-pub use transform::*;
-pub use viewbox::*;
+pub use crate::angle::*;
+pub use crate::aspect_ratio::*;
+pub use crate::color::*;
+pub use crate::error::*;
+pub use crate::length::*;
+pub use crate::length_list::*;
+pub use crate::number::*;
+pub use crate::number_list::*;
+pub use crate::options::*;
+pub use crate::paint::*;
+pub use crate::path::*;
+pub use crate::points::*;
+pub use crate::stream::*;
+pub use crate::traits::*;
+pub use crate::transform::*;
+pub use crate::viewbox::*;

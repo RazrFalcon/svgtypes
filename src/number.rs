@@ -2,13 +2,7 @@ use std::io::Write;
 
 use float_cmp::ApproxEqUlps;
 
-use {
-    FuzzyEq,
-    FuzzyZero,
-    WriteBuffer,
-    WriteOptions,
-};
-
+use crate::{FuzzyEq, FuzzyZero, WriteBuffer, WriteOptions};
 
 impl FuzzyEq for f32 {
     #[inline]
@@ -88,7 +82,7 @@ fn write_num(num: &f64, rm_leading_zero: bool, buf: &mut Vec<u8>) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use Stream;
+    use crate::Stream;
 
     macro_rules! test_p {
         ($name:ident, $text:expr, $result:expr) => (

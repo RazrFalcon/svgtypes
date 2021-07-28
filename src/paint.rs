@@ -1,11 +1,6 @@
 use std::str::FromStr;
 
-use {
-    Color,
-    Error,
-    Result,
-    Stream,
-};
+use crate::{Color, Error, Result, Stream};
 
 /// Representation of the fallback part of the [`<paint>`] type.
 ///

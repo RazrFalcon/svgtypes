@@ -1,8 +1,4 @@
-use std::fmt;
-
-use {
-    WriteOptions,
-};
+use crate::WriteOptions;
 
 /// A trait for writing data to the buffer.
 pub trait WriteBuffer {
@@ -58,15 +54,15 @@ pub struct DisplaySvg<'a, T: 'a + WriteBuffer> {
     opt: &'a WriteOptions,
 }
 
-impl<'a, T: WriteBuffer> fmt::Debug for DisplaySvg<'a, T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl<'a, T: WriteBuffer> std::fmt::Debug for DisplaySvg<'a, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         // Use Display.
         write!(f, "{}", self)
     }
 }
 
-impl<'a, T: WriteBuffer> fmt::Display for DisplaySvg<'a, T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl<'a, T: WriteBuffer> std::fmt::Display for DisplaySvg<'a, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         use std::str;
 
         let mut out = Vec::with_capacity(32);

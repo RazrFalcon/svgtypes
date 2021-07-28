@@ -1,15 +1,6 @@
-use std::str::FromStr;
+use crate::{Error, Path, PathSegment, Result, Stream};
 
-use {
-    Error,
-    Path,
-    PathSegment,
-    Result,
-    Stream,
-};
-
-
-impl FromStr for Path {
+impl std::str::FromStr for Path {
     type Err = Error;
 
     /// Parses a string as `Path`.

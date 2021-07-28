@@ -1,10 +1,4 @@
-use {
-    Path,
-    PathCommand,
-    PathSegment,
-    WriteBuffer,
-    WriteOptions,
-};
+use crate::{Path, PathCommand, PathSegment, WriteBuffer, WriteOptions};
 
 struct PrevCmd {
     cmd: PathCommand,
@@ -257,7 +251,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
-    use WriteOptions;
+    use crate::WriteOptions;
 
     #[test]
     fn write_1() {

@@ -1,12 +1,4 @@
-use std::str::FromStr;
-
-use {
-    Error,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
+use crate::{Error, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<list-of-numbers>`] type.
 ///
@@ -61,7 +53,7 @@ impl<'a> Iterator for NumberListParser<'a> {
     }
 }
 
-impl FromStr for NumberList {
+impl std::str::FromStr for NumberList {
     type Err = Error;
 
     fn from_str(text: &str) -> Result<Self> {
@@ -77,7 +69,7 @@ impl FromStr for NumberList {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ListSeparator;
+    use crate::ListSeparator;
 
     #[test]
     fn write_1() {

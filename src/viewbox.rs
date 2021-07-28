@@ -1,14 +1,4 @@
-use std::str::FromStr;
-
-use {
-    Error,
-    FuzzyEq,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
-
+use crate::{Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<viewBox>`] type.
 ///
@@ -29,7 +19,7 @@ impl ViewBox {
     }
 }
 
-impl FromStr for ViewBox {
+impl std::str::FromStr for ViewBox {
     type Err = Error;
 
     fn from_str(text: &str) -> Result<Self> {

@@ -1,6 +1,3 @@
-use std::fmt;
-use std::error;
-
 /// List of all errors.
 #[derive(Debug)]
 pub enum Error {
@@ -42,8 +39,8 @@ pub enum Error {
     InvalidViewbox,
 }
 
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
             Error::UnexpectedEndOfStream => {
                 write!(f, "unexpected end of stream")
@@ -76,7 +73,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
+impl std::error::Error for Error {
     fn description(&self) -> &str {
         "an SVG data parsing error"
     }

@@ -1,13 +1,4 @@
-use std::str::FromStr;
-
-use {
-    Error,
-    FuzzyEq,
-    Result,
-    Stream,
-    WriteBuffer,
-    WriteOptions,
-};
+use crate::{Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
 
 /// List of all SVG length units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -64,7 +55,7 @@ impl Default for Length {
     }
 }
 
-impl FromStr for Length {
+impl std::str::FromStr for Length {
     type Err = Error;
 
     #[inline]

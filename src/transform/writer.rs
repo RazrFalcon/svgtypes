@@ -1,9 +1,4 @@
-use {
-    FuzzyEq,
-    Transform,
-    WriteBuffer,
-    WriteOptions,
-};
+use crate::{FuzzyEq, Transform, WriteBuffer, WriteOptions};
 
 impl WriteBuffer for Transform {
     fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
@@ -76,7 +71,7 @@ mod tests {
     use std::str::FromStr;
 
     use super::*;
-    use {
+    use crate::{
         WriteOptions,
         WriteBuffer,
         ListSeparator,

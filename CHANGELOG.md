@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Changed
+- Move to Rust 2018 edition.
 - Rename `Stream::skip_string` into `Stream::consume_string`.
 
 ## [0.5.0] - 2019-08-12
