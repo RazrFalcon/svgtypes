@@ -59,7 +59,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 [\<color\>]: https://www.w3.org/TR/css-color-3/
 [\<number\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeNumber
 [\<length\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeLength
-[\<angle\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeAngle
+[\<angle\>]: https://www.w3.org/TR/css-values-3/#angles
 [\<viewBox\>]: https://www.w3.org/TR/SVG11/coords.html#ViewBoxAttribute
 [\<path\>]: https://www.w3.org/TR/SVG11/paths.html#PathData
 [\<list-of-numbers\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeList

@@ -641,6 +641,9 @@ impl<'a> Stream<'a> {
         } else if self.starts_with(b"rad") {
             self.advance(3);
             AngleUnit::Radians
+        } else if self.starts_with(b"turn") {
+            self.advance(4);
+            AngleUnit::Turns
         } else {
             AngleUnit::Degrees
         };

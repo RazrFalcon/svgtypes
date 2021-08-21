@@ -7,11 +7,12 @@ pub enum AngleUnit {
     Degrees,
     Gradians,
     Radians,
+    Turns,
 }
 
 /// Representation of the [`<angle>`] type.
 ///
-/// [`<angle>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeAngle
+/// [`<angle>`]: https://www.w3.org/TR/css-values-3/#angles
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(missing_docs)]
 pub struct Angle {
@@ -51,6 +52,7 @@ impl WriteBuffer for Angle {
             AngleUnit::Degrees  => b"deg",
             AngleUnit::Gradians => b"grad",
             AngleUnit::Radians  => b"rad",
+            AngleUnit::Turns  => b"turn",
         };
 
         buf.extend_from_slice(t);
@@ -87,6 +89,7 @@ mod tests {
     test_p!(parse_2,  "1deg", Angle::new(1.0, AngleUnit::Degrees));
     test_p!(parse_3,  "1grad", Angle::new(1.0, AngleUnit::Gradians));
     test_p!(parse_4,  "1rad", Angle::new(1.0, AngleUnit::Radians));
+    test_p!(parse_5,  "1turn", Angle::new(1.0, AngleUnit::Turns));
 
     #[test]
     fn err_1() {
@@ -115,4 +118,5 @@ mod tests {
     test_w!(write_1,  1.0, AngleUnit::Degrees, "1deg");
     test_w!(write_2,  1.0, AngleUnit::Gradians, "1grad");
     test_w!(write_3,  1.0, AngleUnit::Radians, "1rad");
+    test_w!(write_4,  1.0, AngleUnit::Turns, "1turn");
 }
