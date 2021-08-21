@@ -26,6 +26,17 @@ impl Angle {
     pub fn new(num: f64, unit: AngleUnit) -> Angle {
         Angle { num, unit }
     }
+
+    /// Converts angle to degrees.
+    #[inline]
+    pub fn to_degrees(&self) -> f64 {
+        match self.unit {
+            AngleUnit::Degrees  => self.num,
+            AngleUnit::Gradians => self.num * 180.0 / 200.0,
+            AngleUnit::Radians  => self.num.to_degrees(),
+            AngleUnit::Turns    => self.num * 360.0,
+        }
+    }
 }
 
 impl std::str::FromStr for Angle {

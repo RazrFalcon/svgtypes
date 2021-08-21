@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## [Unreleased]
 ### Added
 - CSS3 colors support (`rgba`, `hsl`, `hsla`, `transparent`).
-- Add `turn` angle unit.
+- `turn` angle unit.
+- `Angle::to_degrees`.
 
 ### Changed
 - Move to Rust 2018 edition.
