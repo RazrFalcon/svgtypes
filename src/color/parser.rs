@@ -61,11 +61,11 @@ impl std::str::FromStr for Color {
                         bound(0, n, 255) as u8
                     }
 
-                    color.red   = from_percent(l.num);
-                    color.green = from_percent(s.parse_list_number_or_percent()?.num);
-                    color.blue  = from_percent(s.parse_list_number_or_percent()?.num);
+                    color.red   = from_percent(l.number);
+                    color.green = from_percent(s.parse_list_number_or_percent()?.number);
+                    color.blue  = from_percent(s.parse_list_number_or_percent()?.number);
                 } else {
-                    color.red   = bound(0, l.num as i32, 255) as u8;
+                    color.red   = bound(0, l.number as i32, 255) as u8;
                     color.green = bound(0, s.parse_list_integer()?, 255) as u8;
                     color.blue  = bound(0, s.parse_list_integer()?, 255) as u8;
                 }
@@ -83,8 +83,8 @@ impl std::str::FromStr for Color {
                 let mut hue = s.parse_list_integer()?;
                 hue = ((hue % 360) + 360) % 360;
 
-                let saturation = f64_bound(0.0, s.parse_list_number_or_percent()?.num / 100.0, 1.0);
-                let lightness  = f64_bound(0.0, s.parse_list_number_or_percent()?.num / 100.0, 1.0);
+                let saturation = f64_bound(0.0, s.parse_list_number_or_percent()?.number / 100.0, 1.0);
+                let lightness  = f64_bound(0.0, s.parse_list_number_or_percent()?.number / 100.0, 1.0);
 
                 color = hsl_to_rgb(hue as f32 / 60.0, saturation as f32, lightness as f32);
 

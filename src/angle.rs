@@ -16,25 +16,25 @@ pub enum AngleUnit {
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(missing_docs)]
 pub struct Angle {
-    pub num: f64,
+    pub number: f64,
     pub unit: AngleUnit,
 }
 
 impl Angle {
     /// Constructs a new angle.
     #[inline]
-    pub fn new(num: f64, unit: AngleUnit) -> Angle {
-        Angle { num, unit }
+    pub fn new(number: f64, unit: AngleUnit) -> Angle {
+        Angle { number, unit }
     }
 
     /// Converts angle to degrees.
     #[inline]
     pub fn to_degrees(&self) -> f64 {
         match self.unit {
-            AngleUnit::Degrees  => self.num,
-            AngleUnit::Gradians => self.num * 180.0 / 200.0,
-            AngleUnit::Radians  => self.num.to_degrees(),
-            AngleUnit::Turns    => self.num * 360.0,
+            AngleUnit::Degrees  => self.number,
+            AngleUnit::Gradians => self.number * 180.0 / 200.0,
+            AngleUnit::Radians  => self.number.to_degrees(),
+            AngleUnit::Turns    => self.number * 360.0,
         }
     }
 }
@@ -51,13 +51,13 @@ impl std::str::FromStr for Angle {
             return Err(Error::UnexpectedData(s.calc_char_pos()));
         }
 
-        Ok(Angle::new(l.num, l.unit))
+        Ok(Angle::new(l.number, l.unit))
     }
 }
 
 impl WriteBuffer for Angle {
     fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
-        self.num.write_buf_opt(opt, buf);
+        self.number.write_buf_opt(opt, buf);
 
         let t: &[u8] = match self.unit {
             AngleUnit::Degrees  => b"deg",
@@ -78,7 +78,7 @@ impl FuzzyEq for Angle {
             return false;
         }
 
-        self.num.fuzzy_eq(&other.num)
+        self.number.fuzzy_eq(&other.number)
     }
 }
 

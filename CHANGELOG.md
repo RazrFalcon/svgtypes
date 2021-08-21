@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Rename `Stream::skip_string` into `Stream::consume_string`.
 - Rename `Color::new` into `Color::new_rgb`.
 - `Color` struct gained an `alpha` field.
+- Rename `Angle::num` into `Angle::number`.
+- Rename `Length::num` into `Length::number`.
 
 ## [0.5.0] - 2019-08-12
 ### Added

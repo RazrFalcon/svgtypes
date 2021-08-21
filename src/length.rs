@@ -22,21 +22,21 @@ pub enum LengthUnit {
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(missing_docs)]
 pub struct Length {
-    pub num: f64, // TODO: rename
+    pub number: f64,
     pub unit: LengthUnit,
 }
 
 impl Length {
     /// Constructs a new length.
     #[inline]
-    pub fn new(num: f64, unit: LengthUnit) -> Length {
-        Length { num, unit }
+    pub fn new(number: f64, unit: LengthUnit) -> Length {
+        Length { number, unit }
     }
 
     /// Constructs a new length with `LengthUnit::None`.
     #[inline]
-    pub fn new_number(num: f64) -> Length {
-        Length { num, unit: LengthUnit::None }
+    pub fn new_number(number: f64) -> Length {
+        Length { number, unit: LengthUnit::None }
     }
 
     /// Constructs a new length with a zero number.
@@ -44,7 +44,7 @@ impl Length {
     /// Shorthand for: `Length::new(0.0, Unit::None)`.
     #[inline]
     pub fn zero() -> Length {
-        Length { num: 0.0, unit: LengthUnit::None }
+        Length { number: 0.0, unit: LengthUnit::None }
     }
 }
 
@@ -67,13 +67,13 @@ impl std::str::FromStr for Length {
             return Err(Error::UnexpectedData(s.calc_char_pos()));
         }
 
-        Ok(Length::new(l.num, l.unit))
+        Ok(Length::new(l.number, l.unit))
     }
 }
 
 impl WriteBuffer for Length {
     fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
-        self.num.write_buf_opt(opt, buf);
+        self.number.write_buf_opt(opt, buf);
 
         let t: &[u8] = match self.unit {
             LengthUnit::None => b"",
@@ -100,7 +100,7 @@ impl FuzzyEq for Length {
             return false;
         }
 
-        self.num.fuzzy_eq(&other.num)
+        self.number.fuzzy_eq(&other.number)
     }
 }
 
