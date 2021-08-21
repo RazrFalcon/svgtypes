@@ -61,7 +61,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 | [\<list-of-points\>]      | Points        | Heap    | PointsParser        |
 | [\<paint\>]               | -             | -       | Paint               |
 
-[\<color\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
+[\<color\>]: https://www.w3.org/TR/css-color-3/
 [\<number\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeNumber
 [\<length\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeLength
 [\<angle\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeAngle

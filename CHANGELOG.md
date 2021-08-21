@@ -5,9 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- CSS3 colors support (`rgba`, `hsl`, `hsla`, `transparent`).
+
 ### Changed
 - Move to Rust 2018 edition.
 - Rename `Stream::skip_string` into `Stream::consume_string`.
+- Rename `Color::new` into `Color::new_rgb`.
+- `Color` struct gained an `alpha` field.
 
 ## [0.5.0] - 2019-08-12
 ### Added

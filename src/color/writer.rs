@@ -50,8 +50,8 @@ mod tests {
         )
     }
 
-    test!(write_1, Color::new(255, 0, 0), false, "#ff0000");
-    test!(write_2, Color::new(255, 127, 5), false, "#ff7f05");
-    test!(write_3, Color::new(255, 0, 0), true, "#f00");
-    test!(write_4, Color::new(255, 127, 5), true, "#ff7f05");
+    test!(write_1, Color::new_rgb(255, 0, 0), false, "#ff0000");
+    test!(write_2, Color::new_rgb(255, 127, 5), false, "#ff7f05");
+    test!(write_3, Color::new_rgb(255, 0, 0), true, "#f00");
+    test!(write_4, Color::new_rgb(255, 127, 5), true, "#ff7f05");
 }

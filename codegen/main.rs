@@ -74,8 +74,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut map = phf_codegen::Map::new();
     for (line1, line2) in spec.split('\n').filter(|s| !s.is_empty()).tuples() {
         let rgb: Vec<&str> = line2.split(',').collect();
-        map.entry(line1, &format!("{} {{ red: {}, green: {}, blue: {} }}",
-                                  struct_name, rgb[0], rgb[1], rgb[2]));
+        map.entry(line1, &format!("{} {{ red: {}, green: {}, blue: {}, alpha: {} }}",
+                                  struct_name, rgb[0], rgb[1], rgb[2], rgb[3]));
     }
 
     let mut map_data = Vec::new();

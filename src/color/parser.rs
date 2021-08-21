@@ -5,34 +5,20 @@ use crate::{ByteExt, Color, Error, LengthUnit, Result, Stream};
 impl std::str::FromStr for Color {
     type Err = Error;
 
-    /// Parses `Color` from `StrSpan`.
-    ///
-    /// Parsing is done according to [spec]:
-    ///
-    /// ```text
-    /// color    ::= "#" hexdigit hexdigit hexdigit (hexdigit hexdigit hexdigit)?
-    ///              | "rgb(" wsp* integer comma integer comma integer wsp* ")"
-    ///              | "rgb(" wsp* integer "%" comma integer "%" comma integer "%" wsp* ")"
-    ///              | color-keyword
-    /// hexdigit ::= [0-9A-Fa-f]
-    /// comma    ::= wsp* "," wsp*
-    /// ```
-    /// \* The SVG spec has an error. There should be `number`,
-    /// not an `integer` for percent values ([details]).
+    /// Parses [CSS3](https://www.w3.org/TR/css-color-3/) `Color` from a string.
     ///
     /// # Errors
     ///
     ///  - Returns error if a color has an invalid format.
-    ///
-    ///  - Returns error if `<color>` is followed by `<icccolor>`.
-    ///    It's not supported.
+    ///  - Returns error if `<color>` is followed by `<icccolor>`. It's not supported.
     ///
     /// # Notes
     ///
     ///  - Any non-`hexdigit` bytes will be treated as `0`.
-    ///  - Allocates heap memory for case-insensitive named colors comparison.
+    ///  - The [SVG 1.1 spec] has an error.
+    ///    There should be a `number`, not an `integer` for percent values ([details]).
     ///
-    /// [spec]: http://www.w3.org/TR/SVG/types.html#DataTypeColor
+    /// [SVG 1.1 spec]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
     /// [details]: https://lists.w3.org/Archives/Public/www-svg/2014Jan/0109.html
     fn from_str(text: &str) -> Result<Self> {
         let mut s = Stream::from(text);
@@ -61,38 +47,62 @@ impl std::str::FromStr for Color {
                     return Err(Error::InvalidValue);
                 }
             }
-        } else if is_rgb(&s) {
-            s.advance(4);
-
-            let l = s.parse_list_length()?;
-
-            if l.unit == LengthUnit::Percent {
-                fn from_percent(v: f64) -> u8 {
-                    let d = 255.0 / 100.0;
-                    let n = (v * d).round() as i32;
-                    bound(0, n, 255) as u8
-                }
-
-                color.red   = from_percent(l.num);
-                color.green = from_percent(s.parse_list_length()?.num);
-                color.blue  = from_percent(s.parse_list_length()?.num);
-            } else {
-                color.red   = bound(0, l.num as i32, 255) as u8;
-                color.green = bound(0, s.parse_list_integer()?, 255) as u8;
-                color.blue  = bound(0, s.parse_list_integer()?, 255) as u8;
-            }
-
-            s.skip_spaces();
-            s.consume_byte(b')')?;
         } else {
-            // TODO: use str::eq_ignore_ascii_case after 1.23
-            let name = s.consume_ident().to_lowercase();
-            match colors::from_str(&name) {
-                Some(c) => {
-                    color = c;
+            let name = s.consume_ident().to_ascii_lowercase();
+            if name == "rgb" || name == "rgba" {
+                s.consume_byte(b'(')?;
+
+                let l = s.parse_list_number_or_percent()?;
+
+                if l.unit == LengthUnit::Percent {
+                    fn from_percent(v: f64) -> u8 {
+                        let d = 255.0 / 100.0;
+                        let n = (v * d).round() as i32;
+                        bound(0, n, 255) as u8
+                    }
+
+                    color.red   = from_percent(l.num);
+                    color.green = from_percent(s.parse_list_number_or_percent()?.num);
+                    color.blue  = from_percent(s.parse_list_number_or_percent()?.num);
+                } else {
+                    color.red   = bound(0, l.num as i32, 255) as u8;
+                    color.green = bound(0, s.parse_list_integer()?, 255) as u8;
+                    color.blue  = bound(0, s.parse_list_integer()?, 255) as u8;
                 }
-                None => {
-                    return Err(Error::InvalidValue);
+
+                s.skip_spaces();
+                if !s.starts_with(b")") {
+                    color.alpha  = (f64_bound(0.0, s.parse_list_number()?, 1.0) * 255.0) as u8;
+                }
+
+                s.skip_spaces();
+                s.consume_byte(b')')?;
+            } else if name == "hsl" || name == "hsla" {
+                s.consume_byte(b'(')?;
+
+                let mut hue = s.parse_list_integer()?;
+                hue = ((hue % 360) + 360) % 360;
+
+                let saturation = f64_bound(0.0, s.parse_list_number_or_percent()?.num / 100.0, 1.0);
+                let lightness  = f64_bound(0.0, s.parse_list_number_or_percent()?.num / 100.0, 1.0);
+
+                color = hsl_to_rgb(hue as f32 / 60.0, saturation as f32, lightness as f32);
+
+                s.skip_spaces();
+                if !s.starts_with(b")") {
+                    color.alpha  = (f64_bound(0.0, s.parse_list_number()?, 1.0) * 255.0) as u8;
+                }
+
+                s.skip_spaces();
+                s.consume_byte(b')')?;
+            } else {
+                match colors::from_str(&name) {
+                    Some(c) => {
+                        color = c;
+                    }
+                    None => {
+                        return Err(Error::InvalidValue);
+                    }
                 }
             }
         }
@@ -131,23 +141,52 @@ fn hex_pair(c1: u8, c2: u8) -> u8 {
     (h1 << 4) | h2
 }
 
-fn is_rgb(s: &Stream) -> bool {
-    let mut s = s.clone();
-    let prefix = s.consume_bytes(|_, c| c != b'(');
-    if s.consume_byte(b'(').is_err() {
-        return false;
+// `hue` is in a 0..6 range, while `saturation` and `lightness` are in a 0..=1 range.
+// Based on https://www.w3.org/TR/css-color-3/#hsl-color
+fn hsl_to_rgb(hue: f32, saturation: f32, lightness: f32) -> Color {
+    let t2 = if lightness <= 0.5  {
+        lightness * (saturation + 1.0)
+    } else {
+        lightness + saturation - (lightness * saturation)
+    };
+
+    let t1 = lightness * 2.0 - t2;
+    let red = hue_to_rgb(t1, t2, hue + 2.0);
+    let green = hue_to_rgb(t1, t2, hue);
+    let blue = hue_to_rgb(t1, t2, hue - 2.0);
+    Color::new_rgb((red * 255.0) as u8, (green * 255.0) as u8, (blue * 255.0) as u8)
+}
+
+fn hue_to_rgb(t1: f32, t2: f32, mut hue: f32) -> f32 {
+    if hue < 0.0 {
+        hue += 6.0;
+    }
+    if hue >= 6.0 {
+        hue -= 6.0;
     }
 
-    #[allow(unused_imports)]
-    #[allow(deprecated)]
-    use std::ascii::AsciiExt;
-
-    prefix.eq_ignore_ascii_case("rgb")
+    if hue < 1.0 {
+        (t2 - t1) * hue + t1
+    } else if hue < 3.0 {
+        t2
+    } else if hue < 4.0 {
+        (t2 - t1) * (4.0 - hue) + t1
+    } else {
+        t1
+    }
 }
 
 #[inline]
 fn bound<T: Ord>(min: T, val: T, max: T) -> T {
     std::cmp::max(min, std::cmp::min(max, val))
+}
+
+#[inline]
+fn f64_bound(min: f64, val: f64, max: f64) -> f64 {
+    debug_assert!(min.is_finite());
+    debug_assert!(val.is_finite());
+    debug_assert!(max.is_finite());
+    val.max(min).min(max)
 }
 
 #[cfg(test)]
@@ -167,97 +206,163 @@ mod tests {
     test!(
         rrggbb,
         "#ff0000",
-        Color::new(255, 0, 0)
+        Color::new_rgb(255, 0, 0)
     );
 
     test!(
         rrggbb_upper,
         "#FF0000",
-        Color::new(255, 0, 0)
+        Color::new_rgb(255, 0, 0)
     );
 
     test!(
         rgb_hex,
         "#f00",
-        Color::new(255, 0, 0)
+        Color::new_rgb(255, 0, 0)
     );
 
     test!(
         rrggbb_spaced,
         "  #ff0000  ",
-        Color::new(255, 0, 0)
+        Color::new_rgb(255, 0, 0)
     );
 
     test!(
         rgb_numeric,
         "rgb(254, 203, 231)",
-        Color::new(254, 203, 231)
+        Color::new_rgb(254, 203, 231)
     );
 
     test!(
         rgb_numeric_spaced,
         " rgb( 77 , 77 , 77 ) ",
-        Color::new(77, 77, 77)
+        Color::new_rgb(77, 77, 77)
     );
 
     test!(
         rgb_percentage,
         "rgb(50%, 50%, 50%)",
-        Color::new(127, 127, 127)
+        Color::new_rgb(127, 127, 127)
     );
 
     test!(
         rgb_percentage_overflow,
         "rgb(140%, -10%, 130%)",
-        Color::new(255, 0, 255)
+        Color::new_rgb(255, 0, 255)
     );
 
     test!(
         rgb_percentage_float,
         "rgb(33.333%,46.666%,93.333%)",
-        Color::new(85, 119, 238)
+        Color::new_rgb(85, 119, 238)
     );
 
     test!(
         rgb_numeric_upper_case,
         "RGB(254, 203, 231)",
-        Color::new(254, 203, 231)
+        Color::new_rgb(254, 203, 231)
     );
 
     test!(
         rgb_numeric_mixed_case,
         "RgB(254, 203, 231)",
-        Color::new(254, 203, 231)
+        Color::new_rgb(254, 203, 231)
     );
 
     test!(
         name_red,
         "red",
-        Color::new(255, 0, 0)
+        Color::new_rgb(255, 0, 0)
     );
 
     test!(
         name_red_spaced,
         " red ",
-        Color::new(255, 0, 0)
+        Color::new_rgb(255, 0, 0)
     );
 
     test!(
         name_red_upper_case,
         "RED",
-        Color::new(255, 0, 0)
+        Color::new_rgb(255, 0, 0)
     );
 
     test!(
         name_red_mixed_case,
         "ReD",
-        Color::new(255, 0, 0)
+        Color::new_rgb(255, 0, 0)
     );
 
     test!(
         name_cornflowerblue,
         "cornflowerblue",
-        Color::new(100, 149, 237)
+        Color::new_rgb(100, 149, 237)
+    );
+
+    test!(
+        transparent,
+        "transparent",
+        Color::new_rgba(0, 0, 0, 0)
+    );
+
+    test!(
+        rgba_half,
+        "rgba(10, 20, 30, 0.5)",
+        Color::new_rgba(10, 20, 30, 127)
+    );
+
+    test!(
+        rgba_negative,
+        "rgba(10, 20, 30, -2)",
+        Color::new_rgba(10, 20, 30, 0)
+    );
+
+    test!(
+        rgba_large_alpha,
+        "rgba(10, 20, 30, 2)",
+        Color::new_rgba(10, 20, 30, 255)
+    );
+
+    test!(
+        rgb_with_alpha,
+        "rgb(10, 20, 30, 0.5)",
+        Color::new_rgba(10, 20, 30, 127)
+    );
+
+    test!(
+        hsl_green,
+        "hsl(120, 100%, 75%)",
+        Color::new_rgba(127, 255, 127, 255)
+    );
+
+    test!(
+        hsl_yellow,
+        "hsl(60, 100%, 50%)",
+        Color::new_rgba(255, 255, 0, 255)
+    );
+
+    test!(
+        hsl_hue_360,
+        "hsl(360, 100%, 100%)",
+        Color::new_rgba(255, 255, 255, 255)
+    );
+
+    test!(
+        hsl_out_of_bounds,
+        "hsl(800, 150%, -50%)",
+        Color::new_rgba(0, 0, 0, 255)
+    );
+
+    test!(
+        hsla_green,
+        "hsla(120, 100%, 75%, 0.5)",
+        Color::new_rgba(127, 255, 127, 127)
+    );
+
+    test!(
+        hsl_with_alpha,
+        "hsl(120, 100%, 75%, 0.5)",
+        Color::new_rgba(127, 255, 127, 127)
     );
 
     macro_rules! test_err {
@@ -297,5 +402,17 @@ mod tests {
         invalid_input_2,
         "#9ߞpx! ;",
         "invalid value"
+    );
+
+    test_err!(
+        rgba_with_percent_alpha,
+        "rgba(10, 20, 30, 5%)",
+        "expected ')' not '%' at position 19"
+    );
+
+    test_err!(
+        rgb_mixed_units,
+        "rgb(140%, -10mm, 130pt)",
+        "invalid number at position 14"
     );
 }

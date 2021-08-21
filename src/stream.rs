@@ -523,6 +523,31 @@ impl<'a> Stream<'a> {
         Ok(n)
     }
 
+    /// Parses number or percent from the stream.
+    pub fn parse_number_or_percent(&mut self) -> Result<Length> {
+        self.skip_spaces();
+
+        let n = self.parse_number()?;
+        if self.starts_with(b"%") {
+            self.advance(1);
+            Ok(Length::new(n, LengthUnit::Percent))
+        } else {
+            Ok(Length::new(n, LengthUnit::None))
+        }
+    }
+
+    /// Parses number or percent from the list of numbers and/or percents.
+    pub fn parse_list_number_or_percent(&mut self) -> Result<Length> {
+        if self.at_end() {
+            return Err(Error::UnexpectedEndOfStream);
+        }
+
+        let l = self.parse_number_or_percent()?;
+        self.skip_spaces();
+        parse_list_separator(self);
+        Ok(l)
+    }
+
     /// Parses length from the stream.
     ///
     /// <https://www.w3.org/TR/SVG11/types.html#DataTypeLength>

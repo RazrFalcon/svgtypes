@@ -22,7 +22,7 @@ pub enum LengthUnit {
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(missing_docs)]
 pub struct Length {
-    pub num: f64,
+    pub num: f64, // TODO: rename
     pub unit: LengthUnit,
 }
 
