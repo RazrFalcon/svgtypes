@@ -195,12 +195,12 @@ impl<'a> Stream<'a> {
     ///
     /// # Examples
     ///
-    /// ```should_panic
+    /// ```
     /// use svgtypes::Stream;
     ///
     /// let mut s = Stream::from("text");
     /// s.advance(2); // ok
-    /// s.advance(20); // will cause a panic via debug_assert!().
+    /// // s.advance(20); // will cause a panic via debug_assert!().
     /// ```
     #[inline]
     pub fn advance(&mut self, n: usize) {
