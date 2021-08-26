@@ -15,5 +15,5 @@ repository = "https://github.com/RazrFalcon/svgtypes"
 members = ["benches"]
 
 [dependencies]
-float-cmp = { version = "0.8", default-features = false, features = ["std"] }
+float-cmp = { version = "0.9", default-features = false, features = ["std"] }
 siphasher = "0.3"
