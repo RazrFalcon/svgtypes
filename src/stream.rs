@@ -364,7 +364,7 @@ impl<'a> Stream<'a> {
     /// This method will detect a number length and then
     /// will pass a substring to the `f64::from_str` method.
     ///
-    /// <https://www.w3.org/TR/SVG11/types.html#DataTypeNumber>
+    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber>
     ///
     /// # Errors
     ///
@@ -550,7 +550,7 @@ impl<'a> Stream<'a> {
 
     /// Parses length from the stream.
     ///
-    /// <https://www.w3.org/TR/SVG11/types.html#DataTypeLength>
+    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength>
     ///
     /// # Examples
     ///
@@ -618,7 +618,7 @@ impl<'a> Stream<'a> {
 
     /// Parses angle from the stream.
     ///
-    /// <https://www.w3.org/TR/SVG11/types.html#DataTypeAngle>
+    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGAngle>
     ///
     /// # Notes
     ///

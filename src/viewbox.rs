@@ -2,7 +2,7 @@ use crate::{Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<viewBox>`] type.
 ///
-/// [`<viewBox>`]: https://www.w3.org/TR/SVG11/coords.html#ViewBoxAttribute
+/// [`<viewBox>`]: https://www.w3.org/TR/SVG2/coords.html#ViewBoxAttribute
 #[allow(missing_docs)]
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct ViewBox {

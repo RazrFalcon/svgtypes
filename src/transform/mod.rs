@@ -9,7 +9,7 @@ use crate::FuzzyEq;
 
 /// Representation of the [`<transform>`] type.
 ///
-/// [`<transform>`]: https://www.w3.org/TR/SVG11/coords.html#TransformAttribute
+/// [`<transform>`]: https://www.w3.org/TR/SVG2/coords.html#InterfaceSVGTransform
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct Transform {

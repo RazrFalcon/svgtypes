@@ -20,6 +20,8 @@ pub enum Align {
 
 /// Representation of the [`preserveAspectRatio`] attribute.
 ///
+/// SVG 2 removed the `defer` keyword, but we still support it.
+///
 /// # Examples
 ///
 /// ```

@@ -2,7 +2,7 @@ use crate::{Error, Length, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<list-of-length>`] type.
 ///
-/// [`<list-of-length>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
+/// [`<list-of-length>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
 #[derive(Clone, PartialEq, Default)]
 pub struct LengthList(pub Vec<Length>);
 
@@ -25,7 +25,7 @@ impl_debug_from_display!(LengthList);
 /// assert_eq!(p.next().is_none(), true);
 /// ```
 ///
-/// [`<list-of-length>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
+/// [`<list-of-length>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct LengthListParser<'a>(Stream<'a>);
 

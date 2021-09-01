@@ -54,7 +54,7 @@ impl std::str::FromStr for Path {
 /// ]);
 /// ```
 ///
-/// [path data]: https://www.w3.org/TR/SVG11/paths.html#PathData
+/// [path data]: https://www.w3.org/TR/SVG2/paths.html#PathData
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct PathParser<'a> {
     stream: Stream<'a>,

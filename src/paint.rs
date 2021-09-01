@@ -6,7 +6,7 @@ use crate::{Color, Error, Result, Stream};
 ///
 /// Used by the [`Paint`](enum.Paint.html) type.
 ///
-/// [`<paint>`]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
+/// [`<paint>`]: https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum PaintFallback {
     /// The `none` value.
@@ -15,7 +15,7 @@ pub enum PaintFallback {
     CurrentColor,
     /// [`<color>`] value.
     ///
-    /// [`<color>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
+    /// [`<color>`]: https://www.w3.org/TR/css-color-3/
     Color(Color),
 }
 
@@ -25,7 +25,7 @@ pub enum PaintFallback {
 ///
 /// `<icccolor>` isn't supported.
 ///
-/// [`<paint>`]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
+/// [`<paint>`]: https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
 ///
 /// # Examples
 ///
@@ -49,7 +49,7 @@ pub enum Paint<'a> {
     CurrentColor,
     /// [`<color>`] value.
     ///
-    /// [`<color>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
+    /// [`<color>`]: https://www.w3.org/TR/css-color-3/
     Color(Color),
     /// [`<FuncIRI>`] value with an optional fallback.
     ///

@@ -2,7 +2,7 @@ use crate::{Error, Result, Stream, WriteBuffer, WriteOptions};
 
 /// Representation of the [`<list-of-numbers>`] type.
 ///
-/// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
+/// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList
 #[derive(Clone, PartialEq, Default)]
 pub struct NumberList(pub Vec<f64>);
 
@@ -25,7 +25,7 @@ impl_debug_from_display!(NumberList);
 /// assert_eq!(p.next().is_none(), true);
 /// ```
 ///
-/// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
+/// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct NumberListParser<'a>(Stream<'a>);
 

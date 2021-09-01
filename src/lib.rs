@@ -1,6 +1,6 @@
 /*!
 *svgtypes* is a collection of parsers, containers and writers for
-[SVG 1.1](https://www.w3.org/TR/SVG11/) types.
+[SVG](https://www.w3.org/TR/SVG2/) types.
 
 Usage is simple as:
 
@@ -57,16 +57,16 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 | [\<paint\>]               | -             | -       | Paint               |
 
 [\<color\>]: https://www.w3.org/TR/css-color-3/
-[\<number\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeNumber
-[\<length\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeLength
-[\<angle\>]: https://www.w3.org/TR/css-values-3/#angles
-[\<viewBox\>]: https://www.w3.org/TR/SVG11/coords.html#ViewBoxAttribute
-[\<path\>]: https://www.w3.org/TR/SVG11/paths.html#PathData
-[\<list-of-numbers\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
-[\<list-of-lengths\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeList
+[\<number\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber
+[\<length\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength
+[\<angle\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGAngle
+[\<viewBox\>]: https://www.w3.org/TR/SVG2/coords.html#ViewBoxAttribute
+[\<path\>]: https://www.w3.org/TR/SVG2/paths.html#PathData
+[\<list-of-numbers\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList
+[\<list-of-lengths\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
 [\<transform-list\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList
 [\<list-of-points\>]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
-[\<paint\>]: https://www.w3.org/TR/SVG11/painting.html#SpecifyingPaint
+[\<paint\>]: https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
 
 - All types implement from string (`FromStr`) and
   to string traits (`Display`, `WriteBuffer`).
