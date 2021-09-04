@@ -4,18 +4,18 @@
 ## Supported SVG types
 
 - [`<color>`](https://www.w3.org/TR/css-color-3/)
-- [`<number>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber
-- [`<length>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength
-- [`<angle>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGAngle
-- [`<viewBox>`]: https://www.w3.org/TR/SVG2/coords.html#ViewBoxAttribute
-- [`<path>`]: https://www.w3.org/TR/SVG2/paths.html#PathData
-- [`<transform>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList
-- [`<list-of-numbers>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList
-- [`<list-of-lengths>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
-- [`<list-of-points>`]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
-- [`<filter-value-list>`]: https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list
-- [`<paint>`]: https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
-- [`<preserveAspectRatio>`]: https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute
+- [`<number>`](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber)
+- [`<length>`](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength)
+- [`<angle>`](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGAngle)
+- [`<viewBox>`](https://www.w3.org/TR/SVG2/coords.html#ViewBoxAttribute)
+- [`<path>`](https://www.w3.org/TR/SVG2/paths.html#PathData)
+- [`<transform>`](https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList)
+- [`<list-of-numbers>`](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList)
+- [`<list-of-lengths>`](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList)
+- [`<list-of-points>`](https://www.w3.org/TR/SVG11/shapes.html#PointsBNF)
+- [`<filter-value-list>`](https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list)
+- [`<paint>`](https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint)
+- [`<preserveAspectRatio>`](https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute)
 
 ## Features
 
