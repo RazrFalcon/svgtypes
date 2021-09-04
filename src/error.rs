@@ -34,9 +34,6 @@ pub enum Error {
 
     /// An invalid number.
     InvalidNumber(usize),
-
-    /// A viewBox with a negative or zero size.
-    InvalidViewbox,
 }
 
 impl std::fmt::Display for Error {
@@ -65,9 +62,6 @@ impl std::fmt::Display for Error {
             }
             Error::InvalidNumber(pos) => {
                 write!(f, "invalid number at position {}", pos)
-            }
-            Error::InvalidViewbox => {
-                write!(f, "viewBox should have a positive size")
             }
         }
     }

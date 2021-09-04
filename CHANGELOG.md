@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - [`<filter-value-list>`](https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list)
   parsing using `FilterValueListParser`.
+- `ViewBoxError`
 
 ### Removed
 - Writing support.
