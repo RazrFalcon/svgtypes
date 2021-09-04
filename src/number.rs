@@ -1,3 +1,171 @@
+use std::str::FromStr;
+
+use crate::{Stream, Error, Result, ByteExt};
+
+impl<'a> Stream<'a> {
+    /// Parses number from the stream.
+    ///
+    /// This method will detect a number length and then
+    /// will pass a substring to the `f64::from_str` method.
+    ///
+    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber>
+    ///
+    /// # Errors
+    ///
+    /// Returns only `InvalidNumber`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use svgtypes::Stream;
+    ///
+    /// let mut s = Stream::from("3.14");
+    /// assert_eq!(s.parse_number().unwrap(), 3.14);
+    /// assert_eq!(s.at_end(), true);
+    /// ```
+    pub fn parse_number(&mut self) -> Result<f64> {
+        // Strip off leading whitespaces.
+        self.skip_spaces();
+
+        let start = self.pos();
+
+        if self.at_end() {
+            return Err(Error::InvalidNumber(self.calc_char_pos_at(start)));
+        }
+
+        self.parse_number_impl().map_err(|_| Error::InvalidNumber(self.calc_char_pos_at(start)))
+    }
+
+    fn parse_number_impl(&mut self) -> Result<f64> {
+        let start = self.pos();
+
+        let mut c = self.curr_byte()?;
+
+        // Consume sign.
+        if c.is_sign() {
+            self.advance(1);
+            c = self.curr_byte()?;
+        }
+
+        // Consume integer.
+        match c {
+            b'0'..=b'9' => self.skip_digits(),
+            b'.' => {}
+            _ => return Err(Error::InvalidNumber(0)),
+        }
+
+        // Consume fraction.
+        if let Ok(b'.') = self.curr_byte() {
+            self.advance(1);
+            self.skip_digits();
+        }
+
+        if let Ok(c) = self.curr_byte() {
+            if matches!(c, b'e' | b'E') {
+                let c2 = self.next_byte()?;
+                // Check for `em`/`ex`.
+                if c2 != b'm' && c2 != b'x' {
+                    self.advance(1);
+
+                    match self.curr_byte()? {
+                        b'+' | b'-' => {
+                            self.advance(1);
+                            self.skip_digits();
+                        }
+                        b'0'..=b'9' => {
+                            self.skip_digits()
+                        }
+                        _ => {
+                            return Err(Error::InvalidNumber(0));
+                        }
+                    }
+                }
+            }
+        }
+
+        let s = self.slice_back(start);
+
+        // Use the default f64 parser now.
+        if let Ok(n) = f64::from_str(s) {
+            // inf, nan, etc. are an error.
+            if n.is_finite() {
+                return Ok(n);
+            }
+        }
+
+        Err(Error::InvalidNumber(0))
+    }
+
+    /// Parses number from a list of numbers.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use svgtypes::Stream;
+    ///
+    /// let mut s = Stream::from("3.14, 12,5 , 20-4");
+    /// assert_eq!(s.parse_list_number().unwrap(), 3.14);
+    /// assert_eq!(s.parse_list_number().unwrap(), 12.0);
+    /// assert_eq!(s.parse_list_number().unwrap(), 5.0);
+    /// assert_eq!(s.parse_list_number().unwrap(), 20.0);
+    /// assert_eq!(s.parse_list_number().unwrap(), -4.0);
+    /// ```
+    pub fn parse_list_number(&mut self) -> Result<f64> {
+        if self.at_end() {
+            return Err(Error::UnexpectedEndOfStream);
+        }
+
+        let n = self.parse_number()?;
+        self.skip_spaces();
+        self.parse_list_separator();
+        Ok(n)
+    }
+}
+
+
+/// A pull-based [`<list-of-numbers>`] parser.
+///
+/// # Example
+///
+/// ```
+/// use svgtypes::NumberListParser;
+///
+/// let mut p = NumberListParser::from("10, 20 -50");
+/// assert_eq!(p.next().unwrap().unwrap(), 10.0);
+/// assert_eq!(p.next().unwrap().unwrap(), 20.0);
+/// assert_eq!(p.next().unwrap().unwrap(), -50.0);
+/// assert_eq!(p.next().is_none(), true);
+/// ```
+///
+/// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct NumberListParser<'a>(Stream<'a>);
+
+impl<'a> From<&'a str> for NumberListParser<'a> {
+    #[inline]
+    fn from(v: &'a str) -> Self {
+        NumberListParser(Stream::from(v))
+    }
+}
+
+impl<'a> Iterator for NumberListParser<'a> {
+    type Item = Result<f64>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.0.at_end() {
+            None
+        } else {
+            let v = self.0.parse_list_number();
+            if v.is_err() {
+                self.0.jump_to_end();
+            }
+
+            Some(v)
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use crate::Stream;

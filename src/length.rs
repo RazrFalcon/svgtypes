@@ -71,6 +71,119 @@ impl std::str::FromStr for Length {
     }
 }
 
+impl<'a> Stream<'a> {
+    /// Parses length from the stream.
+    ///
+    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength>
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use svgtypes::{Stream, Length, LengthUnit};
+    ///
+    /// let mut s = Stream::from("30%");
+    /// assert_eq!(s.parse_length().unwrap(), Length::new(30.0, LengthUnit::Percent));
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// - Suffix must be lowercase, otherwise it will be an error.
+    pub fn parse_length(&mut self) -> Result<Length> {
+        self.skip_spaces();
+
+        let n = self.parse_number()?;
+
+        if self.at_end() {
+            return Ok(Length::new(n, LengthUnit::None));
+        }
+
+        let u = if self.starts_with(b"%") {
+            LengthUnit::Percent
+        } else if self.starts_with(b"em") {
+            LengthUnit::Em
+        } else if self.starts_with(b"ex") {
+            LengthUnit::Ex
+        } else if self.starts_with(b"px") {
+            LengthUnit::Px
+        } else if self.starts_with(b"in") {
+            LengthUnit::In
+        } else if self.starts_with(b"cm") {
+            LengthUnit::Cm
+        } else if self.starts_with(b"mm") {
+            LengthUnit::Mm
+        } else if self.starts_with(b"pt") {
+            LengthUnit::Pt
+        } else if self.starts_with(b"pc") {
+            LengthUnit::Pc
+        } else {
+            LengthUnit::None
+        };
+
+        match u {
+            LengthUnit::Percent => self.advance(1),
+            LengthUnit::None => {}
+            _ => self.advance(2),
+        }
+
+        Ok(Length::new(n, u))
+    }
+
+    /// Parses length from a list of lengths.
+    pub fn parse_list_length(&mut self) -> Result<Length> {
+        if self.at_end() {
+            return Err(Error::UnexpectedEndOfStream);
+        }
+
+        let l = self.parse_length()?;
+        self.skip_spaces();
+        self.parse_list_separator();
+        Ok(l)
+    }
+}
+
+
+/// A pull-based [`<list-of-length>`] parser.
+///
+/// # Example
+///
+/// ```
+/// use svgtypes::{Length, LengthUnit, LengthListParser};
+///
+/// let mut p = LengthListParser::from("10px 20% 50mm");
+/// assert_eq!(p.next().unwrap().unwrap(), Length::new(10.0, LengthUnit::Px));
+/// assert_eq!(p.next().unwrap().unwrap(), Length::new(20.0, LengthUnit::Percent));
+/// assert_eq!(p.next().unwrap().unwrap(), Length::new(50.0, LengthUnit::Mm));
+/// assert_eq!(p.next().is_none(), true);
+/// ```
+///
+/// [`<list-of-length>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct LengthListParser<'a>(Stream<'a>);
+
+impl<'a> From<&'a str> for LengthListParser<'a> {
+    #[inline]
+    fn from(v: &'a str) -> Self {
+        LengthListParser(Stream::from(v))
+    }
+}
+
+impl<'a> Iterator for LengthListParser<'a> {
+    type Item = Result<Length>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.0.at_end() {
+            None
+        } else {
+            let v = self.0.parse_list_length();
+            if v.is_err() {
+                self.0.jump_to_end();
+            }
+
+            Some(v)
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -99,6 +212,24 @@ mod tests {
     test_p!(parse_11, "1e0", Length::new(1.0, LengthUnit::None));
     test_p!(parse_12, "1.0e0", Length::new(1.0, LengthUnit::None));
     test_p!(parse_13, "1.0e0em", Length::new(1.0, LengthUnit::Em));
+
+    #[test]
+    fn parse_14() {
+        let mut s = Stream::from("1,");
+        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
+    }
+
+    #[test]
+    fn parse_15() {
+        let mut s = Stream::from("1 ,");
+        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
+    }
+
+    #[test]
+    fn parse_16() {
+        let mut s = Stream::from("1 1");
+        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
+    }
 
     #[test]
     fn err_1() {

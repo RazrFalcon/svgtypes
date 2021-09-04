@@ -55,6 +55,43 @@ impl std::str::FromStr for Angle {
     }
 }
 
+impl<'a> Stream<'a> {
+    /// Parses angle from the stream.
+    ///
+    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGAngle>
+    ///
+    /// # Notes
+    ///
+    /// - Suffix must be lowercase, otherwise it will be an error.
+    pub fn parse_angle(&mut self) -> Result<Angle> {
+        self.skip_spaces();
+
+        let n = self.parse_number()?;
+
+        if self.at_end() {
+            return Ok(Angle::new(n, AngleUnit::Degrees));
+        }
+
+        let u = if self.starts_with(b"deg") {
+            self.advance(3);
+            AngleUnit::Degrees
+        } else if self.starts_with(b"grad") {
+            self.advance(4);
+            AngleUnit::Gradians
+        } else if self.starts_with(b"rad") {
+            self.advance(3);
+            AngleUnit::Radians
+        } else if self.starts_with(b"turn") {
+            self.advance(4);
+            AngleUnit::Turns
+        } else {
+            AngleUnit::Degrees
+        };
+
+        Ok(Angle::new(n, u))
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

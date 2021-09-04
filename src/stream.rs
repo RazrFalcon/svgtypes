@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{Angle, AngleUnit, Error, Length, LengthUnit, Result};
+use crate::{Error, Result};
 
 /// Extension methods for XML-subset only operations.
 pub(crate) trait ByteExt {
@@ -359,124 +359,6 @@ impl<'a> Stream<'a> {
         &self.text[self.pos..]
     }
 
-    /// Parses number from the stream.
-    ///
-    /// This method will detect a number length and then
-    /// will pass a substring to the `f64::from_str` method.
-    ///
-    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber>
-    ///
-    /// # Errors
-    ///
-    /// Returns only `InvalidNumber`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::Stream;
-    ///
-    /// let mut s = Stream::from("3.14");
-    /// assert_eq!(s.parse_number().unwrap(), 3.14);
-    /// assert_eq!(s.at_end(), true);
-    /// ```
-    pub fn parse_number(&mut self) -> Result<f64> {
-        // Strip off leading whitespaces.
-        self.skip_spaces();
-
-        let start = self.pos();
-
-        if self.at_end() {
-            return Err(Error::InvalidNumber(self.calc_char_pos_at(start)));
-        }
-
-        self.parse_number_impl().map_err(|_| Error::InvalidNumber(self.calc_char_pos_at(start)))
-    }
-
-    fn parse_number_impl(&mut self) -> Result<f64> {
-        let start = self.pos();
-
-        let mut c = self.curr_byte()?;
-
-        // Consume sign.
-        if c.is_sign() {
-            self.advance(1);
-            c = self.curr_byte()?;
-        }
-
-        // Consume integer.
-        match c {
-            b'0'..=b'9' => self.skip_digits(),
-            b'.' => {}
-            _ => return Err(Error::InvalidNumber(0)),
-        }
-
-        // Consume fraction.
-        if let Ok(b'.') = self.curr_byte() {
-            self.advance(1);
-            self.skip_digits();
-        }
-
-        if let Ok(c) = self.curr_byte() {
-            if matches!(c, b'e' | b'E') {
-                let c2 = self.next_byte()?;
-                // Check for `em`/`ex`.
-                if c2 != b'm' && c2 != b'x' {
-                    self.advance(1);
-
-                    match self.curr_byte()? {
-                        b'+' | b'-' => {
-                            self.advance(1);
-                            self.skip_digits();
-                        }
-                        b'0'..=b'9' => {
-                            self.skip_digits()
-                        }
-                        _ => {
-                            return Err(Error::InvalidNumber(0));
-                        }
-                    }
-                }
-            }
-        }
-
-        let s = self.slice_back(start);
-
-        // Use the default f64 parser now.
-        if let Ok(n) = f64::from_str(s) {
-            // inf, nan, etc. are an error.
-            if n.is_finite() {
-                return Ok(n);
-            }
-        }
-
-        Err(Error::InvalidNumber(0))
-    }
-
-    /// Parses number from a list of numbers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::Stream;
-    ///
-    /// let mut s = Stream::from("3.14, 12,5 , 20-4");
-    /// assert_eq!(s.parse_list_number().unwrap(), 3.14);
-    /// assert_eq!(s.parse_list_number().unwrap(), 12.0);
-    /// assert_eq!(s.parse_list_number().unwrap(), 5.0);
-    /// assert_eq!(s.parse_list_number().unwrap(), 20.0);
-    /// assert_eq!(s.parse_list_number().unwrap(), -4.0);
-    /// ```
-    pub fn parse_list_number(&mut self) -> Result<f64> {
-        if self.at_end() {
-            return Err(Error::UnexpectedEndOfStream);
-        }
-
-        let n = self.parse_number()?;
-        self.skip_spaces();
-        self.parse_list_separator();
-        Ok(n)
-    }
-
     /// Parses integer number from the stream.
     ///
     /// Same as [`parse_number()`], but only for integer. Does not refer to any SVG type.
@@ -548,109 +430,6 @@ impl<'a> Stream<'a> {
         self.skip_spaces();
         self.parse_list_separator();
         Ok(l)
-    }
-
-    /// Parses length from the stream.
-    ///
-    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength>
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::{Stream, Length, LengthUnit};
-    ///
-    /// let mut s = Stream::from("30%");
-    /// assert_eq!(s.parse_length().unwrap(), Length::new(30.0, LengthUnit::Percent));
-    /// ```
-    ///
-    /// # Notes
-    ///
-    /// - Suffix must be lowercase, otherwise it will be an error.
-    pub fn parse_length(&mut self) -> Result<Length> {
-        self.skip_spaces();
-
-        let n = self.parse_number()?;
-
-        if self.at_end() {
-            return Ok(Length::new(n, LengthUnit::None));
-        }
-
-        let u = if self.starts_with(b"%") {
-            LengthUnit::Percent
-        } else if self.starts_with(b"em") {
-            LengthUnit::Em
-        } else if self.starts_with(b"ex") {
-            LengthUnit::Ex
-        } else if self.starts_with(b"px") {
-            LengthUnit::Px
-        } else if self.starts_with(b"in") {
-            LengthUnit::In
-        } else if self.starts_with(b"cm") {
-            LengthUnit::Cm
-        } else if self.starts_with(b"mm") {
-            LengthUnit::Mm
-        } else if self.starts_with(b"pt") {
-            LengthUnit::Pt
-        } else if self.starts_with(b"pc") {
-            LengthUnit::Pc
-        } else {
-            LengthUnit::None
-        };
-
-        match u {
-            LengthUnit::Percent => self.advance(1),
-            LengthUnit::None => {}
-            _ => self.advance(2),
-        }
-
-        Ok(Length::new(n, u))
-    }
-
-    /// Parses length from a list of lengths.
-    pub fn parse_list_length(&mut self) -> Result<Length> {
-        if self.at_end() {
-            return Err(Error::UnexpectedEndOfStream);
-        }
-
-        let l = self.parse_length()?;
-        self.skip_spaces();
-        self.parse_list_separator();
-        Ok(l)
-    }
-
-    /// Parses angle from the stream.
-    ///
-    /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGAngle>
-    ///
-    /// # Notes
-    ///
-    /// - Suffix must be lowercase, otherwise it will be an error.
-    pub fn parse_angle(&mut self) -> Result<Angle> {
-        self.skip_spaces();
-
-        let n = self.parse_number()?;
-
-        if self.at_end() {
-            return Ok(Angle::new(n, AngleUnit::Degrees));
-        }
-
-        let u = if self.starts_with(b"deg") {
-            self.advance(3);
-            AngleUnit::Degrees
-        } else if self.starts_with(b"grad") {
-            self.advance(4);
-            AngleUnit::Gradians
-        } else if self.starts_with(b"rad") {
-            self.advance(3);
-            AngleUnit::Radians
-        } else if self.starts_with(b"turn") {
-            self.advance(4);
-            AngleUnit::Turns
-        } else {
-            AngleUnit::Degrees
-        };
-
-        Ok(Angle::new(n, u))
     }
 
     /// Skips digits.
@@ -731,24 +510,6 @@ mod tests {
         let mut s = Stream::from("10000000000000");
         assert_eq!(s.parse_integer().unwrap_err().to_string(),
                    "invalid number at position 1");
-    }
-
-    #[test]
-    fn parse_length_1() {
-        let mut s = Stream::from("1,");
-        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
-    }
-
-    #[test]
-    fn parse_length_2() {
-        let mut s = Stream::from("1 ,");
-        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
-    }
-
-    #[test]
-    fn parse_length_3() {
-        let mut s = Stream::from("1 1");
-        assert_eq!(s.parse_length().unwrap(), Length::new(1.0, LengthUnit::None));
     }
 
     #[test]
