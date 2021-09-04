@@ -1,4 +1,4 @@
-use crate::{Error, FuzzyEq, Result, Stream};
+use crate::{Error, Result, Stream};
 
 /// List of all SVG angle units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -55,15 +55,6 @@ impl std::str::FromStr for Angle {
     }
 }
 
-impl FuzzyEq for Angle {
-    fn fuzzy_eq(&self, other: &Self) -> bool {
-        if self.unit != other.unit {
-            return false;
-        }
-
-        self.number.fuzzy_eq(&other.number)
-    }
-}
 
 #[cfg(test)]
 mod tests {

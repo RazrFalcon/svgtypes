@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Removed
 - Writing support.
 - Container types. Only stack allocated types and pull-based parsers are available.
+- `FuzzyEq` and `FuzzyZero`.
 
 ## [0.6.0] - 2021-08-22
 ### Added

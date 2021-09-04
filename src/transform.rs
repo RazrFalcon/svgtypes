@@ -1,6 +1,6 @@
 use std::f64;
 
-use crate::{FuzzyEq, Stream, Result, Error};
+use crate::{Stream, Result, Error};
 
 /// Representation of the [`<transform>`] type.
 ///
@@ -28,17 +28,6 @@ impl Default for Transform {
     #[inline]
     fn default() -> Transform {
         Transform::new(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
-    }
-}
-
-impl FuzzyEq for Transform {
-    fn fuzzy_eq(&self, other: &Self) -> bool {
-           self.a.fuzzy_eq(&other.a)
-        && self.b.fuzzy_eq(&other.b)
-        && self.c.fuzzy_eq(&other.c)
-        && self.d.fuzzy_eq(&other.d)
-        && self.e.fuzzy_eq(&other.e)
-        && self.f.fuzzy_eq(&other.f)
     }
 }
 

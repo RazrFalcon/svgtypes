@@ -1,4 +1,4 @@
-use crate::{Error, FuzzyEq, Result, Stream};
+use crate::{Error, Result, Stream};
 
 /// List of all SVG length units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -71,15 +71,6 @@ impl std::str::FromStr for Length {
     }
 }
 
-impl FuzzyEq for Length {
-    fn fuzzy_eq(&self, other: &Self) -> bool {
-        if self.unit != other.unit {
-            return false;
-        }
-
-        self.number.fuzzy_eq(&other.number)
-    }
-}
 
 #[cfg(test)]
 mod tests {

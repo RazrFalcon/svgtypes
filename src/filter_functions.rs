@@ -1,4 +1,4 @@
-use crate::{Angle, AngleUnit, Color, Error, Length, LengthUnit, Stream, FuzzyZero};
+use crate::{Angle, AngleUnit, Color, Error, Length, LengthUnit, Stream};
 
 /// Representation of the [`<filter-function>`] | [`<url>`] type.
 ///
@@ -345,7 +345,7 @@ fn parse_filter_angle(s: &mut Stream) -> Result<Angle, FilterValueListParserErro
         AngleUnit::Turns
     } else {
         // Only zero value allowed to be unit-less.
-        if n.is_fuzzy_zero() {
+        if n == 0.0 {
             AngleUnit::Degrees
         } else {
             let pos = s.calc_char_pos_at(start);

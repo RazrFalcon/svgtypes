@@ -1,4 +1,4 @@
-use crate::{Error, FuzzyEq, Result, Stream};
+use crate::{Error, Result, Stream};
 
 /// Representation of the [`<viewBox>`] type.
 ///
@@ -38,15 +38,6 @@ impl std::str::FromStr for ViewBox {
     }
 }
 
-impl FuzzyEq for ViewBox {
-    fn fuzzy_eq(&self, other: &Self) -> bool {
-           self.x.fuzzy_eq(&other.x)
-        && self.y.fuzzy_eq(&other.y)
-        && self.w.fuzzy_eq(&other.w)
-        && self.h.fuzzy_eq(&other.h)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -57,7 +48,7 @@ mod tests {
             #[test]
             fn $name() {
                 let v = ViewBox::from_str($text).unwrap();
-                assert!(v.fuzzy_eq(&$result));
+                assert_eq!(v, $result);
             }
         )
     }
