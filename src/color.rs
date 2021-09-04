@@ -1,4 +1,4 @@
-use crate::{colors, ByteExt, Error, Result, Stream};
+use crate::{colors, ByteExt, Error, Stream};
 
 /// Representation of the [`<color>`] type.
 ///
@@ -80,7 +80,7 @@ impl std::str::FromStr for Color {
     ///
     /// [SVG 1.1 spec]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
     /// [details]: https://lists.w3.org/Archives/Public/www-svg/2014Jan/0109.html
-    fn from_str(text: &str) -> Result<Self> {
+    fn from_str(text: &str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
         let color = s.parse_color()?;
 
@@ -108,7 +108,7 @@ impl<'a> Stream<'a> {
     }
 
     /// Parses a color.
-    pub fn parse_color(&mut self) -> Result<Color> {
+    pub fn parse_color(&mut self) -> Result<Color, Error> {
         self.skip_spaces();
 
         let mut color = Color::black();

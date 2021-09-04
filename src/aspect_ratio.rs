@@ -1,4 +1,4 @@
-use crate::{Error, Result, Stream};
+use crate::{Error, Stream};
 
 /// Representation of the `align` value of the [`preserveAspectRatio`] attribute.
 ///
@@ -41,7 +41,7 @@ pub struct AspectRatio {
 impl std::str::FromStr for AspectRatio {
     type Err = Error;
 
-    fn from_str(text: &str) -> Result<Self> {
+    fn from_str(text: &str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
 
         s.skip_spaces();

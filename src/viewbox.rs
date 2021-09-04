@@ -1,4 +1,4 @@
-use crate::{Error, Result, Stream};
+use crate::{Error, Stream};
 
 /// Representation of the [`<viewBox>`] type.
 ///
@@ -22,7 +22,7 @@ impl ViewBox {
 impl std::str::FromStr for ViewBox {
     type Err = Error;
 
-    fn from_str(text: &str) -> Result<Self> {
+    fn from_str(text: &str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
 
         let x = s.parse_list_number()?;

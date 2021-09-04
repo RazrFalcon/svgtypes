@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{Stream, Error, Result, ByteExt};
+use crate::{Stream, Error, ByteExt};
 
 impl<'a> Stream<'a> {
     /// Parses number from the stream.
@@ -23,7 +23,7 @@ impl<'a> Stream<'a> {
     /// assert_eq!(s.parse_number().unwrap(), 3.14);
     /// assert_eq!(s.at_end(), true);
     /// ```
-    pub fn parse_number(&mut self) -> Result<f64> {
+    pub fn parse_number(&mut self) -> Result<f64, Error> {
         // Strip off leading whitespaces.
         self.skip_spaces();
 
@@ -36,7 +36,7 @@ impl<'a> Stream<'a> {
         self.parse_number_impl().map_err(|_| Error::InvalidNumber(self.calc_char_pos_at(start)))
     }
 
-    fn parse_number_impl(&mut self) -> Result<f64> {
+    fn parse_number_impl(&mut self) -> Result<f64, Error> {
         let start = self.pos();
 
         let mut c = self.curr_byte()?;
@@ -110,7 +110,7 @@ impl<'a> Stream<'a> {
     /// assert_eq!(s.parse_list_number().unwrap(), 20.0);
     /// assert_eq!(s.parse_list_number().unwrap(), -4.0);
     /// ```
-    pub fn parse_list_number(&mut self) -> Result<f64> {
+    pub fn parse_list_number(&mut self) -> Result<f64, Error> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
         }
@@ -149,7 +149,7 @@ impl<'a> From<&'a str> for NumberListParser<'a> {
 }
 
 impl<'a> Iterator for NumberListParser<'a> {
-    type Item = Result<f64>;
+    type Item = Result<f64, Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.0.at_end() {

@@ -1,4 +1,4 @@
-use crate::{Error, Result, Stream};
+use crate::{Error, Stream};
 
 /// Representation of the path segment.
 ///
@@ -120,7 +120,7 @@ impl<'a> From<&'a str> for PathParser<'a> {
 }
 
 impl<'a> Iterator for PathParser<'a> {
-    type Item = Result<PathSegment>;
+    type Item = Result<PathSegment, Error>;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -141,7 +141,7 @@ impl<'a> Iterator for PathParser<'a> {
     }
 }
 
-fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment> {
+fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment, Error> {
     let start = s.pos();
 
     let has_prev_cmd = prev_cmd.is_some();
@@ -348,7 +348,7 @@ fn is_number_start(c: u8) -> bool {
 
 // By the SVG spec 'large-arc' and 'sweep' must contain only one char
 // and can be written without any separators, e.g.: 10 20 30 01 10 20.
-fn parse_flag(s: &mut Stream) -> Result<bool> {
+fn parse_flag(s: &mut Stream) -> Result<bool, Error> {
     s.skip_spaces();
 
     let c = s.curr_byte()?;

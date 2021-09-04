@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{Color, Error, Result, Stream};
+use crate::{Color, Error, Stream};
 
 /// Representation of the fallback part of the [`<paint>`] type.
 ///
@@ -62,7 +62,7 @@ impl<'a> Paint<'a> {
     ///
     /// We can't use the `FromStr` trait because it requires
     /// an owned value as a return type.
-    pub fn from_str(text: &'a str) -> Result<Self> {
+    pub fn from_str(text: &'a str) -> Result<Self, Error> {
         let text = text.trim();
         match text {
             "none" => Ok(Paint::None),

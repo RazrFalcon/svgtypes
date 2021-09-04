@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{Error, Result};
+use crate::Error;
 
 /// Extension methods for XML-subset only operations.
 pub(crate) trait ByteExt {
@@ -137,7 +137,7 @@ impl<'a> Stream<'a> {
     ///
     /// - `UnexpectedEndOfStream`
     #[inline]
-    pub fn curr_byte(&self) -> Result<u8> {
+    pub fn curr_byte(&self) -> Result<u8, Error> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
         }
@@ -183,7 +183,7 @@ impl<'a> Stream<'a> {
     ///
     /// - `UnexpectedEndOfStream`
     #[inline]
-    pub fn next_byte(&self) -> Result<u8> {
+    pub fn next_byte(&self) -> Result<u8, Error> {
         if self.pos + 1 >= self.text.len() {
             return Err(Error::UnexpectedEndOfStream);
         }
@@ -273,7 +273,7 @@ impl<'a> Stream<'a> {
     /// s.consume_byte(b'm').unwrap();
     /// // s.consume_byte(b'q').unwrap(); // will produce an error
     /// ```
-    pub fn consume_byte(&mut self, c: u8) -> Result<()> {
+    pub fn consume_byte(&mut self, c: u8) -> Result<(), Error> {
         if self.curr_byte()? != c {
             return Err(
                 Error::InvalidChar(
@@ -293,7 +293,7 @@ impl<'a> Stream<'a> {
     ///
     /// - `InvalidChar`
     /// - `UnexpectedEndOfStream`
-    pub fn consume_string(&mut self, text: &[u8]) -> Result<()> {
+    pub fn consume_string(&mut self, text: &[u8]) -> Result<(), Error> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
         }
@@ -364,7 +364,7 @@ impl<'a> Stream<'a> {
     /// Same as [`parse_number()`], but only for integer. Does not refer to any SVG type.
     ///
     /// [`parse_number()`]: #method.parse_number
-    pub fn parse_integer(&mut self) -> Result<i32> {
+    pub fn parse_integer(&mut self) -> Result<i32, Error> {
         self.skip_spaces();
 
         if self.at_end() {
@@ -394,7 +394,7 @@ impl<'a> Stream<'a> {
     }
 
     /// Parses integer from a list of numbers.
-    pub fn parse_list_integer(&mut self) -> Result<i32> {
+    pub fn parse_list_integer(&mut self) -> Result<i32, Error> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
         }
@@ -408,7 +408,7 @@ impl<'a> Stream<'a> {
     /// Parses number or percent from the stream.
     ///
     /// Percent value will be normalized.
-    pub fn parse_number_or_percent(&mut self) -> Result<f64> {
+    pub fn parse_number_or_percent(&mut self) -> Result<f64, Error> {
         self.skip_spaces();
 
         let n = self.parse_number()?;
@@ -421,7 +421,7 @@ impl<'a> Stream<'a> {
     }
 
     /// Parses number or percent from a list of numbers and/or percents.
-    pub fn parse_list_number_or_percent(&mut self) -> Result<f64> {
+    pub fn parse_list_number_or_percent(&mut self) -> Result<f64, Error> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
         }
@@ -444,8 +444,8 @@ impl<'a> Stream<'a> {
     ///
     /// [IRI]: https://www.w3.org/TR/SVG11/types.html#DataTypeIRI
     /// [Name]: https://www.w3.org/TR/xml/#NT-Name
-    pub fn parse_iri(&mut self) -> Result<&'a str> {
-        let mut _impl = || -> Result<&'a str> {
+    pub fn parse_iri(&mut self) -> Result<&'a str, Error> {
+        let mut _impl = || -> Result<&'a str, Error> {
             self.skip_spaces();
             self.consume_byte(b'#')?;
             let link = self.consume_bytes(|_, c| c != b' ');
@@ -466,8 +466,8 @@ impl<'a> Stream<'a> {
     ///
     /// [FuncIRI]: https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI
     /// [Name]: https://www.w3.org/TR/xml/#NT-Name
-    pub fn parse_func_iri(&mut self) -> Result<&'a str> {
-        let mut _impl = || -> Result<&'a str> {
+    pub fn parse_func_iri(&mut self) -> Result<&'a str, Error> {
+        let mut _impl = || -> Result<&'a str, Error> {
             self.skip_spaces();
             self.consume_string(b"url(")?;
             self.skip_spaces();

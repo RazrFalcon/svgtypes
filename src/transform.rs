@@ -1,6 +1,6 @@
 use std::f64;
 
-use crate::{Stream, Result, Error};
+use crate::{Stream, Error};
 
 /// Representation of the [`<transform>`] type.
 ///
@@ -106,7 +106,7 @@ impl<'a> From<&'a str> for TransformListParser<'a> {
 }
 
 impl<'a> Iterator for TransformListParser<'a> {
-    type Item = Result<TransformListToken>;
+    type Item = Result<TransformListToken, Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(a) = self.last_angle {
@@ -141,7 +141,7 @@ impl<'a> Iterator for TransformListParser<'a> {
 }
 
 impl<'a> TransformListParser<'a> {
-    fn parse_next(&mut self) -> Result<TransformListToken> {
+    fn parse_next(&mut self) -> Result<TransformListToken, Error> {
         let s = &mut self.stream;
 
         let start = s.pos();
@@ -246,7 +246,7 @@ impl<'a> TransformListParser<'a> {
 impl std::str::FromStr for Transform {
     type Err = Error;
 
-    fn from_str(text: &str) -> Result<Self> {
+    fn from_str(text: &str) -> Result<Self, Error> {
         let tokens = TransformListParser::from(text);
         let mut ts = Transform::default();
 

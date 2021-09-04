@@ -1,4 +1,4 @@
-use crate::{Error, Result, Stream};
+use crate::{Error, Stream};
 
 /// List of all SVG angle units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -43,7 +43,7 @@ impl std::str::FromStr for Angle {
     type Err = Error;
 
     #[inline]
-    fn from_str(text: &str) -> Result<Self> {
+    fn from_str(text: &str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
         let l = s.parse_angle()?;
 
@@ -63,7 +63,7 @@ impl<'a> Stream<'a> {
     /// # Notes
     ///
     /// - Suffix must be lowercase, otherwise it will be an error.
-    pub fn parse_angle(&mut self) -> Result<Angle> {
+    pub fn parse_angle(&mut self) -> Result<Angle, Error> {
         self.skip_spaces();
 
         let n = self.parse_number()?;

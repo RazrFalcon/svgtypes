@@ -1,4 +1,4 @@
-use crate::{Error, Result, Stream};
+use crate::{Error, Stream};
 
 /// List of all SVG length units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -59,7 +59,7 @@ impl std::str::FromStr for Length {
     type Err = Error;
 
     #[inline]
-    fn from_str(text: &str) -> Result<Self> {
+    fn from_str(text: &str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
         let l = s.parse_length()?;
 
@@ -88,7 +88,7 @@ impl<'a> Stream<'a> {
     /// # Notes
     ///
     /// - Suffix must be lowercase, otherwise it will be an error.
-    pub fn parse_length(&mut self) -> Result<Length> {
+    pub fn parse_length(&mut self) -> Result<Length, Error> {
         self.skip_spaces();
 
         let n = self.parse_number()?;
@@ -129,7 +129,7 @@ impl<'a> Stream<'a> {
     }
 
     /// Parses length from a list of lengths.
-    pub fn parse_list_length(&mut self) -> Result<Length> {
+    pub fn parse_list_length(&mut self) -> Result<Length, Error> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
         }
@@ -168,7 +168,7 @@ impl<'a> From<&'a str> for LengthListParser<'a> {
 }
 
 impl<'a> Iterator for LengthListParser<'a> {
-    type Item = Result<Length>;
+    type Item = Result<Length, Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.0.at_end() {

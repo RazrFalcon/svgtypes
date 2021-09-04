@@ -78,6 +78,3 @@ impl std::error::Error for Error {
         "an SVG data parsing error"
     }
 }
-
-/// An alias to `Result<T, Error>`.
-pub(crate) type Result<T> = ::std::result::Result<T, Error>;
