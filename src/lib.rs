@@ -16,6 +16,8 @@
 - [`<filter-value-list>`](https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list)
 - [`<paint>`](https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint)
 - [`<preserveAspectRatio>`](https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute)
+- [`<IRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeIRI)
+- [`<FuncIRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI)
 
 ## Features
 
@@ -44,7 +46,7 @@
 None.
 */
 
-#![doc(html_root_url = "https://docs.rs/svgtypes/0.6.0")]
+#![doc(html_root_url = "https://docs.rs/svgtypes/0.7.0")]
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]

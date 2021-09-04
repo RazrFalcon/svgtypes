@@ -22,6 +22,8 @@
 - [`<filter-value-list>`](https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list)
 - [`<paint>`](https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint)
 - [`<preserveAspectRatio>`](https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute)
+- [`<IRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeIRI)
+- [`<FuncIRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI)
 
 ### Features
 
