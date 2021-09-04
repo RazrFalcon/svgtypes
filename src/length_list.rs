@@ -1,15 +1,4 @@
-use crate::{Error, Length, Result, Stream, WriteBuffer, WriteOptions};
-
-/// Representation of the [`<list-of-length>`] type.
-///
-/// [`<list-of-length>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
-#[derive(Clone, PartialEq, Default)]
-pub struct LengthList(pub Vec<Length>);
-
-impl_from_vec!(LengthList, LengthList, Length);
-impl_vec_defer!(LengthList, Length);
-impl_display!(LengthList);
-impl_debug_from_display!(LengthList);
+use crate::{Length, Result, Stream};
 
 /// A pull-based [`<list-of-length>`] parser.
 ///
@@ -50,18 +39,5 @@ impl<'a> Iterator for LengthListParser<'a> {
 
             Some(v)
         }
-    }
-}
-
-impl std::str::FromStr for LengthList {
-    type Err = Error;
-
-    fn from_str(text: &str) -> Result<Self> {
-        let mut vec = Vec::new();
-        for number in LengthListParser::from(text) {
-            vec.push(number?);
-        }
-
-        Ok(LengthList(vec))
     }
 }

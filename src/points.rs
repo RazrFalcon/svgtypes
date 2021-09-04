@@ -1,4 +1,4 @@
-use crate::{Error, Points, Result, Stream};
+use crate::Stream;
 
 /// A pull-based [`<list-of-points>`] parser.
 ///
@@ -59,48 +59,23 @@ impl<'a> Iterator for PointsParser<'a> {
     }
 }
 
-impl std::str::FromStr for Points {
-    type Err = Error;
-
-    fn from_str(text: &str) -> Result<Self> {
-        // TODO: should contain at least two coordinate pairs
-        Ok(Points(PointsParser::from(text).collect()))
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
     use super::*;
-    use crate::{WriteBuffer, WriteOptions, ListSeparator};
 
     #[test]
     fn parse_1() {
-        let points = Points::from_str("10 20 30 40").unwrap();
-        assert_eq!(*points, vec![(10.0, 20.0), (30.0, 40.0)]);
+        let mut parser = PointsParser::from("10 20 30 40");
+        assert_eq!(parser.next().unwrap(), (10.0, 20.0));
+        assert_eq!(parser.next().unwrap(), (30.0, 40.0));
+        assert!(parser.next().is_none());
     }
 
     #[test]
     fn parse_2() {
-        let points = Points::from_str("10 20 30 40 50").unwrap();
-        assert_eq!(*points, vec![(10.0, 20.0), (30.0, 40.0)]);
-    }
-
-    #[test]
-    fn parse_3() {
-        let points = Points::from_str("10 20 30 40").unwrap();
-        assert_eq!(points.to_string(), "10 20 30 40");
-    }
-
-    #[test]
-    fn parse_4() {
-        let points = Points::from_str("10 20 30 40").unwrap();
-
-        let opt = WriteOptions {
-            list_separator: ListSeparator::Comma,
-            .. WriteOptions::default()
-        };
-
-        assert_eq!(points.with_write_opt(&opt).to_string(), "10,20,30,40");
+        let mut parser = PointsParser::from("10 20 30 40 50");
+        assert_eq!(parser.next().unwrap(), (10.0, 20.0));
+        assert_eq!(parser.next().unwrap(), (30.0, 40.0));
+        assert!(parser.next().is_none());
     }
 }

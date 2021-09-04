@@ -1,4 +1,4 @@
-use crate::{Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
+use crate::{Error, FuzzyEq, Result, Stream};
 
 /// List of all SVG angle units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -55,23 +55,6 @@ impl std::str::FromStr for Angle {
     }
 }
 
-impl WriteBuffer for Angle {
-    fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
-        self.number.write_buf_opt(opt, buf);
-
-        let t: &[u8] = match self.unit {
-            AngleUnit::Degrees  => b"deg",
-            AngleUnit::Gradians => b"grad",
-            AngleUnit::Radians  => b"rad",
-            AngleUnit::Turns  => b"turn",
-        };
-
-        buf.extend_from_slice(t);
-    }
-}
-
-impl_display!(Angle);
-
 impl FuzzyEq for Angle {
     fn fuzzy_eq(&self, other: &Self) -> bool {
         if self.unit != other.unit {
@@ -115,19 +98,4 @@ mod tests {
         assert_eq!(Angle::from_str("1degq").unwrap_err().to_string(),
                    "unexpected data at position 5");
     }
-
-    macro_rules! test_w {
-        ($name:ident, $len:expr, $unit:expr, $result:expr) => (
-            #[test]
-            fn $name() {
-                let l = Angle::new($len, $unit);
-                assert_eq!(l.to_string(), $result);
-            }
-        )
-    }
-
-    test_w!(write_1,  1.0, AngleUnit::Degrees, "1deg");
-    test_w!(write_2,  1.0, AngleUnit::Gradians, "1grad");
-    test_w!(write_3,  1.0, AngleUnit::Radians, "1rad");
-    test_w!(write_4,  1.0, AngleUnit::Turns, "1turn");
 }

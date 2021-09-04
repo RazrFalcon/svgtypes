@@ -1,84 +1,27 @@
 /*!
-*svgtypes* is a collection of parsers, containers and writers for
-[SVG](https://www.w3.org/TR/SVG2/) types.
-
-Usage is simple as:
-
-```rust
-use svgtypes::Path;
-
-let path: Path = "M10-20A5.5.3-4 110-.1".parse().unwrap();
-assert_eq!(path.to_string(), "M 10 -20 A 5.5 0.3 -4 1 1 0 -0.1");
-```
-
-You can also use a low-level, pull-based parser:
-
-```rust
-use svgtypes::PathParser;
-
-let p = PathParser::from("M10-20A5.5.3-4 110-.1");
-for token in p {
-    println!("{:?}", token);
-}
-```
-
-You can also tweak an output format:
-
-```rust
-use svgtypes::{Path, WriteBuffer, WriteOptions};
-
-let path_str = "M10-20A5.5.3-4 110-.1";
-let path: Path = path_str.parse().unwrap();
-
-let opt = WriteOptions {
-    remove_leading_zero: true,
-    use_compact_path_notation: true,
-    join_arc_to_flags: true,
-    .. WriteOptions::default()
-};
-
-assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
-```
+*svgtypes* is a collection of parsers for [SVG](https://www.w3.org/TR/SVG2/) types.
 
 ## Supported SVG types
 
-| SVG Type                  | Rust Type     | Storage | Parser                  |
-| ------------------------- | ------------- | ------- | ----------------------- |
-| [\<color\>]               | Color         | Stack   |                         |
-| [\<number\>]              | f64           | Stack   |                         |
-| [\<length\>]              | Length        | Stack   |                         |
-| [\<angle\>]               | Angle         | Stack   |                         |
-| [\<viewBox\>]             | ViewBox       | Stack   |                         |
-| [\<path\>]                | Path          | Heap    | PathParser              |
-| [\<list-of-numbers\>]     | NumberList    | Heap    | NumberListParser        |
-| [\<list-of-lengths\>]     | LengthList    | Heap    | LengthListParser        |
-| [\<transform-list\>]      | Transform     | Stack   | TransformListParser     |
-| [\<list-of-points\>]      | Points        | Heap    | PointsParser            |
-| [\<filter-value-list\>]   | -             | -       | FilterValueListParser   |
-| [\<paint\>]               | -             | -       | Paint                   |
+- [`<color>`](https://www.w3.org/TR/css-color-3/)
+- [`<number>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber
+- [`<length>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength
+- [`<angle>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGAngle
+- [`<viewBox>`]: https://www.w3.org/TR/SVG2/coords.html#ViewBoxAttribute
+- [`<path>`]: https://www.w3.org/TR/SVG2/paths.html#PathData
+- [`<transform>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList
+- [`<list-of-numbers>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList
+- [`<list-of-lengths>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
+- [`<list-of-points>`]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
+- [`<filter-value-list>`]: https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list
+- [`<paint>`]: https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
+- [`<preserveAspectRatio>`]: https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute
 
-[\<color\>]: https://www.w3.org/TR/css-color-3/
-[\<number\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber
-[\<length\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength
-[\<angle\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGAngle
-[\<viewBox\>]: https://www.w3.org/TR/SVG2/coords.html#ViewBoxAttribute
-[\<path\>]: https://www.w3.org/TR/SVG2/paths.html#PathData
-[\<list-of-numbers\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList
-[\<list-of-lengths\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
-[\<transform-list\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList
-[\<list-of-points\>]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
-[\<filter-value-list>\]: https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list
-[\<paint\>]: https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
-
-- All types implement from string (`FromStr`) and
-  to string traits (`Display`, `WriteBuffer`).
-- The library doesn't store transform list as is. It will premultiplied.
-- The `paint` type can only be parsed.
-
-## Benefits
+## Features
 
 - Complete support of paths, so data like `M10-20A5.5.3-4 110-.1` will be parsed correctly.
-- Access to pull-based parsers.
+- Implicit path commands will be automatically converted into explicit one.
+- Some SVG2 data types support.
 - Pretty fast.
 
 ## Limitations
@@ -90,8 +33,6 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 - The `<color>` followed by the `<icccolor>` is not supported. As the `<icccolor>` itself.
 - [System colors](https://www.w3.org/TR/css3-color/#css2-system), like `fill="AppWorkspace"`,
   are not supported. They were deprecated anyway.
-- Implicit path commands are not supported. All commands will be parsed as explicit.
-- Implicit MoveTo commands will be automatically converted into explicit LineTo.
 
 ## Safety
 
@@ -121,17 +62,16 @@ macro_rules! matches {
 }
 
 
-#[macro_use] mod traits;
 mod angle;
 mod aspect_ratio;
 mod color;
+mod colors;
 mod error;
 mod filter_functions;
 mod length;
 mod length_list;
 mod number;
 mod number_list;
-mod options;
 mod paint;
 mod path;
 mod points;
@@ -148,11 +88,9 @@ pub use crate::length::*;
 pub use crate::length_list::*;
 pub use crate::number::*;
 pub use crate::number_list::*;
-pub use crate::options::*;
 pub use crate::paint::*;
 pub use crate::path::*;
 pub use crate::points::*;
 pub use crate::stream::*;
-pub use crate::traits::*;
 pub use crate::transform::*;
 pub use crate::viewbox::*;

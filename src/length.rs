@@ -1,4 +1,4 @@
-use crate::{Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
+use crate::{Error, FuzzyEq, Result, Stream};
 
 /// List of all SVG length units.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -71,29 +71,6 @@ impl std::str::FromStr for Length {
     }
 }
 
-impl WriteBuffer for Length {
-    fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
-        self.number.write_buf_opt(opt, buf);
-
-        let t: &[u8] = match self.unit {
-            LengthUnit::None => b"",
-            LengthUnit::Em => b"em",
-            LengthUnit::Ex => b"ex",
-            LengthUnit::Px => b"px",
-            LengthUnit::In => b"in",
-            LengthUnit::Cm => b"cm",
-            LengthUnit::Mm => b"mm",
-            LengthUnit::Pt => b"pt",
-            LengthUnit::Pc => b"pc",
-            LengthUnit::Percent => b"%",
-        };
-
-        buf.extend_from_slice(t);
-    }
-}
-
-impl_display!(Length);
-
 impl FuzzyEq for Length {
     fn fuzzy_eq(&self, other: &Self) -> bool {
         if self.unit != other.unit {
@@ -145,25 +122,4 @@ mod tests {
         assert_eq!(Length::from_str("1mmx").unwrap_err().to_string(),
                    "unexpected data at position 4");
     }
-
-    macro_rules! test_w {
-        ($name:ident, $len:expr, $unit:expr, $result:expr) => (
-            #[test]
-            fn $name() {
-                let l = Length::new($len, $unit);
-                assert_eq!(l.to_string(), $result);
-            }
-        )
-    }
-
-    test_w!(write_1,  1.0, LengthUnit::None, "1");
-    test_w!(write_2,  1.0, LengthUnit::Em, "1em");
-    test_w!(write_3,  1.0, LengthUnit::Ex, "1ex");
-    test_w!(write_4,  1.0, LengthUnit::Px, "1px");
-    test_w!(write_5,  1.0, LengthUnit::In, "1in");
-    test_w!(write_6,  1.0, LengthUnit::Cm, "1cm");
-    test_w!(write_7,  1.0, LengthUnit::Mm, "1mm");
-    test_w!(write_8,  1.0, LengthUnit::Pt, "1pt");
-    test_w!(write_9,  1.0, LengthUnit::Pc, "1pc");
-    test_w!(write_10, 1.0, LengthUnit::Percent, "1%");
 }

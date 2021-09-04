@@ -5,9 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+**Breaking**: Almost a complete rewrite. This crate is strictly a parser from now.
+
 ### Added
 - [`<filter-value-list>`](https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list)
   parsing using `FilterValueListParser`.
+
+### Removed
+- Writing support.
+- Container types. Only stack allocated types and pull-based parsers are available.
 
 ## [0.6.0] - 2021-08-22
 ### Added

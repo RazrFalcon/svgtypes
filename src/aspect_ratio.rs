@@ -1,4 +1,4 @@
-use crate::{Error, Result, Stream, WriteBuffer, WriteOptions};
+use crate::{Error, Result, Stream};
 
 /// Representation of the `align` value of the [`preserveAspectRatio`] attribute.
 ///
@@ -21,16 +21,6 @@ pub enum Align {
 /// Representation of the [`preserveAspectRatio`] attribute.
 ///
 /// SVG 2 removed the `defer` keyword, but we still support it.
-///
-/// # Examples
-///
-/// ```
-/// use std::str::FromStr;
-/// use svgtypes::AspectRatio;
-///
-/// let ratio = AspectRatio::from_str("xMinYMax slice").unwrap();
-/// assert_eq!(ratio.to_string(), "xMinYMax slice");
-/// ```
 ///
 /// [`preserveAspectRatio`]: https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -105,35 +95,6 @@ impl std::str::FromStr for AspectRatio {
     }
 }
 
-impl WriteBuffer for AspectRatio {
-    fn write_buf_opt(&self, _: &WriteOptions, buf: &mut Vec<u8>) {
-        if self.defer {
-            buf.extend_from_slice(b"defer ");
-        }
-
-        let align = match self.align {
-            Align::None     => "none",
-            Align::XMinYMin => "xMinYMin",
-            Align::XMidYMin => "xMidYMin",
-            Align::XMaxYMin => "xMaxYMin",
-            Align::XMinYMid => "xMinYMid",
-            Align::XMidYMid => "xMidYMid",
-            Align::XMaxYMid => "xMaxYMid",
-            Align::XMinYMax => "xMinYMax",
-            Align::XMidYMax => "xMidYMax",
-            Align::XMaxYMax => "xMaxYMax",
-        };
-
-        buf.extend_from_slice(align.as_bytes());
-
-        if self.slice {
-            buf.extend_from_slice(b" slice");
-        }
-    }
-}
-
-impl_display!(AspectRatio);
-
 impl Default for AspectRatio {
     #[inline]
     fn default() -> Self {
@@ -189,18 +150,4 @@ mod tests {
         align: Align::XMinYMid,
         slice: false,
     });
-
-    #[test]
-    fn write_1() {
-        assert_eq!(AspectRatio::default().to_string(), "xMidYMid");
-    }
-
-    #[test]
-    fn write_2() {
-        assert_eq!(AspectRatio {
-            defer: true,
-            align: Align::None,
-            slice: true,
-        }.to_string(), "defer none slice");
-    }
 }

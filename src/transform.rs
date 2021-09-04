@@ -1,4 +1,47 @@
-use crate::{Error, Result, Stream, Transform};
+use std::f64;
+
+use crate::{FuzzyEq, Stream, Result, Error};
+
+/// Representation of the [`<transform>`] type.
+///
+/// [`<transform>`]: https://www.w3.org/TR/SVG2/coords.html#InterfaceSVGTransform
+#[derive(Clone, Copy, PartialEq, Debug)]
+#[allow(missing_docs)]
+pub struct Transform {
+    pub a: f64,
+    pub b: f64,
+    pub c: f64,
+    pub d: f64,
+    pub e: f64,
+    pub f: f64,
+}
+
+impl Transform {
+    /// Constructs a new transform.
+    #[inline]
+    pub fn new(a: f64, b: f64, c: f64, d: f64, e: f64, f: f64) -> Self {
+        Transform { a, b, c, d, e, f, }
+    }
+}
+
+impl Default for Transform {
+    #[inline]
+    fn default() -> Transform {
+        Transform::new(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+    }
+}
+
+impl FuzzyEq for Transform {
+    fn fuzzy_eq(&self, other: &Self) -> bool {
+           self.a.fuzzy_eq(&other.a)
+        && self.b.fuzzy_eq(&other.b)
+        && self.c.fuzzy_eq(&other.c)
+        && self.d.fuzzy_eq(&other.d)
+        && self.e.fuzzy_eq(&other.e)
+        && self.f.fuzzy_eq(&other.f)
+    }
+}
+
 
 /// Transform list token.
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -216,23 +259,51 @@ impl std::str::FromStr for Transform {
 
     fn from_str(text: &str) -> Result<Self> {
         let tokens = TransformListParser::from(text);
-        let mut transform = Transform::default();
+        let mut ts = Transform::default();
 
         for token in tokens {
             match token? {
-                TransformListToken::Matrix { a, b, c, d, e, f } =>
-                    { transform.append(&Transform::new(a, b, c, d, e, f)); }
-                TransformListToken::Translate { tx, ty } => { transform.translate(tx, ty); }
-                TransformListToken::Scale { sx, sy } => { transform.scale(sx, sy); }
-                TransformListToken::Rotate { angle } => { transform.rotate(angle); }
-                TransformListToken::SkewX { angle } => { transform.skew_x(angle); }
-                TransformListToken::SkewY { angle } => { transform.skew_y(angle); }
+                TransformListToken::Matrix { a, b, c, d, e, f } => {
+                    ts = multiply(&ts, &Transform::new(a, b, c, d, e, f))
+                }
+                TransformListToken::Translate { tx, ty } => {
+                    ts = multiply(&ts, &Transform::new(1.0, 0.0, 0.0, 1.0, tx, ty))
+                }
+                TransformListToken::Scale { sx, sy } => {
+                    ts = multiply(&ts, &Transform::new(sx, 0.0, 0.0, sy, 0.0, 0.0))
+                }
+                TransformListToken::Rotate { angle } => {
+                    let v = angle.to_radians();
+                    let a =  v.cos();
+                    let b =  v.sin();
+                    let c = -b;
+                    let d =  a;
+                    ts = multiply(&ts, &Transform::new(a, b, c, d, 0.0, 0.0))
+                }
+                TransformListToken::SkewX { angle } => {
+                    let c = angle.to_radians().tan();
+                    ts = multiply(&ts, &Transform::new(1.0, 0.0, c, 1.0, 0.0, 0.0))
+                }
+                TransformListToken::SkewY { angle } => {
+                    let b = angle.to_radians().tan();
+                    ts = multiply(&ts, &Transform::new(1.0, b, 0.0, 1.0, 0.0, 0.0))
+                }
             }
         }
 
-        // TODO: do nothing if the transform is default
+        Ok(ts)
+    }
+}
 
-        Ok(transform)
+#[inline(never)]
+fn multiply(ts1: &Transform, ts2: &Transform) -> Transform {
+    Transform {
+        a: ts1.a * ts2.a + ts1.c * ts2.b,
+        b: ts1.b * ts2.a + ts1.d * ts2.b,
+        c: ts1.a * ts2.c + ts1.c * ts2.d,
+        d: ts1.b * ts2.c + ts1.d * ts2.d,
+        e: ts1.a * ts2.e + ts1.c * ts2.f + ts1.e,
+        f: ts1.b * ts2.e + ts1.d * ts2.f + ts1.f,
     }
 }
 
@@ -245,7 +316,9 @@ mod tests {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
-                assert_eq!(Transform::from_str($text).unwrap().to_string(), $result);
+                let ts = Transform::from_str($text).unwrap();
+                let s = format!("matrix({} {} {} {} {} {})", ts.a, ts.b, ts.c, ts.d, ts.e, ts.f);
+                assert_eq!(s, $result);
             }
         )
     }
@@ -267,12 +340,12 @@ mod tests {
 
     test!(parse_4,
         "rotate(30)",
-        "matrix(0.86602540378 0.5 -0.5 0.86602540378 0 0)"
+        "matrix(0.8660254037844387 0.49999999999999994 -0.49999999999999994 0.8660254037844387 0 0)"
     );
 
     test!(parse_5,
         "rotate(30 10 20)",
-        "matrix(0.86602540378 0.5 -0.5 0.86602540378 11.33974596216 -2.32050807569)"
+        "matrix(0.8660254037844387 0.49999999999999994 -0.49999999999999994 0.8660254037844387 11.339745962155611 -2.3205080756887746)"
     );
 
     test!(parse_6,
@@ -287,12 +360,12 @@ mod tests {
 
     test!(parse_8,
         "translate(25 215) scale(2) skewX(45)",
-        "matrix(2 0 2 2 25 215)"
+        "matrix(2 0 1.9999999999999998 2 25 215)"
     );
 
     test!(parse_9,
         "skewX(45)",
-        "matrix(1 0 1 1 0 0)"
+        "matrix(1 0 0.9999999999999999 1 0 0)"
     );
 
     macro_rules! test_err {

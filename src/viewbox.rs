@@ -1,4 +1,4 @@
-use crate::{Error, FuzzyEq, Result, Stream, WriteBuffer, WriteOptions};
+use crate::{Error, FuzzyEq, Result, Stream};
 
 /// Representation of the [`<viewBox>`] type.
 ///
@@ -37,20 +37,6 @@ impl std::str::FromStr for ViewBox {
         Ok(ViewBox::new(x, y, w, h))
     }
 }
-
-impl WriteBuffer for ViewBox {
-    fn write_buf_opt(&self, opt: &WriteOptions, buf: &mut Vec<u8>) {
-        self.x.write_buf_opt(opt, buf);
-        buf.push(b' ');
-        self.y.write_buf_opt(opt, buf);
-        buf.push(b' ');
-        self.w.write_buf_opt(opt, buf);
-        buf.push(b' ');
-        self.h.write_buf_opt(opt, buf);
-    }
-}
-
-impl_display!(ViewBox);
 
 impl FuzzyEq for ViewBox {
     fn fuzzy_eq(&self, other: &Self) -> bool {
