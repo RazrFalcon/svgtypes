@@ -1,6 +1,6 @@
 use super::colors;
 
-use crate::{ByteExt, Color, Error, LengthUnit, Result, Stream};
+use crate::{ByteExt, Color, Error, Result, Stream};
 
 impl std::str::FromStr for Color {
     type Err = Error;
@@ -22,13 +22,40 @@ impl std::str::FromStr for Color {
     /// [details]: https://lists.w3.org/Archives/Public/www-svg/2014Jan/0109.html
     fn from_str(text: &str) -> Result<Self> {
         let mut s = Stream::from(text);
+        let color = s.parse_color()?;
+
+        // Check that we are at the end of the stream. Otherwise color can be followed by icccolor,
+        // which is not supported.
         s.skip_spaces();
+        if !s.at_end() {
+            return Err(Error::UnexpectedData(s.calc_char_pos()));
+        }
+
+        Ok(color)
+    }
+}
+
+impl<'a> Stream<'a> {
+    /// Tries to parse a color, but doesn't advance on error.
+    pub fn try_parse_color(&mut self) -> Option<Color> {
+        let mut s = self.clone();
+        if let Ok(color) = s.parse_color() {
+            *self = s;
+            Some(color)
+        } else {
+            None
+        }
+    }
+
+    /// Parses a color.
+    pub fn parse_color(&mut self) -> Result<Color> {
+        self.skip_spaces();
 
         let mut color = Color::black();
 
-        if s.curr_byte()? == b'#' {
-            s.advance(1);
-            let color_str = s.consume_bytes(|_, c| c.is_hex_digit()).as_bytes();
+        if self.curr_byte()? == b'#' {
+            self.advance(1);
+            let color_str = self.consume_bytes(|_, c| c.is_hex_digit()).as_bytes();
             // get color data len until first space or stream end
             match color_str.len() {
                 6 => {
@@ -48,53 +75,59 @@ impl std::str::FromStr for Color {
                 }
             }
         } else {
-            let name = s.consume_ident().to_ascii_lowercase();
+            let name = self.consume_ident().to_ascii_lowercase();
             if name == "rgb" || name == "rgba" {
-                s.consume_byte(b'(')?;
+                self.consume_byte(b'(')?;
 
-                let l = s.parse_list_number_or_percent()?;
+                let mut is_percent = false;
+                let value = self.parse_number()?;
+                if self.starts_with(b"%") {
+                    self.advance(1);
+                    is_percent = true;
+                }
+                self.skip_spaces();
+                self.parse_list_separator();
 
-                if l.unit == LengthUnit::Percent {
+                if is_percent {
                     fn from_percent(v: f64) -> u8 {
-                        let d = 255.0 / 100.0;
-                        let n = (v * d).round() as i32;
+                        let n = (v * 255.0).round() as i32;
                         bound(0, n, 255) as u8
                     }
 
-                    color.red   = from_percent(l.number);
-                    color.green = from_percent(s.parse_list_number_or_percent()?.number);
-                    color.blue  = from_percent(s.parse_list_number_or_percent()?.number);
+                    color.red   = from_percent(value / 100.0);
+                    color.green = from_percent(self.parse_list_number_or_percent()?);
+                    color.blue  = from_percent(self.parse_list_number_or_percent()?);
                 } else {
-                    color.red   = bound(0, l.number as i32, 255) as u8;
-                    color.green = bound(0, s.parse_list_integer()?, 255) as u8;
-                    color.blue  = bound(0, s.parse_list_integer()?, 255) as u8;
+                    color.red   = bound(0, value as i32, 255) as u8;
+                    color.green = bound(0, self.parse_list_integer()?, 255) as u8;
+                    color.blue  = bound(0, self.parse_list_integer()?, 255) as u8;
                 }
 
-                s.skip_spaces();
-                if !s.starts_with(b")") {
-                    color.alpha  = (f64_bound(0.0, s.parse_list_number()?, 1.0) * 255.0) as u8;
+                self.skip_spaces();
+                if !self.starts_with(b")") {
+                    color.alpha  = (f64_bound(0.0, self.parse_list_number()?, 1.0) * 255.0) as u8;
                 }
 
-                s.skip_spaces();
-                s.consume_byte(b')')?;
+                self.skip_spaces();
+                self.consume_byte(b')')?;
             } else if name == "hsl" || name == "hsla" {
-                s.consume_byte(b'(')?;
+                self.consume_byte(b'(')?;
 
-                let mut hue = s.parse_list_integer()?;
+                let mut hue = self.parse_list_integer()?;
                 hue = ((hue % 360) + 360) % 360;
 
-                let saturation = f64_bound(0.0, s.parse_list_number_or_percent()?.number / 100.0, 1.0);
-                let lightness  = f64_bound(0.0, s.parse_list_number_or_percent()?.number / 100.0, 1.0);
+                let saturation = f64_bound(0.0, self.parse_list_number_or_percent()?, 1.0);
+                let lightness  = f64_bound(0.0, self.parse_list_number_or_percent()?, 1.0);
 
                 color = hsl_to_rgb(hue as f32 / 60.0, saturation as f32, lightness as f32);
 
-                s.skip_spaces();
-                if !s.starts_with(b")") {
-                    color.alpha  = (f64_bound(0.0, s.parse_list_number()?, 1.0) * 255.0) as u8;
+                self.skip_spaces();
+                if !self.starts_with(b")") {
+                    color.alpha  = (f64_bound(0.0, self.parse_list_number()?, 1.0) * 255.0) as u8;
                 }
 
-                s.skip_spaces();
-                s.consume_byte(b')')?;
+                self.skip_spaces();
+                self.consume_byte(b')')?;
             } else {
                 match colors::from_str(&name) {
                     Some(c) => {
@@ -105,13 +138,6 @@ impl std::str::FromStr for Color {
                     }
                 }
             }
-        }
-
-        // Check that we are at the end of the stream. Otherwise color can be followed by icccolor,
-        // which is not supported.
-        s.skip_spaces();
-        if !s.at_end() {
-            return Err(Error::UnexpectedData(s.calc_char_pos()));
         }
 
         Ok(color)
@@ -242,7 +268,7 @@ mod tests {
     test!(
         rgb_percentage,
         "rgb(50%, 50%, 50%)",
-        Color::new_rgb(127, 127, 127)
+        Color::new_rgb(128, 128, 128)
     );
 
     test!(

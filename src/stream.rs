@@ -452,7 +452,7 @@ impl<'a> Stream<'a> {
         Err(Error::InvalidNumber(0))
     }
 
-    /// Parses number from the list of numbers.
+    /// Parses number from a list of numbers.
     ///
     /// # Examples
     ///
@@ -473,7 +473,7 @@ impl<'a> Stream<'a> {
 
         let n = self.parse_number()?;
         self.skip_spaces();
-        parse_list_separator(self);
+        self.parse_list_separator();
         Ok(n)
     }
 
@@ -511,7 +511,7 @@ impl<'a> Stream<'a> {
         }
     }
 
-    /// Parses integer from the list of numbers.
+    /// Parses integer from a list of numbers.
     pub fn parse_list_integer(&mut self) -> Result<i32> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
@@ -519,32 +519,34 @@ impl<'a> Stream<'a> {
 
         let n = self.parse_integer()?;
         self.skip_spaces();
-        parse_list_separator(self);
+        self.parse_list_separator();
         Ok(n)
     }
 
     /// Parses number or percent from the stream.
-    pub fn parse_number_or_percent(&mut self) -> Result<Length> {
+    ///
+    /// Percent value will be normalized.
+    pub fn parse_number_or_percent(&mut self) -> Result<f64> {
         self.skip_spaces();
 
         let n = self.parse_number()?;
         if self.starts_with(b"%") {
             self.advance(1);
-            Ok(Length::new(n, LengthUnit::Percent))
+            Ok(n / 100.0)
         } else {
-            Ok(Length::new(n, LengthUnit::None))
+            Ok(n)
         }
     }
 
-    /// Parses number or percent from the list of numbers and/or percents.
-    pub fn parse_list_number_or_percent(&mut self) -> Result<Length> {
+    /// Parses number or percent from a list of numbers and/or percents.
+    pub fn parse_list_number_or_percent(&mut self) -> Result<f64> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
         }
 
         let l = self.parse_number_or_percent()?;
         self.skip_spaces();
-        parse_list_separator(self);
+        self.parse_list_separator();
         Ok(l)
     }
 
@@ -604,7 +606,7 @@ impl<'a> Stream<'a> {
         Ok(Length::new(n, u))
     }
 
-    /// Parses length from the list of lengths.
+    /// Parses length from a list of lengths.
     pub fn parse_list_length(&mut self) -> Result<Length> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
@@ -612,7 +614,7 @@ impl<'a> Stream<'a> {
 
         let l = self.parse_length()?;
         self.skip_spaces();
-        parse_list_separator(self);
+        self.parse_list_separator();
         Ok(l)
     }
 
@@ -704,12 +706,12 @@ impl<'a> Stream<'a> {
 
         _impl().map_err(|_| Error::InvalidValue)
     }
-}
 
-#[inline]
-fn parse_list_separator(s: &mut Stream) {
-    if s.is_curr_byte_eq(b',') {
-        s.advance(1);
+    #[inline]
+    pub(crate) fn parse_list_separator(&mut self) {
+        if self.is_curr_byte_eq(b',') {
+            self.advance(1);
+        }
     }
 }
 

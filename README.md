@@ -47,19 +47,20 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 
 ### Supported SVG types
 
-| SVG Type                  | Rust Type     | Storage | Parser              |
-| ------------------------- | ------------- | ------- | ------------------- |
-| [\<color\>]               | Color         | Stack   |                     |
-| [\<number\>]              | f64           | Stack   |                     |
-| [\<length\>]              | Length        | Stack   |                     |
-| [\<angle\>]               | Angle         | Stack   |                     |
-| [\<viewBox\>]             | ViewBox       | Stack   |                     |
-| [\<path\>]                | Path          | Heap    | PathParser          |
-| [\<list-of-numbers\>]     | NumberList    | Heap    | NumberListParser    |
-| [\<list-of-lengths\>]     | LengthList    | Heap    | LengthListParser    |
-| [\<transform-list\>]      | Transform     | Stack   | TransformListParser |
-| [\<list-of-points\>]      | Points        | Heap    | PointsParser        |
-| [\<paint\>]               | -             | -       | Paint               |
+| SVG Type                  | Rust Type     | Storage | Parser                  |
+| ------------------------- | ------------- | ------- | ----------------------- |
+| [\<color\>]               | Color         | Stack   |                         |
+| [\<number\>]              | f64           | Stack   |                         |
+| [\<length\>]              | Length        | Stack   |                         |
+| [\<angle\>]               | Angle         | Stack   |                         |
+| [\<viewBox\>]             | ViewBox       | Stack   |                         |
+| [\<path\>]                | Path          | Heap    | PathParser              |
+| [\<list-of-numbers\>]     | NumberList    | Heap    | NumberListParser        |
+| [\<list-of-lengths\>]     | LengthList    | Heap    | LengthListParser        |
+| [\<transform-list\>]      | Transform     | Stack   | TransformListParser     |
+| [\<list-of-points\>]      | Points        | Heap    | PointsParser            |
+| [\<filter-value-list\>]   | -             | -       | FilterValueListParser   |
+| [\<paint\>]               | -             | -       | Paint                   |
 
 [\<color\>]: https://www.w3.org/TR/css-color-3/
 [\<number\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber
@@ -71,6 +72,7 @@ assert_eq!(path.with_write_opt(&opt).to_string(), path_str);
 [\<list-of-lengths\>]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
 [\<transform-list\>]: https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList
 [\<list-of-points\>]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
+[\<filter-value-list>\]: https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list
 [\<paint\>]: https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
 
 - All types implement from string (`FromStr`) and
