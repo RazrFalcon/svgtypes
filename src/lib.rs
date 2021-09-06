@@ -16,6 +16,7 @@
 - [`<filter-value-list>`](https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list)
 - [`<paint>`](https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint)
 - [`<preserveAspectRatio>`](https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute)
+- [`<enable-background>`](https://www.w3.org/TR/SVG11/filters.html#EnableBackgroundProperty)
 - [`<IRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeIRI)
 - [`<FuncIRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI)
 
@@ -68,8 +69,10 @@ mod angle;
 mod aspect_ratio;
 mod color;
 mod colors;
+mod enable_background;
 mod error;
 mod filter_functions;
+mod funciri;
 mod length;
 mod number;
 mod paint;
@@ -79,16 +82,19 @@ mod stream;
 mod transform;
 mod viewbox;
 
+use crate::stream::{Stream, ByteExt};
+
 pub use crate::angle::*;
 pub use crate::aspect_ratio::*;
 pub use crate::color::*;
+pub use crate::enable_background::*;
 pub use crate::error::*;
 pub use crate::filter_functions::*;
+pub use crate::funciri::*;
 pub use crate::length::*;
 pub use crate::number::*;
 pub use crate::paint::*;
 pub use crate::path::*;
 pub use crate::points::*;
-pub use crate::stream::*;
 pub use crate::transform::*;
 pub use crate::viewbox::*;

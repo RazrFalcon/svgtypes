@@ -76,15 +76,6 @@ impl<'a> Stream<'a> {
     ///
     /// <https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength>
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::{Stream, Length, LengthUnit};
-    ///
-    /// let mut s = Stream::from("30%");
-    /// assert_eq!(s.parse_length().unwrap(), Length::new(30.0, LengthUnit::Percent));
-    /// ```
-    ///
     /// # Notes
     ///
     /// - Suffix must be lowercase, otherwise it will be an error.
@@ -144,7 +135,7 @@ impl<'a> Stream<'a> {
 
 /// A pull-based [`<list-of-length>`] parser.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```
 /// use svgtypes::{Length, LengthUnit, LengthListParser};

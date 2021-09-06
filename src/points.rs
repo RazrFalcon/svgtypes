@@ -15,7 +15,7 @@ use crate::Stream;
 /// - It doesn't validate that there are more than two coordinate pairs,
 ///   which is required by the SVG spec.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```
 /// use svgtypes::PointsParser;

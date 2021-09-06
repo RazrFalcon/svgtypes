@@ -76,7 +76,7 @@ pub enum TransformListToken {
 ///   `translate(<cx> <cy>) rotate(<rotate-angle>) translate(-<cx> -<cy>)`.
 ///   Just like the spec is stated.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```
 /// use svgtypes::{TransformListParser, TransformListToken};

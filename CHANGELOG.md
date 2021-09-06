@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- `EnableBackground`
+- `Number`. Previously accessible via `Steam::parse_number`.
+- `IRI`. Previously accessible via `Steam::parse_iri`.
+- `FuncIRI`. Previously accessible via `Steam::parse_func_iri`.
+
+### Changed
+- `Stream` is now private.
 
 ## [0.7.0] - 2021-09-04
 

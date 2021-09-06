@@ -2,6 +2,25 @@ use std::str::FromStr;
 
 use crate::{Stream, Error, ByteExt};
 
+/// An [SVG number](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber).
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct Number(pub f64);
+
+impl std::str::FromStr for Number {
+    type Err = Error;
+
+    fn from_str(text: &str) -> Result<Self, Self::Err> {
+        let mut s = Stream::from(text);
+        let n = s.parse_number()?;
+        s.skip_spaces();
+        if !s.at_end() {
+            return Err(Error::UnexpectedData(s.calc_char_pos()));
+        }
+
+        Ok(Self(n))
+    }
+}
+
 impl<'a> Stream<'a> {
     /// Parses number from the stream.
     ///
@@ -13,16 +32,6 @@ impl<'a> Stream<'a> {
     /// # Errors
     ///
     /// Returns only `InvalidNumber`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::Stream;
-    ///
-    /// let mut s = Stream::from("3.14");
-    /// assert_eq!(s.parse_number().unwrap(), 3.14);
-    /// assert_eq!(s.at_end(), true);
-    /// ```
     pub fn parse_number(&mut self) -> Result<f64, Error> {
         // Strip off leading whitespaces.
         self.skip_spaces();
@@ -97,19 +106,6 @@ impl<'a> Stream<'a> {
     }
 
     /// Parses number from a list of numbers.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::Stream;
-    ///
-    /// let mut s = Stream::from("3.14, 12,5 , 20-4");
-    /// assert_eq!(s.parse_list_number().unwrap(), 3.14);
-    /// assert_eq!(s.parse_list_number().unwrap(), 12.0);
-    /// assert_eq!(s.parse_list_number().unwrap(), 5.0);
-    /// assert_eq!(s.parse_list_number().unwrap(), 20.0);
-    /// assert_eq!(s.parse_list_number().unwrap(), -4.0);
-    /// ```
     pub fn parse_list_number(&mut self) -> Result<f64, Error> {
         if self.at_end() {
             return Err(Error::UnexpectedEndOfStream);
@@ -125,7 +121,7 @@ impl<'a> Stream<'a> {
 
 /// A pull-based [`<list-of-numbers>`] parser.
 ///
-/// # Example
+/// # Examples
 ///
 /// ```
 /// use svgtypes::NumberListParser;

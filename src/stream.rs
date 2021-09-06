@@ -167,16 +167,6 @@ impl<'a> Stream<'a> {
         }
     }
 
-    /// Returns a byte from a current stream position if there is one.
-    #[inline]
-    pub fn get_curr_byte(&self) -> Option<u8> {
-        if !self.at_end() {
-            Some(self.curr_byte_unchecked())
-        } else {
-            None
-        }
-    }
-
     /// Returns a next byte from a current stream position.
     ///
     /// # Errors
@@ -192,16 +182,6 @@ impl<'a> Stream<'a> {
     }
 
     /// Advances by `n` bytes.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::Stream;
-    ///
-    /// let mut s = Stream::from("text");
-    /// s.advance(2); // ok
-    /// // s.advance(20); // will cause a panic via debug_assert!().
-    /// ```
     #[inline]
     pub fn advance(&mut self, n: usize) {
         debug_assert!(self.pos + n <= self.text.len());
@@ -220,39 +200,9 @@ impl<'a> Stream<'a> {
     /// Checks that the stream starts with a selected text.
     ///
     /// We are using `&[u8]` instead of `&str` for performance reasons.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::Stream;
-    ///
-    /// let mut s = Stream::from("Some text.");
-    /// s.advance(5);
-    /// assert_eq!(s.starts_with(b"text"), true);
-    /// assert_eq!(s.starts_with(b"long"), false);
-    /// ```
     #[inline]
     pub fn starts_with(&self, text: &[u8]) -> bool {
         self.text.as_bytes()[self.pos..].starts_with(text)
-    }
-
-    /// Checks if the stream is starts with a space.
-    ///
-    /// Uses [`skip_spaces()`](#method.curr_byte) internally.
-    pub fn starts_with_space(&self) -> bool {
-        if self.at_end() {
-            return false;
-        }
-
-        let mut is_space = false;
-
-        let c = self.curr_byte_unchecked();
-
-        if c.is_space() {
-            is_space = true;
-        }
-
-        is_space
     }
 
     /// Consumes current byte if it's equal to the provided byte.
@@ -261,18 +211,6 @@ impl<'a> Stream<'a> {
     ///
     /// - `InvalidChar`
     /// - `UnexpectedEndOfStream`
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use svgtypes::Stream;
-    ///
-    /// let mut s = Stream::from("Some text.");
-    /// s.consume_byte(b'S').unwrap();
-    /// s.consume_byte(b'o').unwrap();
-    /// s.consume_byte(b'm').unwrap();
-    /// // s.consume_byte(b'q').unwrap(); // will produce an error
-    /// ```
     pub fn consume_byte(&mut self, c: u8) -> Result<(), Error> {
         if self.curr_byte()? != c {
             return Err(
@@ -437,55 +375,6 @@ impl<'a> Stream<'a> {
         self.skip_bytes(|_, c| c.is_digit());
     }
 
-    /// Parses a [IRI].
-    ///
-    /// By the SVG spec, the ID must contain only [Name] characters,
-    /// but since no one fallows this it will parse any characters.
-    ///
-    /// [IRI]: https://www.w3.org/TR/SVG11/types.html#DataTypeIRI
-    /// [Name]: https://www.w3.org/TR/xml/#NT-Name
-    pub fn parse_iri(&mut self) -> Result<&'a str, Error> {
-        let mut _impl = || -> Result<&'a str, Error> {
-            self.skip_spaces();
-            self.consume_byte(b'#')?;
-            let link = self.consume_bytes(|_, c| c != b' ');
-            if !link.is_empty() {
-                Ok(link)
-            } else {
-                Err(Error::InvalidValue)
-            }
-        };
-
-        _impl().map_err(|_| Error::InvalidValue)
-    }
-
-    /// Parses a [FuncIRI].
-    ///
-    /// By the SVG spec, the ID must contain only [Name] characters,
-    /// but since no one fallows this it will parse any characters.
-    ///
-    /// [FuncIRI]: https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI
-    /// [Name]: https://www.w3.org/TR/xml/#NT-Name
-    pub fn parse_func_iri(&mut self) -> Result<&'a str, Error> {
-        let mut _impl = || -> Result<&'a str, Error> {
-            self.skip_spaces();
-            self.consume_string(b"url(")?;
-            self.skip_spaces();
-            self.consume_byte(b'#')?;
-            let link = self.consume_bytes(|_, c| c != b' ' && c != b')');
-            self.skip_spaces();
-            self.consume_byte(b')')?;
-
-            if !link.is_empty() {
-                Ok(link)
-            } else {
-                Err(Error::InvalidValue)
-            }
-        };
-
-        _impl().map_err(|_| Error::InvalidValue)
-    }
-
     #[inline]
     pub(crate) fn parse_list_separator(&mut self) {
         if self.is_curr_byte_eq(b',') {
@@ -510,64 +399,5 @@ mod tests {
         let mut s = Stream::from("10000000000000");
         assert_eq!(s.parse_integer().unwrap_err().to_string(),
                    "invalid number at position 1");
-    }
-
-    #[test]
-    fn parse_iri_1() {
-        assert_eq!(Stream::from("#id").parse_iri().unwrap(), "id");
-    }
-
-    #[test]
-    fn parse_iri_2() {
-        assert_eq!(Stream::from("   #id   ").parse_iri().unwrap(), "id");
-    }
-
-    #[test]
-    fn parse_iri_3() {
-        assert_eq!(Stream::from("   #id   text").parse_iri().unwrap(), "id");
-    }
-
-    #[test]
-    fn parse_iri_4() {
-        assert_eq!(Stream::from("#1").parse_iri().unwrap(), "1");
-    }
-
-    #[test]
-    fn parse_err_iri_1() {
-        assert_eq!(Stream::from("# id").parse_iri().unwrap_err().to_string(),
-                   "invalid value");
-    }
-
-    #[test]
-    fn parse_func_iri_1() {
-        assert_eq!(Stream::from("url(#id)").parse_func_iri().unwrap(), "id");
-    }
-
-    #[test]
-    fn parse_func_iri_2() {
-        assert_eq!(Stream::from("url(#1)").parse_func_iri().unwrap(), "1");
-    }
-
-    #[test]
-    fn parse_func_iri_3() {
-        assert_eq!(Stream::from("    url(    #id    )   ").parse_func_iri().unwrap(), "id");
-    }
-
-    #[test]
-    fn parse_err_func_iri_1() {
-        assert_eq!(Stream::from("url ( #1 )").parse_func_iri().unwrap_err().to_string(),
-                   "invalid value");
-    }
-
-    #[test]
-    fn parse_err_func_iri_2() {
-        assert_eq!(Stream::from("url(#)").parse_func_iri().unwrap_err().to_string(),
-                   "invalid value");
-    }
-
-    #[test]
-    fn parse_err_func_iri_3() {
-        assert_eq!(Stream::from("url(# id)").parse_func_iri().unwrap_err().to_string(),
-                   "invalid value");
     }
 }

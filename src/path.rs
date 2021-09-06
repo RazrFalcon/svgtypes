@@ -84,7 +84,7 @@ pub enum PathSegment {
 ///
 /// Example: `M 10 20 30 40 50 60` -> `M 10 20 L 30 40 L 50 60`
 ///
-/// # Example
+/// # Examples
 ///
 /// ```
 /// use svgtypes::{PathParser, PathSegment};
