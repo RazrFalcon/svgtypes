@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.8.0] - 2021-09-12
 ### Added
 - `EnableBackground`
 - `Number`. Previously accessible via `Steam::parse_number`.
@@ -118,7 +120,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `Paint::from_span` poor performance.
 
-[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.4.4...v0.5.0

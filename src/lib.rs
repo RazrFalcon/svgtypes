@@ -47,8 +47,6 @@
 None.
 */
 
-#![doc(html_root_url = "https://docs.rs/svgtypes/0.7.0")]
-
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
