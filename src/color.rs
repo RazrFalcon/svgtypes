@@ -77,9 +77,12 @@ impl std::str::FromStr for Color {
     ///  - Any non-`hexdigit` bytes will be treated as `0`.
     ///  - The [SVG 1.1 spec] has an error.
     ///    There should be a `number`, not an `integer` for percent values ([details]).
+    ///  - It also supports 4 digits and 8 digits hex notation from the
+    ///    [CSS Color Module Level 4][css-color-4-hex].
     ///
     /// [SVG 1.1 spec]: https://www.w3.org/TR/SVG11/types.html#DataTypeColor
     /// [details]: https://lists.w3.org/Archives/Public/www-svg/2014Jan/0109.html
+    /// [css-color-4-hex]: https://www.w3.org/TR/css-color-4/#hex-notation
     fn from_str(text: &str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
         let color = s.parse_color()?;
@@ -114,6 +117,7 @@ impl<'a> Stream<'a> {
         let mut color = Color::black();
 
         if self.curr_byte()? == b'#' {
+            // See https://www.w3.org/TR/css-color-4/#hex-notation
             self.advance(1);
             let color_str = self.consume_bytes(|_, c| c.is_hex_digit()).as_bytes();
             // get color data len until first space or stream end
@@ -124,11 +128,25 @@ impl<'a> Stream<'a> {
                     color.green = hex_pair(color_str[2], color_str[3]);
                     color.blue  = hex_pair(color_str[4], color_str[5]);
                 }
+                8 => {
+                    // #rrggbbaa
+                    color.red   = hex_pair(color_str[0], color_str[1]);
+                    color.green = hex_pair(color_str[2], color_str[3]);
+                    color.blue  = hex_pair(color_str[4], color_str[5]);
+                    color.alpha = hex_pair(color_str[6], color_str[7]);
+                }
                 3 => {
                     // #rgb
                     color.red   = short_hex(color_str[0]);
                     color.green = short_hex(color_str[1]);
                     color.blue  = short_hex(color_str[2]);
+                }
+                4 => {
+                    // #rgba
+                    color.red   = short_hex(color_str[0]);
+                    color.green = short_hex(color_str[1]);
+                    color.blue  = short_hex(color_str[2]);
+                    color.alpha = short_hex(color_str[3]);
                 }
                 _ => {
                     return Err(Error::InvalidValue);
@@ -306,6 +324,24 @@ mod tests {
         rgb_hex,
         "#f00",
         Color::new_rgb(255, 0, 0)
+    );
+
+    test!(
+        rrggbbaa,
+        "#ff0000ff",
+        Color::new_rgba(255, 0, 0, 255)
+    );
+
+    test!(
+        rrggbbaa_upper,
+        "#FF0000FF",
+        Color::new_rgba(255, 0, 0, 255)
+    );
+
+    test!(
+        rgba_hex,
+        "#f00f",
+        Color::new_rgba(255, 0, 0, 255)
     );
 
     test!(

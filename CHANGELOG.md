@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- [Implement support for 4 digits and 8 digits hex colors](https://www.w3.org/TR/css-color-4/#hex-notation).
 
 ## [0.8.0] - 2021-09-12
 ### Added

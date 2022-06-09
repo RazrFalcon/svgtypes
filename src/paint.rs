@@ -58,7 +58,7 @@ pub enum Paint<'a> {
 }
 
 impl<'a> Paint<'a> {
-    /// Parsers a `Paint` from a string.
+    /// Parses a `Paint` from a string.
     ///
     /// We can't use the `FromStr` trait because it requires
     /// an owned value as a return type.
