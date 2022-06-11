@@ -5,8 +5,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.8.1] - 2022-06-11
 ### Added
-- [Implement support for 4 digits and 8 digits hex colors](https://www.w3.org/TR/css-color-4/#hex-notation).
+- Support #RRGGBBAA and #RGBA color notation as per CSS Color 4.
+  [@demurgos](https://github.com/demurgos)
 
 ## [0.8.0] - 2021-09-12
 ### Added
@@ -122,7 +125,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `Paint::from_span` poor performance.
 
-[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/RazrFalcon/svgtypes/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.5.0...v0.6.0
