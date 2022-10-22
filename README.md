@@ -25,6 +25,7 @@
 - [`<enable-background>`](https://www.w3.org/TR/SVG11/filters.html#EnableBackgroundProperty)
 - [`<IRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeIRI)
 - [`<FuncIRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI)
+- [`paint-order`](https://www.w3.org/TR/SVG2/painting.html#PaintOrder)
 
 ### Features
 

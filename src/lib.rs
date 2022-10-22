@@ -19,6 +19,7 @@
 - [`<enable-background>`](https://www.w3.org/TR/SVG11/filters.html#EnableBackgroundProperty)
 - [`<IRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeIRI)
 - [`<FuncIRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI)
+- [`paint-order`](https://www.w3.org/TR/SVG2/painting.html#PaintOrder)
 
 ## Features
 
@@ -73,6 +74,7 @@ mod filter_functions;
 mod funciri;
 mod length;
 mod number;
+mod paint_order;
 mod paint;
 mod path;
 mod points;
@@ -91,6 +93,7 @@ pub use crate::filter_functions::*;
 pub use crate::funciri::*;
 pub use crate::length::*;
 pub use crate::number::*;
+pub use crate::paint_order::*;
 pub use crate::paint::*;
 pub use crate::path::*;
 pub use crate::points::*;
