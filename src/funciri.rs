@@ -3,7 +3,7 @@ use crate::{Error, Stream};
 /// Representation of the [`<IRI>`] type.
 ///
 /// [`<IRI>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeIRI
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct IRI<'a>(pub &'a str);
 
 impl<'a> IRI<'a> {
@@ -16,6 +16,7 @@ impl<'a> IRI<'a> {
     /// an owned value as a return type.
     ///
     /// [Name]: https://www.w3.org/TR/xml/#NT-Name
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(text: &'a str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
         let link = s.parse_iri()?;
@@ -31,7 +32,7 @@ impl<'a> IRI<'a> {
 /// Representation of the [`<FuncIRI>`] type.
 ///
 /// [`<FuncIRI>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct FuncIRI<'a>(pub &'a str);
 
 impl<'a> FuncIRI<'a> {
@@ -44,6 +45,7 @@ impl<'a> FuncIRI<'a> {
     /// an owned value as a return type.
     ///
     /// [Name]: https://www.w3.org/TR/xml/#NT-Name
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(text: &'a str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
         let link = s.parse_func_iri()?;

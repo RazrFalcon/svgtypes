@@ -1,7 +1,7 @@
 use crate::{Error, Stream};
 
 /// List of all SVG angle units.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(missing_docs)]
 pub enum AngleUnit {
     Degrees,
@@ -13,7 +13,7 @@ pub enum AngleUnit {
 /// Representation of the [`<angle>`] type.
 ///
 /// [`<angle>`]: https://www.w3.org/TR/css-values-3/#angles
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct Angle {
     pub number: f64,

@@ -64,7 +64,7 @@ impl ByteExt for u8 {
 }
 
 /// A streaming text parsing interface.
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Stream<'a> {
     text: &'a str,
     pos: usize,

@@ -111,7 +111,7 @@ impl std::error::Error for FilterValueListParserError {
 /// Meaning that an empty string and `none` will produce the same results.
 ///
 /// [`<filter-value-list>`]: https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct FilterValueListParser<'a> {
     stream: Stream<'a>,
 }
@@ -221,7 +221,7 @@ fn parse_drop_shadow_func<'a>(
 ) -> Result<FilterValue<'a>, FilterValueListParserError> {
     if s.is_curr_byte_eq(b')') {
         let pos = s.calc_char_pos();
-        return Err(FilterValueListParserError::MissingDropShadowOffset(pos).into());
+        return Err(FilterValueListParserError::MissingDropShadowOffset(pos));
     }
 
     // Color can be set before and after lengths.
@@ -230,12 +230,10 @@ fn parse_drop_shadow_func<'a>(
     if let Some(c) = s.try_parse_color() {
         color = Some(c);
         s.skip_spaces();
-    } else {
-        if s.starts_with(b"currentColor") {
-            is_current_color = true;
-            s.advance(12);
-            s.skip_spaces();
-        }
+    } else if s.starts_with(b"currentColor") {
+        is_current_color = true;
+        s.advance(12);
+        s.skip_spaces();
     }
 
     // Offset is the only mandatory value.
@@ -256,10 +254,8 @@ fn parse_drop_shadow_func<'a>(
         if let Some(c) = s.try_parse_color() {
             color = Some(c);
             s.skip_spaces();
-        } else {
-            if s.starts_with(b"currentColor") {
-                s.advance(12);
-            }
+        } else if s.starts_with(b"currentColor") {
+            s.advance(12);
         }
     }
 
@@ -281,7 +277,7 @@ fn parse_generic_color_func(s: &mut Stream) -> Result<f64, FilterValueListParser
 
         if value.is_sign_negative() {
             let pos = s.calc_char_pos_at(start);
-            return Err(FilterValueListParserError::NegativeValue(pos).into());
+            return Err(FilterValueListParserError::NegativeValue(pos));
         }
 
         Ok(value)
@@ -294,7 +290,7 @@ fn parse_filter_length(s: &mut Stream) -> Result<Length, FilterValueListParserEr
 
     if value.unit == LengthUnit::Percent {
         let pos = s.calc_char_pos_at(start);
-        return Err(FilterValueListParserError::PercentageValue(pos).into());
+        return Err(FilterValueListParserError::PercentageValue(pos));
     }
 
     Ok(value)
@@ -306,12 +302,12 @@ fn parse_filter_positive_length(s: &mut Stream) -> Result<Length, FilterValueLis
 
     if value.number.is_sign_negative() {
         let pos = s.calc_char_pos_at(start);
-        return Err(FilterValueListParserError::NegativeValue(pos).into());
+        return Err(FilterValueListParserError::NegativeValue(pos));
     }
 
     if value.unit == LengthUnit::Percent {
         let pos = s.calc_char_pos_at(start);
-        return Err(FilterValueListParserError::PercentageValue(pos).into());
+        return Err(FilterValueListParserError::PercentageValue(pos));
     }
 
     Ok(value)

@@ -4,7 +4,7 @@ use crate::{Error, Stream};
 ///
 /// [`preserveAspectRatio`]: https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute
 #[allow(missing_docs)]
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Align {
     None,
     XMinYMin,
@@ -23,7 +23,7 @@ pub enum Align {
 /// SVG 2 removed the `defer` keyword, but we still support it.
 ///
 /// [`preserveAspectRatio`]: https://www.w3.org/TR/SVG11/coords.html#PreserveAspectRatioAttribute
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct AspectRatio {
     /// `<defer>` value.
     ///

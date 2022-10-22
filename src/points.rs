@@ -27,7 +27,7 @@ use crate::Stream;
 /// ```
 ///
 /// [`<list-of-points>`]: https://www.w3.org/TR/SVG11/shapes.html#PointsBNF
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct PointsParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for PointsParser<'a> {

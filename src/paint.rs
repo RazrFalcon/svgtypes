@@ -7,7 +7,7 @@ use crate::{Color, Error, Stream};
 /// Used by the [`Paint`](enum.Paint.html) type.
 ///
 /// [`<paint>`]: https://www.w3.org/TR/SVG2/painting.html#SpecifyingPaint
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum PaintFallback {
     /// The `none` value.
     None,
@@ -39,7 +39,7 @@ pub enum PaintFallback {
 /// let paint = Paint::from_str("inherit").unwrap();
 /// assert_eq!(paint, Paint::Inherit);
 /// ```
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Paint<'a> {
     /// The `none` value.
     None,
@@ -62,6 +62,7 @@ impl<'a> Paint<'a> {
     ///
     /// We can't use the `FromStr` trait because it requires
     /// an owned value as a return type.
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(text: &'a str) -> Result<Self, Error> {
         let text = text.trim();
         match text {

@@ -3,7 +3,7 @@ use crate::{colors, ByteExt, Error, Stream};
 /// Representation of the [`<color>`] type.
 ///
 /// [`<color>`]: https://www.w3.org/TR/css-color-3/
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(missing_docs)]
 pub struct Color {
     pub red: u8,
@@ -111,7 +111,7 @@ impl std::str::FromStr for Color {
 impl<'a> Stream<'a> {
     /// Tries to parse a color, but doesn't advance on error.
     pub fn try_parse_color(&mut self) -> Option<Color> {
-        let mut s = self.clone();
+        let mut s = *self;
         if let Ok(color) = s.parse_color() {
             *self = s;
             Some(color)

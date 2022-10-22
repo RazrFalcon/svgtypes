@@ -102,7 +102,7 @@ pub enum PathSegment {
 /// ```
 ///
 /// [path data]: https://www.w3.org/TR/SVG2/paths.html#PathData
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct PathParser<'a> {
     stream: Stream<'a>,
     prev_cmd: Option<u8>,
@@ -150,11 +150,9 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment, E
         return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
     }
 
-    if !has_prev_cmd {
-        if !matches!(first_char, b'M' | b'm') {
-            // The first segment must be a MoveTo.
-            return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
-        }
+    if !has_prev_cmd && !matches!(first_char, b'M' | b'm') {
+        // The first segment must be a MoveTo.
+        return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
     }
 
     // TODO: simplify
@@ -270,7 +268,7 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment, E
 #[rustfmt::skip]
 #[inline]
 fn is_cmd(c: u8) -> bool {
-    match c {
+    matches!(c,
           b'M' | b'm'
         | b'Z' | b'z'
         | b'L' | b'l'
@@ -280,19 +278,17 @@ fn is_cmd(c: u8) -> bool {
         | b'S' | b's'
         | b'Q' | b'q'
         | b'T' | b't'
-        | b'A' | b'a' => true,
-        _ => false,
-    }
+        | b'A' | b'a')
 }
 
 /// Returns `true` if the selected char is the absolute command.
 #[inline]
 fn is_absolute(c: u8) -> bool {
     debug_assert!(is_cmd(c));
-    match c {
-        b'M' | b'Z' | b'L' | b'H' | b'V' | b'C' | b'S' | b'Q' | b'T' | b'A' => true,
-        _ => false,
-    }
+    matches!(
+        c,
+        b'M' | b'Z' | b'L' | b'H' | b'V' | b'C' | b'S' | b'Q' | b'T' | b'A'
+    )
 }
 
 /// Converts the selected command char into the relative command char.

@@ -132,7 +132,7 @@ impl<'a> Stream<'a> {
 /// ```
 ///
 /// [`<list-of-numbers>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct NumberListParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for NumberListParser<'a> {

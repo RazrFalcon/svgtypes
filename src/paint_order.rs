@@ -3,7 +3,7 @@ use crate::stream::Stream;
 /// [`paint-order`] property variants.
 ///
 /// [`paint-order`]: https://www.w3.org/TR/SVG2/painting.html#PaintOrder
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(missing_docs)]
 pub enum PaintOrderKind {
     Fill,
@@ -14,7 +14,7 @@ pub enum PaintOrderKind {
 /// Representation of the [`paint-order`] property.
 ///
 /// [`paint-order`]: https://www.w3.org/TR/SVG2/painting.html#PaintOrder
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct PaintOrder {
     /// The order.
     ///
@@ -84,7 +84,7 @@ impl std::str::FromStr for PaintOrder {
             return Ok(PaintOrder::default());
         }
 
-        if order.len() == 0 {
+        if order.is_empty() {
             return Ok(PaintOrder::default());
         }
 

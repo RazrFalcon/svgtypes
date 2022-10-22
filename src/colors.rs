@@ -208,7 +208,7 @@ pub struct Map<V: 'static> {
 impl<V> Map<V> {
     pub fn get(&self, key: &str) -> Option<&V> {
         let hash = hash(key, self.key);
-        let index = get_index(hash, &*self.disps, self.entries.len());
+        let index = get_index(hash, self.disps, self.entries.len());
         let entry = &self.entries[index as usize];
         let b = entry.0.borrow();
         if b == key {

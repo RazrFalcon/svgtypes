@@ -1,7 +1,7 @@
 use crate::{Error, Stream};
 
 /// List of all SVG length units.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(missing_docs)]
 pub enum LengthUnit {
     None,
@@ -19,7 +19,7 @@ pub enum LengthUnit {
 /// Representation of the [`<length>`] type.
 ///
 /// [`<length>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLength
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct Length {
     pub number: f64,
@@ -153,7 +153,7 @@ impl<'a> Stream<'a> {
 /// ```
 ///
 /// [`<list-of-length>`]: https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct LengthListParser<'a>(Stream<'a>);
 
 impl<'a> From<&'a str> for LengthListParser<'a> {
