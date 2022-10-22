@@ -79,9 +79,7 @@ impl<'a> Paint<'a> {
                             if !s.at_end() {
                                 let fallback = s.slice_tail();
                                 match fallback {
-                                    "none" => {
-                                        Ok(Paint::FuncIRI(link, Some(PaintFallback::None)))
-                                    }
+                                    "none" => Ok(Paint::FuncIRI(link, Some(PaintFallback::None))),
                                     "currentColor" => {
                                         Ok(Paint::FuncIRI(link, Some(PaintFallback::CurrentColor)))
                                     }
@@ -94,9 +92,7 @@ impl<'a> Paint<'a> {
                                 Ok(Paint::FuncIRI(link, None))
                             }
                         }
-                        Err(_) => {
-                            Err(Error::InvalidValue)
-                        }
+                        Err(_) => Err(Error::InvalidValue),
                     }
                 } else {
                     match Color::from_str(text) {
@@ -109,6 +105,7 @@ impl<'a> Paint<'a> {
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

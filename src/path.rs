@@ -69,7 +69,6 @@ pub enum PathSegment {
     },
 }
 
-
 /// A pull-based [path data] parser.
 ///
 /// # Errors
@@ -191,68 +190,52 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment, E
     let cmdl = to_relative(cmd);
     let absolute = is_absolute(cmd);
     let token = match cmdl {
-        b'm' => {
-            PathSegment::MoveTo {
-                abs: absolute,
-                x: s.parse_list_number()?,
-                y: s.parse_list_number()?,
-            }
-        }
-        b'l' => {
-            PathSegment::LineTo {
-                abs: absolute,
-                x: s.parse_list_number()?,
-                y: s.parse_list_number()?,
-            }
-        }
-        b'h' => {
-            PathSegment::HorizontalLineTo {
-                abs: absolute,
-                x: s.parse_list_number()?,
-            }
-        }
-        b'v' => {
-            PathSegment::VerticalLineTo {
-                abs: absolute,
-                y: s.parse_list_number()?,
-            }
-        }
-        b'c' => {
-            PathSegment::CurveTo {
-                abs: absolute,
-                x1: s.parse_list_number()?,
-                y1: s.parse_list_number()?,
-                x2: s.parse_list_number()?,
-                y2: s.parse_list_number()?,
-                x:  s.parse_list_number()?,
-                y:  s.parse_list_number()?,
-            }
-        }
-        b's' => {
-            PathSegment::SmoothCurveTo {
-                abs: absolute,
-                x2: s.parse_list_number()?,
-                y2: s.parse_list_number()?,
-                x:  s.parse_list_number()?,
-                y:  s.parse_list_number()?,
-            }
-        }
-        b'q' => {
-            PathSegment::Quadratic {
-                abs: absolute,
-                x1: s.parse_list_number()?,
-                y1: s.parse_list_number()?,
-                x:  s.parse_list_number()?,
-                y:  s.parse_list_number()?,
-            }
-        }
-        b't' => {
-            PathSegment::SmoothQuadratic {
-                abs: absolute,
-                x: s.parse_list_number()?,
-                y: s.parse_list_number()?,
-            }
-        }
+        b'm' => PathSegment::MoveTo {
+            abs: absolute,
+            x: s.parse_list_number()?,
+            y: s.parse_list_number()?,
+        },
+        b'l' => PathSegment::LineTo {
+            abs: absolute,
+            x: s.parse_list_number()?,
+            y: s.parse_list_number()?,
+        },
+        b'h' => PathSegment::HorizontalLineTo {
+            abs: absolute,
+            x: s.parse_list_number()?,
+        },
+        b'v' => PathSegment::VerticalLineTo {
+            abs: absolute,
+            y: s.parse_list_number()?,
+        },
+        b'c' => PathSegment::CurveTo {
+            abs: absolute,
+            x1: s.parse_list_number()?,
+            y1: s.parse_list_number()?,
+            x2: s.parse_list_number()?,
+            y2: s.parse_list_number()?,
+            x: s.parse_list_number()?,
+            y: s.parse_list_number()?,
+        },
+        b's' => PathSegment::SmoothCurveTo {
+            abs: absolute,
+            x2: s.parse_list_number()?,
+            y2: s.parse_list_number()?,
+            x: s.parse_list_number()?,
+            y: s.parse_list_number()?,
+        },
+        b'q' => PathSegment::Quadratic {
+            abs: absolute,
+            x1: s.parse_list_number()?,
+            y1: s.parse_list_number()?,
+            x: s.parse_list_number()?,
+            y: s.parse_list_number()?,
+        },
+        b't' => PathSegment::SmoothQuadratic {
+            abs: absolute,
+            x: s.parse_list_number()?,
+            y: s.parse_list_number()?,
+        },
         b'a' => {
             // TODO: radius cannot be negative
             PathSegment::EllipticalArc {
@@ -266,26 +249,25 @@ fn next_impl(s: &mut Stream, prev_cmd: &mut Option<u8>) -> Result<PathSegment, E
                 y: s.parse_list_number()?,
             }
         }
-        b'z' => {
-            PathSegment::ClosePath {
-                abs: absolute,
-            }
-        }
+        b'z' => PathSegment::ClosePath { abs: absolute },
         _ => unreachable!(),
     };
 
-    *prev_cmd = Some(
-        if is_implicit_move_to {
-            if absolute { b'M' } else { b'm' }
+    *prev_cmd = Some(if is_implicit_move_to {
+        if absolute {
+            b'M'
         } else {
-            cmd
+            b'm'
         }
-    );
+    } else {
+        cmd
+    });
 
     Ok(token)
 }
 
 /// Returns `true` if the selected char is the command.
+#[rustfmt::skip]
 #[inline]
 fn is_cmd(c: u8) -> bool {
     match c {
@@ -308,16 +290,7 @@ fn is_cmd(c: u8) -> bool {
 fn is_absolute(c: u8) -> bool {
     debug_assert!(is_cmd(c));
     match c {
-          b'M'
-        | b'Z'
-        | b'L'
-        | b'H'
-        | b'V'
-        | b'C'
-        | b'S'
-        | b'Q'
-        | b'T'
-        | b'A' => true,
+        b'M' | b'Z' | b'L' | b'H' | b'V' | b'C' | b'S' | b'Q' | b'T' | b'A' => true,
         _ => false,
     }
 }
@@ -362,12 +335,11 @@ fn parse_flag(s: &mut Stream) -> Result<bool, Error> {
 
             Ok(c == b'1')
         }
-        _ => {
-            Err(Error::UnexpectedData(s.calc_char_pos_at(s.pos())))
-        }
+        _ => Err(Error::UnexpectedData(s.calc_char_pos_at(s.pos()))),
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

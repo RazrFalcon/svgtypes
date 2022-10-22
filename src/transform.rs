@@ -1,6 +1,6 @@
 use std::f64;
 
-use crate::{Stream, Error};
+use crate::{Error, Stream};
 
 /// Representation of the [`<transform>`] type.
 ///
@@ -20,7 +20,7 @@ impl Transform {
     /// Constructs a new transform.
     #[inline]
     pub fn new(a: f64, b: f64, c: f64, d: f64, e: f64, f: f64) -> Self {
-        Transform { a, b, c, d, e, f, }
+        Transform { a, b, c, d, e, f }
     }
 }
 
@@ -30,7 +30,6 @@ impl Default for Transform {
         Transform::new(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
     }
 }
-
 
 /// Transform list token.
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -111,17 +110,12 @@ impl<'a> Iterator for TransformListParser<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(a) = self.last_angle {
             self.last_angle = None;
-            return Some(Ok(TransformListToken::Rotate {
-                angle: a,
-            }));
+            return Some(Ok(TransformListToken::Rotate { angle: a }));
         }
 
         if let Some((x, y)) = self.rotate_ts {
             self.rotate_ts = None;
-            return Some(Ok(TransformListToken::Translate {
-                tx: -x,
-                ty: -y,
-            }));
+            return Some(Ok(TransformListToken::Translate { tx: -x, ty: -y }));
         }
 
         self.stream.skip_spaces();
@@ -150,16 +144,14 @@ impl<'a> TransformListParser<'a> {
         s.consume_byte(b'(')?;
 
         let t = match name.as_bytes() {
-            b"matrix" => {
-                TransformListToken::Matrix {
-                    a: s.parse_list_number()?,
-                    b: s.parse_list_number()?,
-                    c: s.parse_list_number()?,
-                    d: s.parse_list_number()?,
-                    e: s.parse_list_number()?,
-                    f: s.parse_list_number()?,
-                }
-            }
+            b"matrix" => TransformListToken::Matrix {
+                a: s.parse_list_number()?,
+                b: s.parse_list_number()?,
+                c: s.parse_list_number()?,
+                d: s.parse_list_number()?,
+                e: s.parse_list_number()?,
+                f: s.parse_list_number()?,
+            },
             b"translate" => {
                 let x = s.parse_list_number()?;
                 s.skip_spaces();
@@ -171,10 +163,7 @@ impl<'a> TransformListParser<'a> {
                     s.parse_list_number()?
                 };
 
-                TransformListToken::Translate {
-                    tx: x,
-                    ty: y,
-                }
+                TransformListToken::Translate { tx: x, ty: y }
             }
             b"scale" => {
                 let x = s.parse_list_number()?;
@@ -187,10 +176,7 @@ impl<'a> TransformListParser<'a> {
                     s.parse_list_number()?
                 };
 
-                TransformListToken::Scale {
-                    sx: x,
-                    sy: y,
-                }
+                TransformListToken::Scale { sx: x, sy: y }
             }
             b"rotate" => {
                 let a = s.parse_list_number()?;
@@ -206,26 +192,17 @@ impl<'a> TransformListParser<'a> {
                     self.rotate_ts = Some((cx, cy));
                     self.last_angle = Some(a);
 
-                    TransformListToken::Translate {
-                        tx: cx,
-                        ty: cy,
-                    }
+                    TransformListToken::Translate { tx: cx, ty: cy }
                 } else {
-                    TransformListToken::Rotate {
-                        angle: a,
-                    }
+                    TransformListToken::Rotate { angle: a }
                 }
             }
-            b"skewX" => {
-                TransformListToken::SkewX {
-                    angle: s.parse_list_number()?,
-                }
-            }
-            b"skewY" => {
-                TransformListToken::SkewY {
-                    angle: s.parse_list_number()?,
-                }
-            }
+            b"skewX" => TransformListToken::SkewX {
+                angle: s.parse_list_number()?,
+            },
+            b"skewY" => TransformListToken::SkewY {
+                angle: s.parse_list_number()?,
+            },
             _ => {
                 return Err(Error::UnexpectedData(s.calc_char_pos_at(start)));
             }
@@ -263,10 +240,10 @@ impl std::str::FromStr for Transform {
                 }
                 TransformListToken::Rotate { angle } => {
                     let v = angle.to_radians();
-                    let a =  v.cos();
-                    let b =  v.sin();
+                    let a = v.cos();
+                    let b = v.sin();
                     let c = -b;
-                    let d =  a;
+                    let d = a;
                     ts = multiply(&ts, &Transform::new(a, b, c, d, 0.0, 0.0))
                 }
                 TransformListToken::SkewX { angle } => {
@@ -296,6 +273,7 @@ fn multiply(ts1: &Transform, ts2: &Transform) -> Transform {
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;

@@ -53,7 +53,6 @@ None.
 #![deny(missing_debug_implementations)]
 #![deny(missing_copy_implementations)]
 
-
 macro_rules! matches {
     ($expression:expr, $($pattern:tt)+) => {
         match $expression {
@@ -63,26 +62,25 @@ macro_rules! matches {
     }
 }
 
-
 mod angle;
 mod aspect_ratio;
 mod color;
-mod colors;
+#[rustfmt::skip] mod colors;
 mod enable_background;
 mod error;
 mod filter_functions;
 mod funciri;
 mod length;
 mod number;
-mod paint_order;
 mod paint;
+mod paint_order;
 mod path;
 mod points;
 mod stream;
 mod transform;
 mod viewbox;
 
-use crate::stream::{Stream, ByteExt};
+use crate::stream::{ByteExt, Stream};
 
 pub use crate::angle::*;
 pub use crate::aspect_ratio::*;
@@ -93,8 +91,8 @@ pub use crate::filter_functions::*;
 pub use crate::funciri::*;
 pub use crate::length::*;
 pub use crate::number::*;
-pub use crate::paint_order::*;
 pub use crate::paint::*;
+pub use crate::paint_order::*;
 pub use crate::path::*;
 pub use crate::points::*;
 pub use crate::transform::*;

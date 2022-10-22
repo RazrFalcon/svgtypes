@@ -66,9 +66,7 @@ impl std::str::FromStr for AspectRatio {
             "xMinYMax" => Align::XMinYMax,
             "xMidYMax" => Align::XMidYMax,
             "xMaxYMax" => Align::XMaxYMax,
-            _ => {
-                return Err(Error::UnexpectedData(s.calc_char_pos_at(start)))
-            }
+            _ => return Err(Error::UnexpectedData(s.calc_char_pos_at(start))),
         };
 
         s.skip_spaces();
@@ -81,9 +79,7 @@ impl std::str::FromStr for AspectRatio {
                 "meet" => {}
                 "slice" => slice = true,
                 "" => {}
-                _ => {
-                    return Err(Error::UnexpectedData(s.calc_char_pos_at(start)))
-                }
+                _ => return Err(Error::UnexpectedData(s.calc_char_pos_at(start))),
             };
         }
 
@@ -106,6 +102,7 @@ impl Default for AspectRatio {
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

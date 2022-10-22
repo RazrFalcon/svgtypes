@@ -42,7 +42,6 @@ pub enum FilterValue<'a> {
     Url(&'a str),
 }
 
-
 /// A list of possible [`FilterValueListParser`] errors.
 #[derive(Debug)]
 pub enum FilterValueListParserError {
@@ -84,7 +83,11 @@ impl std::fmt::Display for FilterValueListParserError {
                 write!(f, "an invalid angle at position {}", pos)
             }
             FilterValueListParserError::MissingDropShadowOffset(pos) => {
-                write!(f, "drop-shadow offset values are expected at position {}", pos)
+                write!(
+                    f,
+                    "drop-shadow offset values are expected at position {}",
+                    pos
+                )
             }
             FilterValueListParserError::InvalidUrl(pos) => {
                 write!(f, "an invalid url at position {}", pos)
@@ -101,7 +104,6 @@ impl std::error::Error for FilterValueListParserError {
         "filter-value-list parsing error"
     }
 }
-
 
 /// A pull-based [`<filter-value-list>`] parser.
 ///
@@ -173,9 +175,7 @@ impl<'a> FilterValueListParser<'a> {
                     FilterValue::Blur(value)
                 }
             }
-            b"drop-shadow" => {
-                parse_drop_shadow_func(s)?
-            }
+            b"drop-shadow" => parse_drop_shadow_func(s)?,
             b"hue-rotate" => {
                 if s.is_curr_byte_eq(b')') {
                     FilterValue::HueRotate(Angle::new(0.0, AngleUnit::Degrees))
@@ -184,34 +184,22 @@ impl<'a> FilterValueListParser<'a> {
                     FilterValue::HueRotate(value)
                 }
             }
-            b"brightness" => {
-                FilterValue::Brightness(parse_generic_color_func(s)?)
-            }
-            b"contrast" => {
-                FilterValue::Contrast(parse_generic_color_func(s)?)
-            }
-            b"grayscale" => {
-                FilterValue::Grayscale(parse_generic_color_func(s)?)
-            }
-            b"invert" => {
-                FilterValue::Invert(parse_generic_color_func(s)?)
-            }
-            b"opacity" => {
-                FilterValue::Opacity(parse_generic_color_func(s)?)
-            }
-            b"saturate" => {
-                FilterValue::Saturate(parse_generic_color_func(s)?)
-            }
-            b"sepia" => {
-                FilterValue::Sepia(parse_generic_color_func(s)?)
-            }
+            b"brightness" => FilterValue::Brightness(parse_generic_color_func(s)?),
+            b"contrast" => FilterValue::Contrast(parse_generic_color_func(s)?),
+            b"grayscale" => FilterValue::Grayscale(parse_generic_color_func(s)?),
+            b"invert" => FilterValue::Invert(parse_generic_color_func(s)?),
+            b"opacity" => FilterValue::Opacity(parse_generic_color_func(s)?),
+            b"saturate" => FilterValue::Saturate(parse_generic_color_func(s)?),
+            b"sepia" => FilterValue::Sepia(parse_generic_color_func(s)?),
             b"url" => {
                 s.consume_byte(b'#')?;
                 let link = s.consume_bytes(|_, c| c != b' ' && c != b')');
                 if !link.is_empty() {
                     FilterValue::Url(link)
                 } else {
-                    return Err(FilterValueListParserError::InvalidUrl(s.calc_char_pos_at(start)));
+                    return Err(FilterValueListParserError::InvalidUrl(
+                        s.calc_char_pos_at(start),
+                    ));
                 }
             }
             _ => {
@@ -275,7 +263,12 @@ fn parse_drop_shadow_func<'a>(
         }
     }
 
-    Ok(FilterValue::DropShadow { color, dx, dy, std_dev })
+    Ok(FilterValue::DropShadow {
+        color,
+        dx,
+        dy,
+        std_dev,
+    })
 }
 
 #[inline(never)]
@@ -356,6 +349,7 @@ fn parse_filter_angle(s: &mut Stream) -> Result<Angle, FilterValueListParserErro
     Ok(Angle::new(n, u))
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

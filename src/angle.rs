@@ -31,10 +31,10 @@ impl Angle {
     #[inline]
     pub fn to_degrees(&self) -> f64 {
         match self.unit {
-            AngleUnit::Degrees  => self.number,
+            AngleUnit::Degrees => self.number,
             AngleUnit::Gradians => self.number * 180.0 / 200.0,
-            AngleUnit::Radians  => self.number.to_degrees(),
-            AngleUnit::Turns    => self.number * 360.0,
+            AngleUnit::Radians => self.number.to_degrees(),
+            AngleUnit::Turns => self.number * 360.0,
         }
     }
 }
@@ -92,7 +92,7 @@ impl<'a> Stream<'a> {
     }
 }
 
-
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

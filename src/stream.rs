@@ -63,7 +63,6 @@ impl ByteExt for u8 {
     }
 }
 
-
 /// A streaming text parsing interface.
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub struct Stream<'a> {
@@ -74,10 +73,7 @@ pub struct Stream<'a> {
 impl<'a> From<&'a str> for Stream<'a> {
     #[inline]
     fn from(text: &'a str) -> Self {
-        Stream {
-            text,
-            pos: 0,
-        }
+        Stream { text, pos: 0 }
     }
 }
 
@@ -213,12 +209,10 @@ impl<'a> Stream<'a> {
     /// - `UnexpectedEndOfStream`
     pub fn consume_byte(&mut self, c: u8) -> Result<(), Error> {
         if self.curr_byte()? != c {
-            return Err(
-                Error::InvalidChar(
-                    vec![self.curr_byte_unchecked(), c],
-                    self.calc_char_pos(),
-                )
-            );
+            return Err(Error::InvalidChar(
+                vec![self.curr_byte_unchecked(), c],
+                self.calc_char_pos(),
+            ));
         }
 
         self.advance(1);
@@ -246,7 +240,10 @@ impl<'a> Stream<'a> {
             // Assume that all input `text` are valid UTF-8 strings, so unwrap is safe.
             let expected = std::str::from_utf8(text).unwrap().to_owned();
 
-            return Err(Error::InvalidString(vec![actual, expected], self.calc_char_pos()));
+            return Err(Error::InvalidString(
+                vec![actual, expected],
+                self.calc_char_pos(),
+            ));
         }
 
         self.advance(text.len());
@@ -257,7 +254,8 @@ impl<'a> Stream<'a> {
     ///
     /// The result can be empty.
     pub fn consume_bytes<F>(&mut self, f: F) -> &'a str
-        where F: Fn(&Stream, u8) -> bool
+    where
+        F: Fn(&Stream, u8) -> bool,
     {
         let start = self.pos();
         self.skip_bytes(f);
@@ -266,7 +264,8 @@ impl<'a> Stream<'a> {
 
     /// Consumes bytes by the predicate.
     pub fn skip_bytes<F>(&mut self, f: F)
-        where F: Fn(&Stream, u8) -> bool
+    where
+        F: Fn(&Stream, u8) -> bool,
     {
         while !self.at_end() {
             let c = self.curr_byte_unchecked();
@@ -383,6 +382,7 @@ impl<'a> Stream<'a> {
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

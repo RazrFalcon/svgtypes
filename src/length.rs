@@ -36,7 +36,10 @@ impl Length {
     /// Constructs a new length with `LengthUnit::None`.
     #[inline]
     pub fn new_number(number: f64) -> Length {
-        Length { number, unit: LengthUnit::None }
+        Length {
+            number,
+            unit: LengthUnit::None,
+        }
     }
 
     /// Constructs a new length with a zero number.
@@ -44,7 +47,10 @@ impl Length {
     /// Shorthand for: `Length::new(0.0, Unit::None)`.
     #[inline]
     pub fn zero() -> Length {
-        Length { number: 0.0, unit: LengthUnit::None }
+        Length {
+            number: 0.0,
+            unit: LengthUnit::None,
+        }
     }
 }
 
@@ -132,7 +138,6 @@ impl<'a> Stream<'a> {
     }
 }
 
-
 /// A pull-based [`<list-of-length>`] parser.
 ///
 /// # Examples
@@ -175,7 +180,7 @@ impl<'a> Iterator for LengthListParser<'a> {
     }
 }
 
-
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

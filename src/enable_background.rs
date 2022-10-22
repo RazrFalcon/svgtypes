@@ -13,7 +13,7 @@ pub enum EnableBackground {
         y: f64,
         width: f64,
         height: f64,
-    }
+    },
 }
 
 impl std::str::FromStr for EnableBackground {
@@ -52,13 +52,19 @@ impl std::str::FromStr for EnableBackground {
                 return Err(Error::InvalidValue);
             }
 
-            Ok(EnableBackground::NewWithRegion { x, y, width, height })
+            Ok(EnableBackground::NewWithRegion {
+                x,
+                y,
+                width,
+                height,
+            })
         } else {
             Err(Error::InvalidValue)
         }
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -120,4 +126,3 @@ mod tests {
                    "invalid value");
     }
 }
-

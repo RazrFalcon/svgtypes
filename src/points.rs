@@ -59,6 +59,7 @@ impl<'a> Iterator for PointsParser<'a> {
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

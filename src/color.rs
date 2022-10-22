@@ -16,13 +16,23 @@ impl Color {
     /// Constructs a new `Color` from RGB values.
     #[inline]
     pub fn new_rgb(red: u8, green: u8, blue: u8) -> Color {
-        Color { red, green, blue, alpha: 255 }
+        Color {
+            red,
+            green,
+            blue,
+            alpha: 255,
+        }
     }
 
     /// Constructs a new `Color` from RGBA values.
     #[inline]
     pub fn new_rgba(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
-        Color { red, green, blue, alpha }
+        Color {
+            red,
+            green,
+            blue,
+            alpha,
+        }
     }
 
     /// Constructs a new `Color` set to black.
@@ -124,28 +134,28 @@ impl<'a> Stream<'a> {
             match color_str.len() {
                 6 => {
                     // #rrggbb
-                    color.red   = hex_pair(color_str[0], color_str[1]);
+                    color.red = hex_pair(color_str[0], color_str[1]);
                     color.green = hex_pair(color_str[2], color_str[3]);
-                    color.blue  = hex_pair(color_str[4], color_str[5]);
+                    color.blue = hex_pair(color_str[4], color_str[5]);
                 }
                 8 => {
                     // #rrggbbaa
-                    color.red   = hex_pair(color_str[0], color_str[1]);
+                    color.red = hex_pair(color_str[0], color_str[1]);
                     color.green = hex_pair(color_str[2], color_str[3]);
-                    color.blue  = hex_pair(color_str[4], color_str[5]);
+                    color.blue = hex_pair(color_str[4], color_str[5]);
                     color.alpha = hex_pair(color_str[6], color_str[7]);
                 }
                 3 => {
                     // #rgb
-                    color.red   = short_hex(color_str[0]);
+                    color.red = short_hex(color_str[0]);
                     color.green = short_hex(color_str[1]);
-                    color.blue  = short_hex(color_str[2]);
+                    color.blue = short_hex(color_str[2]);
                 }
                 4 => {
                     // #rgba
-                    color.red   = short_hex(color_str[0]);
+                    color.red = short_hex(color_str[0]);
                     color.green = short_hex(color_str[1]);
-                    color.blue  = short_hex(color_str[2]);
+                    color.blue = short_hex(color_str[2]);
                     color.alpha = short_hex(color_str[3]);
                 }
                 _ => {
@@ -173,18 +183,18 @@ impl<'a> Stream<'a> {
                         bound(0, n, 255) as u8
                     }
 
-                    color.red   = from_percent(value / 100.0);
+                    color.red = from_percent(value / 100.0);
                     color.green = from_percent(self.parse_list_number_or_percent()?);
-                    color.blue  = from_percent(self.parse_list_number_or_percent()?);
+                    color.blue = from_percent(self.parse_list_number_or_percent()?);
                 } else {
-                    color.red   = bound(0, value as i32, 255) as u8;
+                    color.red = bound(0, value as i32, 255) as u8;
                     color.green = bound(0, self.parse_list_integer()?, 255) as u8;
-                    color.blue  = bound(0, self.parse_list_integer()?, 255) as u8;
+                    color.blue = bound(0, self.parse_list_integer()?, 255) as u8;
                 }
 
                 self.skip_spaces();
                 if !self.starts_with(b")") {
-                    color.alpha  = (f64_bound(0.0, self.parse_list_number()?, 1.0) * 255.0) as u8;
+                    color.alpha = (f64_bound(0.0, self.parse_list_number()?, 1.0) * 255.0) as u8;
                 }
 
                 self.skip_spaces();
@@ -196,13 +206,13 @@ impl<'a> Stream<'a> {
                 hue = ((hue % 360) + 360) % 360;
 
                 let saturation = f64_bound(0.0, self.parse_list_number_or_percent()?, 1.0);
-                let lightness  = f64_bound(0.0, self.parse_list_number_or_percent()?, 1.0);
+                let lightness = f64_bound(0.0, self.parse_list_number_or_percent()?, 1.0);
 
                 color = hsl_to_rgb(hue as f32 / 60.0, saturation as f32, lightness as f32);
 
                 self.skip_spaces();
                 if !self.starts_with(b")") {
-                    color.alpha  = (f64_bound(0.0, self.parse_list_number()?, 1.0) * 255.0) as u8;
+                    color.alpha = (f64_bound(0.0, self.parse_list_number()?, 1.0) * 255.0) as u8;
                 }
 
                 self.skip_spaces();
@@ -249,7 +259,7 @@ fn hex_pair(c1: u8, c2: u8) -> u8 {
 // `hue` is in a 0..6 range, while `saturation` and `lightness` are in a 0..=1 range.
 // Based on https://www.w3.org/TR/css-color-3/#hsl-color
 fn hsl_to_rgb(hue: f32, saturation: f32, lightness: f32) -> Color {
-    let t2 = if lightness <= 0.5  {
+    let t2 = if lightness <= 0.5 {
         lightness * (saturation + 1.0)
     } else {
         lightness + saturation - (lightness * saturation)
@@ -259,7 +269,11 @@ fn hsl_to_rgb(hue: f32, saturation: f32, lightness: f32) -> Color {
     let red = hue_to_rgb(t1, t2, hue + 2.0);
     let green = hue_to_rgb(t1, t2, hue);
     let blue = hue_to_rgb(t1, t2, hue - 2.0);
-    Color::new_rgb((red * 255.0) as u8, (green * 255.0) as u8, (blue * 255.0) as u8)
+    Color::new_rgb(
+        (red * 255.0) as u8,
+        (green * 255.0) as u8,
+        (blue * 255.0) as u8,
+    )
 }
 
 fn hue_to_rgb(t1: f32, t2: f32, mut hue: f32) -> f32 {
@@ -294,6 +308,7 @@ fn f64_bound(min: f64, val: f64, max: f64) -> f64 {
     val.max(min).min(max)
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use std::str::FromStr;

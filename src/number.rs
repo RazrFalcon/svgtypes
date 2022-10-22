@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use crate::{Stream, Error, ByteExt};
+use crate::{ByteExt, Error, Stream};
 
 /// An [SVG number](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumber).
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -42,7 +42,8 @@ impl<'a> Stream<'a> {
             return Err(Error::InvalidNumber(self.calc_char_pos_at(start)));
         }
 
-        self.parse_number_impl().map_err(|_| Error::InvalidNumber(self.calc_char_pos_at(start)))
+        self.parse_number_impl()
+            .map_err(|_| Error::InvalidNumber(self.calc_char_pos_at(start)))
     }
 
     fn parse_number_impl(&mut self) -> Result<f64, Error> {
@@ -81,9 +82,7 @@ impl<'a> Stream<'a> {
                             self.advance(1);
                             self.skip_digits();
                         }
-                        b'0'..=b'9' => {
-                            self.skip_digits()
-                        }
+                        b'0'..=b'9' => self.skip_digits(),
                         _ => {
                             return Err(Error::InvalidNumber(0));
                         }
@@ -117,7 +116,6 @@ impl<'a> Stream<'a> {
         Ok(n)
     }
 }
-
 
 /// A pull-based [`<list-of-numbers>`] parser.
 ///
@@ -161,7 +159,7 @@ impl<'a> Iterator for NumberListParser<'a> {
     }
 }
 
-
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use crate::Stream;

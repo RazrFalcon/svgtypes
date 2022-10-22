@@ -50,15 +50,28 @@ impl std::fmt::Display for Error {
             }
             Error::InvalidChar(ref chars, pos) => {
                 // Vec<u8> -> Vec<String>
-                let list: Vec<String> =
-                    chars.iter().skip(1).map(|c| String::from_utf8(vec![*c]).unwrap()).collect();
+                let list: Vec<String> = chars
+                    .iter()
+                    .skip(1)
+                    .map(|c| String::from_utf8(vec![*c]).unwrap())
+                    .collect();
 
-                write!(f, "expected '{}' not '{}' at position {}",
-                       list.join("', '"), chars[0] as char, pos)
+                write!(
+                    f,
+                    "expected '{}' not '{}' at position {}",
+                    list.join("', '"),
+                    chars[0] as char,
+                    pos
+                )
             }
             Error::InvalidString(ref strings, pos) => {
-                write!(f, "expected '{}' not '{}' at position {}",
-                       strings[1..].join("', '"), strings[0], pos)
+                write!(
+                    f,
+                    "expected '{}' not '{}' at position {}",
+                    strings[1..].join("', '"),
+                    strings[0],
+                    pos
+                )
             }
             Error::InvalidNumber(pos) => {
                 write!(f, "invalid number at position {}", pos)

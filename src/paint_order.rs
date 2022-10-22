@@ -25,7 +25,13 @@ pub struct PaintOrder {
 impl Default for PaintOrder {
     #[inline]
     fn default() -> Self {
-        Self { order: [PaintOrderKind::Fill, PaintOrderKind::Stroke, PaintOrderKind::Markers] }
+        Self {
+            order: [
+                PaintOrderKind::Fill,
+                PaintOrderKind::Stroke,
+                PaintOrderKind::Markers,
+            ],
+        }
     }
 }
 
@@ -88,19 +94,18 @@ impl std::str::FromStr for PaintOrder {
         }
 
         // Any duplicates is an error.
-        if order[0] == order[1] ||
-            order[0] == order[2] ||
-            order[1] == order[2] {
+        if order[0] == order[1] || order[0] == order[2] || order[1] == order[2] {
             // Any trailing data is an error.
             return Ok(PaintOrder::default());
         }
 
         Ok(PaintOrder {
-            order: [order[0], order[1], order[2]]
+            order: [order[0], order[1], order[2]],
         })
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

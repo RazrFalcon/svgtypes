@@ -62,7 +62,7 @@ impl<'a> Stream<'a> {
         self.consume_byte(b'#')?;
         let link = self.consume_bytes(|_, c| c != b' ');
         if link.is_empty() {
-            return Err(Error::InvalidValue)
+            return Err(Error::InvalidValue);
         }
         Ok(link)
     }
@@ -74,7 +74,7 @@ impl<'a> Stream<'a> {
         self.consume_byte(b'#')?;
         let link = self.consume_bytes(|_, c| c != b' ' && c != b')');
         if link.is_empty() {
-            return Err(Error::InvalidValue)
+            return Err(Error::InvalidValue);
         }
         self.skip_spaces();
         self.consume_byte(b')')?;
@@ -82,6 +82,7 @@ impl<'a> Stream<'a> {
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;

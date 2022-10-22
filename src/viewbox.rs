@@ -54,10 +54,18 @@ impl std::str::FromStr for ViewBox {
     fn from_str(text: &str) -> Result<Self, ViewBoxError> {
         let mut s = Stream::from(text);
 
-        let x = s.parse_list_number().map_err(|_| ViewBoxError::InvalidNumber)?;
-        let y = s.parse_list_number().map_err(|_| ViewBoxError::InvalidNumber)?;
-        let w = s.parse_list_number().map_err(|_| ViewBoxError::InvalidNumber)?;
-        let h = s.parse_list_number().map_err(|_| ViewBoxError::InvalidNumber)?;
+        let x = s
+            .parse_list_number()
+            .map_err(|_| ViewBoxError::InvalidNumber)?;
+        let y = s
+            .parse_list_number()
+            .map_err(|_| ViewBoxError::InvalidNumber)?;
+        let w = s
+            .parse_list_number()
+            .map_err(|_| ViewBoxError::InvalidNumber)?;
+        let h = s
+            .parse_list_number()
+            .map_err(|_| ViewBoxError::InvalidNumber)?;
 
         if w <= 0.0 || h <= 0.0 {
             return Err(ViewBoxError::InvalidSize);
@@ -67,6 +75,7 @@ impl std::str::FromStr for ViewBox {
     }
 }
 
+#[rustfmt::skip]
 #[cfg(test)]
 mod tests {
     use super::*;
