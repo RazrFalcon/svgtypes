@@ -1045,17 +1045,36 @@ mod simple_tests {
         SimplePathSegment::Quadratic { x1: 80.0, y1: 180.0, x: 170.0, y: 30.0 }
     );
 
-    test!(arc_to, "M 30 40 A 40 30 20 1 1 150 100",
-        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
-        SimplePathSegment::CurveTo {
-            x1: 44.74826984236894, y1: 15.992274712892893,
-            x2: 83.56702078968499, y2: 9.961625634418603,
-            x: 116.70410629329004, y: 26.53016838622112
-        },
-        SimplePathSegment::CurveTo {
-            x1: 149.8411917968951, y1: 43.09871113802364,
-            x2: 164.74827129549442, y2: 75.99227543945563,
-            x: 150.0, y: 100.0
+    #[test]
+    fn arc_to() {
+        let mut s = SimplifyingPathParser::from("M 30 40 A 40 30 20 1 1 150 100");
+        assert_eq!(s.next().unwrap().unwrap(), SimplePathSegment::MoveTo { x: 30.0, y: 40.0 });
+        let curve1 = s.next().unwrap().unwrap();
+        let curve2 = s.next().unwrap().unwrap();
+        if let Some(res) = s.next() {
+            assert!(res.is_err());
         }
-    );
+
+        if let SimplePathSegment::CurveTo { x1, y1, x2, y2, x, y } = curve1 {
+            assert_eq!(x1.round(), 45.0);
+            assert_eq!(y1.round(), 16.0);
+            assert_eq!(x2.round(), 84.0);
+            assert_eq!(y2.round(), 10.0);
+            assert_eq!(x.round(), 117.0);
+            assert_eq!(y.round(), 27.0);
+        } else {
+            panic!("invalid type");
+        }
+
+        if let SimplePathSegment::CurveTo { x1, y1, x2, y2, x, y } = curve2 {
+            assert_eq!(x1.round(), 150.0);
+            assert_eq!(y1.round(), 43.0);
+            assert_eq!(x2.round(), 165.0);
+            assert_eq!(y2.round(), 76.0);
+            assert_eq!(x.round(), 150.0);
+            assert_eq!(y.round(), 100.0);
+        } else {
+            panic!("invalid type");
+        }
+    }
 }
