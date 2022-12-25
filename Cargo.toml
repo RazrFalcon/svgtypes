@@ -16,3 +16,4 @@ members = ["benches"]
 
 [dependencies]
 siphasher = "0.3"
+kurbo = "0.8" # ArcTo to CurveTo(s)

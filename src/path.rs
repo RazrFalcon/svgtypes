@@ -1,6 +1,6 @@
 use crate::{Error, Stream};
 
-/// Representation of the path segment.
+/// Representation of a path segment.
 ///
 /// If you want to change the segment type (for example MoveTo to LineTo)
 /// you should create a new segment.
@@ -570,5 +570,492 @@ mod tests {
         PathSegment::MoveTo { abs: true, x: 0.0, y: 0.0 },
         PathSegment::ClosePath { abs: true },
         PathSegment::HorizontalLineTo { abs: true, x: 10.0 }
+    );
+}
+
+/// Representation of a simple path segment.
+#[allow(missing_docs)]
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum SimplePathSegment {
+    MoveTo {
+        x: f64,
+        y: f64,
+    },
+    LineTo {
+        x: f64,
+        y: f64,
+    },
+    CurveTo {
+        x1: f64,
+        y1: f64,
+        x2: f64,
+        y2: f64,
+        x: f64,
+        y: f64,
+    },
+    Quadratic {
+        x1: f64,
+        y1: f64,
+        x: f64,
+        y: f64,
+    },
+    ClosePath,
+}
+
+/// A simplifying Path Data parser.
+///
+/// A more high-level Path Data parser on top of [`PathParser`] that provides:
+///
+/// - Relative to absolute segment coordinates conversion
+/// - ArcTo to CurveTos conversion
+/// - SmoothCurveTo and SmoothQuadratic conversion
+/// - HorizontalLineTo and VerticalLineTo to LineTo conversion
+///
+/// In the end, only absolute MoveTo, LineTo, CurveTo, Quadratic and ClosePath segments
+/// will be produced.
+#[derive(Clone, Debug)]
+pub struct SimplifyingPathParser<'a> {
+    parser: PathParser<'a>,
+
+    // Previous MoveTo coordinates.
+    prev_mx: f64,
+    prev_my: f64,
+
+    // Previous SmoothQuadratic coordinates.
+    prev_tx: f64,
+    prev_ty: f64,
+
+    // Previous coordinates.
+    prev_x: f64,
+    prev_y: f64,
+
+    prev_seg: PathSegment,
+    prev_simple_seg: Option<SimplePathSegment>,
+
+    buffer: Vec<SimplePathSegment>,
+}
+
+impl<'a> From<&'a str> for SimplifyingPathParser<'a> {
+    #[inline]
+    fn from(v: &'a str) -> Self {
+        SimplifyingPathParser {
+            parser: PathParser::from(v),
+            prev_mx: 0.0,
+            prev_my: 0.0,
+            prev_tx: 0.0,
+            prev_ty: 0.0,
+            prev_x: 0.0,
+            prev_y: 0.0,
+            prev_seg: PathSegment::MoveTo {
+                abs: true,
+                x: 0.0,
+                y: 0.0,
+            },
+            prev_simple_seg: None,
+            buffer: Vec::new(),
+        }
+    }
+}
+
+impl<'a> Iterator for SimplifyingPathParser<'a> {
+    type Item = Result<SimplePathSegment, Error>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if !self.buffer.is_empty() {
+            return Some(Ok(self.buffer.remove(0)));
+        }
+
+        let segment = match self.parser.next()? {
+            Ok(v) => v,
+            Err(e) => return Some(Err(e)),
+        };
+
+        match segment {
+            PathSegment::MoveTo { abs, mut x, mut y } => {
+                if !abs {
+                    // When we get 'm'(relative) segment, which is not first segment - then it's
+                    // relative to a previous 'M'(absolute) segment, not to the first segment.
+                    if let Some(SimplePathSegment::ClosePath) = self.prev_simple_seg {
+                        x += self.prev_mx;
+                        y += self.prev_my;
+                    } else {
+                        x += self.prev_x;
+                        y += self.prev_y;
+                    }
+                }
+
+                self.buffer.push(SimplePathSegment::MoveTo { x, y });
+                self.prev_seg = segment;
+            }
+            PathSegment::LineTo { abs, mut x, mut y } => {
+                if !abs {
+                    x += self.prev_x;
+                    y += self.prev_y;
+                }
+
+                self.buffer.push(SimplePathSegment::LineTo { x, y });
+                self.prev_seg = segment;
+            }
+            PathSegment::HorizontalLineTo { abs, mut x } => {
+                if !abs {
+                    x += self.prev_x;
+                }
+
+                self.buffer
+                    .push(SimplePathSegment::LineTo { x, y: self.prev_y });
+                self.prev_seg = segment;
+            }
+            PathSegment::VerticalLineTo { abs, mut y } => {
+                if !abs {
+                    y += self.prev_y;
+                }
+
+                self.buffer
+                    .push(SimplePathSegment::LineTo { x: self.prev_x, y });
+                self.prev_seg = segment;
+            }
+            PathSegment::CurveTo {
+                abs,
+                mut x1,
+                mut y1,
+                mut x2,
+                mut y2,
+                mut x,
+                mut y,
+            } => {
+                if !abs {
+                    x1 += self.prev_x;
+                    y1 += self.prev_y;
+                    x2 += self.prev_x;
+                    y2 += self.prev_y;
+                    x += self.prev_x;
+                    y += self.prev_y;
+                }
+
+                self.buffer.push(SimplePathSegment::CurveTo {
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    x,
+                    y,
+                });
+
+                // Remember as absolute.
+                self.prev_seg = PathSegment::CurveTo {
+                    abs: true,
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    x,
+                    y,
+                };
+            }
+            PathSegment::SmoothCurveTo {
+                abs,
+                mut x2,
+                mut y2,
+                mut x,
+                mut y,
+            } => {
+                // 'The first control point is assumed to be the reflection of the second control
+                // point on the previous command relative to the current point.
+                // (If there is no previous command or if the previous command
+                // was not an C, c, S or s, assume the first control point is
+                // coincident with the current point.)'
+                let (x1, y1) = match self.prev_seg {
+                    PathSegment::CurveTo { x2, y2, x, y, .. }
+                    | PathSegment::SmoothCurveTo { x2, y2, x, y, .. } => {
+                        (x * 2.0 - x2, y * 2.0 - y2)
+                    }
+                    _ => (self.prev_x, self.prev_y),
+                };
+
+                if !abs {
+                    x2 += self.prev_x;
+                    y2 += self.prev_y;
+                    x += self.prev_x;
+                    y += self.prev_y;
+                }
+
+                self.buffer.push(SimplePathSegment::CurveTo {
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    x,
+                    y,
+                });
+
+                // Remember as absolute.
+                self.prev_seg = PathSegment::SmoothCurveTo {
+                    abs: true,
+                    x2,
+                    y2,
+                    x,
+                    y,
+                };
+            }
+            PathSegment::Quadratic {
+                abs,
+                mut x1,
+                mut y1,
+                mut x,
+                mut y,
+            } => {
+                if !abs {
+                    x1 += self.prev_x;
+                    y1 += self.prev_y;
+                    x += self.prev_x;
+                    y += self.prev_y;
+                }
+
+                self.buffer
+                    .push(SimplePathSegment::Quadratic { x1, y1, x, y });
+
+                // Remember as absolute.
+                self.prev_seg = PathSegment::Quadratic {
+                    abs: true,
+                    x1,
+                    y1,
+                    x,
+                    y,
+                };
+            }
+            PathSegment::SmoothQuadratic { abs, mut x, mut y } => {
+                // 'The control point is assumed to be the reflection of
+                // the control point on the previous command relative to
+                // the current point. (If there is no previous command or
+                // if the previous command was not a Q, q, T or t, assume
+                // the control point is coincident with the current point.)'
+                let (x1, y1) = match self.prev_seg {
+                    PathSegment::Quadratic { x1, y1, x, y, .. } => (x * 2.0 - x1, y * 2.0 - y1),
+                    PathSegment::SmoothQuadratic { x, y, .. } => {
+                        (x * 2.0 - self.prev_tx, y * 2.0 - self.prev_ty)
+                    }
+                    _ => (self.prev_x, self.prev_y),
+                };
+
+                self.prev_tx = x1;
+                self.prev_ty = y1;
+
+                if !abs {
+                    x += self.prev_x;
+                    y += self.prev_y;
+                }
+
+                self.buffer
+                    .push(SimplePathSegment::Quadratic { x1, y1, x, y });
+
+                // Remember as absolute.
+                self.prev_seg = PathSegment::SmoothQuadratic { abs: true, x, y };
+            }
+            PathSegment::EllipticalArc {
+                abs,
+                rx,
+                ry,
+                x_axis_rotation,
+                large_arc,
+                sweep,
+                mut x,
+                mut y,
+            } => {
+                if !abs {
+                    x += self.prev_x;
+                    y += self.prev_y;
+                }
+
+                let svg_arc = kurbo::SvgArc {
+                    from: kurbo::Point::new(self.prev_x, self.prev_y),
+                    to: kurbo::Point::new(x, y),
+                    radii: kurbo::Vec2::new(rx, ry),
+                    x_rotation: x_axis_rotation.to_radians(),
+                    large_arc,
+                    sweep,
+                };
+
+                match kurbo::Arc::from_svg_arc(&svg_arc) {
+                    Some(arc) => {
+                        arc.to_cubic_beziers(0.1, |p1, p2, p| {
+                            self.buffer.push(SimplePathSegment::CurveTo {
+                                x1: p1.x,
+                                y1: p1.y,
+                                x2: p2.x,
+                                y2: p2.y,
+                                x: p.x,
+                                y: p.y,
+                            });
+                        });
+                    }
+                    None => {
+                        self.buffer.push(SimplePathSegment::LineTo { x, y });
+                    }
+                }
+
+                self.prev_seg = segment;
+            }
+            PathSegment::ClosePath { .. } => {
+                if let Some(SimplePathSegment::ClosePath) = self.prev_simple_seg {
+                    // Do not add sequential ClosePath segments.
+                    // Otherwise it will break marker rendering.
+                } else {
+                    self.buffer.push(SimplePathSegment::ClosePath);
+                }
+
+                self.prev_seg = segment;
+            }
+        }
+
+        // Remember last position.
+        if let Some(new_segment) = self.buffer.last() {
+            self.prev_simple_seg = Some(*new_segment);
+
+            match *new_segment {
+                SimplePathSegment::MoveTo { x, y } => {
+                    self.prev_x = x;
+                    self.prev_y = y;
+                    self.prev_mx = self.prev_x;
+                    self.prev_my = self.prev_y;
+                }
+                SimplePathSegment::LineTo { x, y } => {
+                    self.prev_x = x;
+                    self.prev_y = y;
+                }
+                SimplePathSegment::CurveTo { x, y, .. } => {
+                    self.prev_x = x;
+                    self.prev_y = y;
+                }
+                SimplePathSegment::Quadratic { x, y, .. } => {
+                    self.prev_x = x;
+                    self.prev_y = y;
+                }
+                SimplePathSegment::ClosePath => {
+                    // ClosePath moves us to the last MoveTo coordinate,
+                    // not previous.
+                    self.prev_x = self.prev_mx;
+                    self.prev_y = self.prev_my;
+                }
+            }
+        }
+
+        if self.buffer.is_empty() {
+            return self.next();
+        }
+
+        Some(Ok(self.buffer.remove(0)))
+    }
+}
+
+#[rustfmt::skip]
+#[cfg(test)]
+mod simple_tests {
+    use super::*;
+
+    macro_rules! test {
+        ($name:ident, $text:expr, $( $seg:expr ),*) => (
+            #[test]
+            fn $name() {
+                let mut s = SimplifyingPathParser::from($text);
+                $(
+                    assert_eq!(s.next().unwrap().unwrap(), $seg);
+                )*
+
+                if let Some(res) = s.next() {
+                    assert!(res.is_err());
+                }
+            }
+        )
+    }
+
+    test!(ignore_duplicated_close_paths, "M 10 20 L 30 40 Z Z Z Z",
+        SimplePathSegment::MoveTo { x: 10.0, y: 20.0 },
+        SimplePathSegment::LineTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::ClosePath
+    );
+
+    test!(relative_move_to, "m 30 40 110 120 -20 -130",
+        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::LineTo { x: 140.0, y: 160.0 },
+        SimplePathSegment::LineTo { x: 120.0, y: 30.0 }
+    );
+
+    test!(smooth_curve_to_after_move_to, "M 30 40 S 171 45 180 155",
+        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::CurveTo { x1: 30.0, y1: 40.0, x2: 171.0, y2: 45.0, x: 180.0, y: 155.0 }
+    );
+
+    test!(smooth_curve_to_after_curve_to, "M 30 40 C 16 137 171 45 100 90 S 171 45 180 155",
+        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::CurveTo { x1: 16.0, y1: 137.0, x2: 171.0, y2: 45.0, x: 100.0, y: 90.0 },
+        SimplePathSegment::CurveTo { x1: 29.0, y1: 135.0, x2: 171.0, y2: 45.0, x: 180.0, y: 155.0 }
+    );
+
+    test!(smooth_quadratic_after_move_to, "M 30 40 T 180 155",
+        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::Quadratic { x1: 30.0, y1: 40.0, x: 180.0, y: 155.0 }
+    );
+
+    test!(smooth_quadratic_after_quadratic, "M 30 40 Q 171 45 100 90 T 160 180",
+        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::Quadratic { x1: 171.0, y1: 45.0, x: 100.0, y: 90.0 },
+        SimplePathSegment::Quadratic { x1: 29.0, y1: 135.0, x: 160.0, y: 180.0 }
+    );
+
+    test!(relative_smooth_quadratic_after_quadratic, "M 30 40 Q 171 45 100 90 t 60 80",
+        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::Quadratic { x1: 171.0, y1: 45.0, x: 100.0, y: 90.0 },
+        SimplePathSegment::Quadratic { x1: 29.0, y1: 135.0, x: 160.0, y: 170.0 }
+    );
+
+    test!(relative_smooth_quadratic_after_relative_quadratic, "M 30 40 q 171 45 50 40 t 60 80",
+        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::Quadratic { x1: 201.0, y1: 85.0, x: 80.0, y: 80.0 },
+        SimplePathSegment::Quadratic { x1: -41.0, y1: 75.0, x: 140.0, y: 160.0 }
+    );
+
+    test!(smooth_quadratic_after_smooth_quadratic, "M 30 30 T 40 140 T 170 30",
+        SimplePathSegment::MoveTo { x: 30.0, y: 30.0 },
+        SimplePathSegment::Quadratic { x1: 30.0, y1: 30.0, x: 40.0, y: 140.0 },
+        SimplePathSegment::Quadratic { x1: 50.0, y1: 250.0, x: 170.0, y: 30.0 }
+    );
+
+    test!(smooth_quadratic_after_relative_smooth_quadratic, "M 30 30 T 40 140 t 100 -30",
+        SimplePathSegment::MoveTo { x: 30.0, y: 30.0 },
+        SimplePathSegment::Quadratic { x1: 30.0, y1: 30.0, x: 40.0, y: 140.0 },
+        SimplePathSegment::Quadratic { x1: 50.0, y1: 250.0, x: 140.0, y: 110.0 }
+    );
+
+    test!(smooth_quadratic_after_relative_quadratic, "M 30 30 T 40 140 q 30 100 120 -30",
+        SimplePathSegment::MoveTo { x: 30.0, y: 30.0 },
+        SimplePathSegment::Quadratic { x1: 30.0, y1: 30.0, x: 40.0, y: 140.0 },
+        SimplePathSegment::Quadratic { x1: 70.0, y1: 240.0, x: 160.0, y: 110.0 }
+    );
+
+    test!(smooth_quadratic_after_relative_smooth_curve_to, "M 30 30 T 40 170 s 90 -20 90 -90",
+        SimplePathSegment::MoveTo { x: 30.0, y: 30.0 },
+        SimplePathSegment::Quadratic { x1: 30.0, y1: 30.0, x: 40.0, y: 170.0 },
+        SimplePathSegment::CurveTo { x1: 40.0, y1: 170.0, x2: 130.0, y2: 150.0, x: 130.0, y: 80.0 }
+    );
+
+    test!(quadratic_after_smooth_quadratic, "M 30 30 T 40 140 Q 80 180 170 30",
+        SimplePathSegment::MoveTo { x: 30.0, y: 30.0 },
+        SimplePathSegment::Quadratic { x1: 30.0, y1: 30.0, x: 40.0, y: 140.0 },
+        SimplePathSegment::Quadratic { x1: 80.0, y1: 180.0, x: 170.0, y: 30.0 }
+    );
+
+    test!(arc_to, "M 30 40 A 40 30 20 1 1 150 100",
+        SimplePathSegment::MoveTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::CurveTo {
+            x1: 44.74826984236894, y1: 15.992274712892893,
+            x2: 83.56702078968499, y2: 9.961625634418603,
+            x: 116.70410629329004, y: 26.53016838622112
+        },
+        SimplePathSegment::CurveTo {
+            x1: 149.8411917968951, y1: 43.09871113802364,
+            x2: 164.74827129549442, y2: 75.99227543945563,
+            x: 150.0, y: 100.0
+        }
     );
 }
