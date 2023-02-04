@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.10.0] - 2023-02-04
+### Changed
+- Bump `kurbo`
+- Bump MSRV to 1.65 (because of `kurbo`)
+
 ## [0.9.0] - 2022-12-25
 ### Added
 - `SimplifyingPathParser` that allows parsing an already simplified Path Data.

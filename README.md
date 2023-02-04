@@ -2,7 +2,7 @@
 ![Build Status](https://github.com/RazrFalcon/svgtypes/workflows/svgtypes/badge.svg)
 [![Crates.io](https://img.shields.io/crates/v/svgtypes.svg)](https://crates.io/crates/svgtypes)
 [![Documentation](https://docs.rs/svgtypes/badge.svg)](https://docs.rs/svgtypes)
-[![Rust 1.31+](https://img.shields.io/badge/rust-1.31+-orange.svg)](https://www.rust-lang.org)
+[![Rust 1.65+](https://img.shields.io/badge/rust-1.65+-orange.svg)](https://www.rust-lang.org)
 ![](https://img.shields.io/badge/unsafe-forbidden-brightgreen.svg)
 
 *svgtypes* is a collection of parsers for [SVG](https://www.w3.org/TR/SVG2/) types.
