@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.11.0] - 2023-03-25
 ### Added
 - `SimplifyingPathParser` handles implicit MoveTo commands after ClosePath now.
   Previously, `M 10 20 L 30 40 Z L 50 60` would have been parsed as is,
@@ -142,7 +144,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `Paint::from_span` poor performance.
 
-[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.10.0...v0.11.0
+[0.10.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.8.2...v0.9.0
 [0.8.2]: https://github.com/RazrFalcon/svgtypes/compare/v0.8.1...v0.8.2
 [0.8.1]: https://github.com/RazrFalcon/svgtypes/compare/v0.8.0...v0.8.1
