@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- `SimplifyingPathParser` handles implicit MoveTo commands after ClosePath now.
+  Previously, `M 10 20 L 30 40 Z L 50 60` would have been parsed as is,
+  but now it will be parsed as `M 10 20 L 30 40 Z M 10 20 L 50 60`.
 
 ## [0.10.0] - 2023-02-04
 ### Changed

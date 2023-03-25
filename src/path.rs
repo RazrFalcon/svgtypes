@@ -610,6 +610,7 @@ pub enum SimplePathSegment {
 /// - ArcTo to CurveTos conversion
 /// - SmoothCurveTo and SmoothQuadratic conversion
 /// - HorizontalLineTo and VerticalLineTo to LineTo conversion
+/// - Implicit MoveTo after ClosePath handling
 ///
 /// In the end, only absolute MoveTo, LineTo, CurveTo, Quadratic and ClosePath segments
 /// will be produced.
@@ -660,7 +661,6 @@ impl<'a> From<&'a str> for SimplifyingPathParser<'a> {
 impl<'a> Iterator for SimplifyingPathParser<'a> {
     type Item = Result<SimplePathSegment, Error>;
 
-    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         if !self.buffer.is_empty() {
             return Some(Ok(self.buffer.remove(0)));
@@ -670,6 +670,19 @@ impl<'a> Iterator for SimplifyingPathParser<'a> {
             Ok(v) => v,
             Err(e) => return Some(Err(e)),
         };
+
+        // If a ClosePath segment is followed by any command other than MoveTo or ClosePath
+        // then MoveTo is implicit.
+        if let Some(SimplePathSegment::ClosePath) = self.prev_simple_seg {
+            match segment {
+                PathSegment::MoveTo { .. } | PathSegment::ClosePath { .. } => {}
+                _ => {
+                    let new_seg = SimplePathSegment::MoveTo { x: self.prev_mx, y: self.prev_my };
+                    self.buffer.push(new_seg);
+                    self.prev_simple_seg = Some(new_seg);
+                }
+            }
+        }
 
         match segment {
             PathSegment::MoveTo { abs, mut x, mut y } => {
@@ -899,7 +912,7 @@ impl<'a> Iterator for SimplifyingPathParser<'a> {
             PathSegment::ClosePath { .. } => {
                 if let Some(SimplePathSegment::ClosePath) = self.prev_simple_seg {
                     // Do not add sequential ClosePath segments.
-                    // Otherwise it will break marker rendering.
+                    // Otherwise it will break markers rendering.
                 } else {
                     self.buffer.push(SimplePathSegment::ClosePath);
                 }
@@ -932,8 +945,7 @@ impl<'a> Iterator for SimplifyingPathParser<'a> {
                     self.prev_y = y;
                 }
                 SimplePathSegment::ClosePath => {
-                    // ClosePath moves us to the last MoveTo coordinate,
-                    // not previous.
+                    // ClosePath moves us to the last MoveTo coordinate.
                     self.prev_x = self.prev_mx;
                     self.prev_y = self.prev_my;
                 }
@@ -1043,6 +1055,14 @@ mod simple_tests {
         SimplePathSegment::MoveTo { x: 30.0, y: 30.0 },
         SimplePathSegment::Quadratic { x1: 30.0, y1: 30.0, x: 40.0, y: 140.0 },
         SimplePathSegment::Quadratic { x1: 80.0, y1: 180.0, x: 170.0, y: 30.0 }
+    );
+
+    test!(implicit_move_to_after_close_path, "M 10 20 L 30 40 Z L 50 60",
+        SimplePathSegment::MoveTo { x: 10.0, y: 20.0 },
+        SimplePathSegment::LineTo { x: 30.0, y: 40.0 },
+        SimplePathSegment::ClosePath,
+        SimplePathSegment::MoveTo { x: 10.0, y: 20.0 },
+        SimplePathSegment::LineTo { x: 50.0, y: 60.0 }
     );
 
     #[test]
