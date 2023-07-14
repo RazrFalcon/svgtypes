@@ -187,9 +187,9 @@ impl<'a> Stream<'a> {
                     color.green = from_percent(self.parse_list_number_or_percent()?);
                     color.blue = from_percent(self.parse_list_number_or_percent()?);
                 } else {
-                    color.red = bound(0, value as i32, 255) as u8;
-                    color.green = bound(0, self.parse_list_integer()?, 255) as u8;
-                    color.blue = bound(0, self.parse_list_integer()?, 255) as u8;
+                    color.red = f64_bound(0.0, (value.round() as i32).into(), 255.0) as u8;
+                    color.green = f64_bound(0.0, self.parse_list_number()?.round(), 255.0) as u8;
+                    color.blue = f64_bound(0.0, self.parse_list_number()?.round(), 255.0) as u8;
                 }
 
                 self.skip_spaces();
@@ -408,6 +408,42 @@ mod tests {
     );
 
     test!(
+        rgb_numeric_red_float,
+        "rgb(3.141592653, 110, 201)",
+        Color::new_rgb(3, 110, 201)
+    );
+
+    test!(
+        rgb_numeric_green_float,
+        "rgb(254, 150.829521289232389, 210)",
+        Color::new_rgb(254, 151, 210)
+    );
+
+    test!(
+        rgb_numeric_blue_float,
+        "rgb(96, 255, 0.2)",
+        Color::new_rgb(96, 255, 0)
+    );
+
+    test!(
+        rgb_numeric_all_float,
+        "rgb(0.0, 129.82, 231.092)",
+        Color::new_rgb(0, 130, 231)
+    );
+
+    test!(
+        rgb_numeric_all_float_with_alpha,
+        "rgb(0.0, 129.82, 231.092, 0.5)",
+        Color::new_rgba(0, 130, 231, 127)
+    );
+
+    test!(
+        rgb_numeric_all_float_overflow,
+        "rgb(290.2, 255.9, 300.0)",
+        Color::new_rgb(255, 255, 255)
+    );
+
+    test!(
         name_red,
         "red",
         Color::new_rgb(255, 0, 0)
@@ -447,6 +483,18 @@ mod tests {
         rgba_half,
         "rgba(10, 20, 30, 0.5)",
         Color::new_rgba(10, 20, 30, 127)
+    );
+
+    test!(
+        rgba_numeric_red_float,
+        "rgba(3.141592653, 110, 201, 1.0)",
+        Color::new_rgba(3, 110, 201, 255)
+    );
+
+    test!(
+        rgba_numeric_all_float,
+        "rgba(0.0, 129.82, 231.092, 1.5)",
+        Color::new_rgba(0, 130, 231, 255)
     );
 
     test!(
