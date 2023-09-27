@@ -73,12 +73,20 @@ impl<'a> Stream<'a> {
         self.skip_spaces();
         self.consume_string(b"url(")?;
         self.skip_spaces();
+        let has_quotes = self.consume_byte(b'\'').is_ok();
+        if has_quotes {
+            self.skip_spaces();
+        }
         self.consume_byte(b'#')?;
-        let link = self.consume_bytes(|_, c| c != b' ' && c != b')');
+        let link = self.consume_bytes(|_, c| c != b' ' && c != b')' && c != b'\'');
         if link.is_empty() {
             return Err(Error::InvalidValue);
         }
         self.skip_spaces();
+        if has_quotes {
+            self.consume_byte(b'\'')?;
+            self.skip_spaces();
+        }
         self.consume_byte(b')')?;
         Ok(link)
     }
@@ -141,6 +149,13 @@ mod tests {
     }
 
     #[test]
+    fn parse_func_iri_5() {
+        // Some SVG files have IDs surrounded by single quotes
+        assert_eq!(FuncIRI::from_str("url('#id')").unwrap(), FuncIRI("id"));
+        assert_eq!(FuncIRI::from_str("url(' #id ')").unwrap(), FuncIRI("id"));
+    }
+
+    #[test]
     fn parse_err_func_iri_1() {
         assert_eq!(FuncIRI::from_str("url ( #1 )").unwrap_err().to_string(),
                    "expected 'url(' not 'url ' at position 1");
@@ -155,5 +170,14 @@ mod tests {
     fn parse_err_func_iri_3() {
         assert_eq!(FuncIRI::from_str("url(# id)").unwrap_err().to_string(),
                    "invalid value");
+    }
+
+    #[test]
+    fn parse_err_func_iri_4() {
+        // If single quotes are present around the ID, they should be on both sides
+        assert_eq!(FuncIRI::from_str("url('#id)").unwrap_err().to_string(),
+                   "expected ''' not ')' at position 9");
+        assert_eq!(FuncIRI::from_str("url(#id')").unwrap_err().to_string(),
+                   "expected ')' not ''' at position 8");
     }
 }
