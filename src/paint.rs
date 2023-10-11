@@ -55,6 +55,10 @@ pub enum Paint<'a> {
     ///
     /// [`<FuncIRI>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI
     FuncIRI(&'a str, Option<PaintFallback>),
+    /// The `context-fill` value.
+    ContextFill,
+    /// The `context-stroke` value.
+    ContextStroke,
 }
 
 impl<'a> Paint<'a> {
