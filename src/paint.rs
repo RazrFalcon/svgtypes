@@ -73,6 +73,8 @@ impl<'a> Paint<'a> {
             "none" => Ok(Paint::None),
             "inherit" => Ok(Paint::Inherit),
             "currentColor" => Ok(Paint::CurrentColor),
+            "context-fill" => Ok(Paint::ContextFill),
+            "context-stroke" => Ok(Paint::ContextStroke),
             _ => {
                 let mut s = Stream::from(text);
                 if s.starts_with(b"url(") {
