@@ -55,6 +55,10 @@ pub enum Paint<'a> {
     ///
     /// [`<FuncIRI>`]: https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI
     FuncIRI(&'a str, Option<PaintFallback>),
+    /// The `context-fill` value.
+    ContextFill,
+    /// The `context-stroke` value.
+    ContextStroke,
 }
 
 impl<'a> Paint<'a> {
@@ -69,6 +73,8 @@ impl<'a> Paint<'a> {
             "none" => Ok(Paint::None),
             "inherit" => Ok(Paint::Inherit),
             "currentColor" => Ok(Paint::CurrentColor),
+            "context-fill" => Ok(Paint::ContextFill),
+            "context-stroke" => Ok(Paint::ContextStroke),
             _ => {
                 let mut s = Stream::from(text);
                 if s.starts_with(b"url(") {
