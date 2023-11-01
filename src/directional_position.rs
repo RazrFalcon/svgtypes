@@ -1,6 +1,6 @@
 use crate::{Error, Length, LengthUnit, Stream};
 
-/// List of all SVG directional position units.
+/// List of all SVG directional positions.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum DirectionalPosition {
     Top,
@@ -11,6 +11,8 @@ pub enum DirectionalPosition {
 }
 
 impl DirectionalPosition {
+    /// Checks whether the value can be a horizontal position.
+    #[inline]
     pub fn is_horizontal(&self) -> bool {
         match self {
             DirectionalPosition::Center | DirectionalPosition::Left | DirectionalPosition::Right=> true,
@@ -18,9 +20,11 @@ impl DirectionalPosition {
         }
     }
 
+    /// Checks whether the value can be a vertical position.
+    #[inline]
     pub fn is_vertical(&self) -> bool {
         match self {
-            DirectionalPosition::Center |DirectionalPosition::Top | DirectionalPosition::Bottom => true,
+            DirectionalPosition::Center | DirectionalPosition::Top | DirectionalPosition::Bottom => true,
             _ => false
         }
     }
