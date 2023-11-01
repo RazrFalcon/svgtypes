@@ -76,9 +76,10 @@ mod paint;
 mod paint_order;
 mod path;
 mod points;
-mod relative_position;
+mod directional_position;
 mod stream;
 mod transform;
+mod transform_origin;
 mod viewbox;
 
 use crate::stream::{ByteExt, Stream};
