@@ -3,6 +3,7 @@ use crate::{Length, LengthUnit};
 use crate::directional_position::DirectionalPosition;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
+#[allow(missing_docs)]
 enum Position {
     Length(Length),
     DirectionalPosition(DirectionalPosition)
@@ -37,7 +38,6 @@ impl From<Position> for Length {
 ///
 /// [`<transform-origin>`]: https://drafts.csswg.org/css-transforms/#transform-origin-property
 #[derive(Clone, Copy, PartialEq, Debug)]
-#[allow(missing_docs)]
 pub struct TransformOrigin {
     pub x_offset: Length,
     pub y_offset: Length,
@@ -45,71 +45,88 @@ pub struct TransformOrigin {
 }
 
 impl TransformOrigin {
-    /// Constructs a new transform.
+    /// Constructs a new transform origin.
     #[inline]
     pub fn new(x_offset: Length, y_offset: Length, z_offset: Length) -> Self {
         TransformOrigin {x_offset, y_offset, z_offset}
     }
 }
 
-/// List of possible [`ViewBox`] parsing errors.
+/// List of possible [`TransformOrigin`] parsing errors.
 #[derive(Clone, Copy, Debug)]
 pub enum TransformOriginError {
     /// One of the numbers is invalid.
-    MissingPositions,
-
-    /// ViewBox has a negative or zero size.
-    InvalidPositions,
-
+    MissingParameters,
+    /// One of the parameters is invalid.
+    InvalidParameters,
+    /// z-index is not a percentage.
     ZIndexIsPercentage
 }
 
-// impl std::fmt::Display for TransformOriginError {
-//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-//         match *self {
-//             TransformOriginError::InvalidNumber => {
-//                 write!(f, "viewBox contains an invalid number")
-//             }
-//             TransformOriginError::InvalidSize => {
-//                 write!(f, "viewBox has a negative or zero size")
-//             }
-//         }
-//     }
-// }
-//
-// impl std::error::Error for TransformOriginError {
-//     fn description(&self) -> &str {
-//         "a viewBox parsing error"
-//     }
-// }
+impl std::fmt::Display for TransformOriginError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            TransformOriginError::MissingParameters => {
+                write!(f, "transform origin doesn't have enough parameters")
+            }
+            TransformOriginError::InvalidParameters => {
+                write!(f, "transform origin has invalid parameters")
+            },
+            TransformOriginError::ZIndexIsPercentage => {
+                write!(f, "z-index cannot be a percentage")
+            }
+        }
+    }
+}
+
+impl std::error::Error for TransformOriginError {
+    fn description(&self) -> &str {
+        "a transform origin parsing error"
+    }
+}
 
 impl std::str::FromStr for TransformOrigin {
     type Err = TransformOriginError;
 
     fn from_str(text: &str) -> Result<Self, TransformOriginError> {
-        let mut s = Stream::from(text);
+        let mut stream = Stream::from(text);
 
-        if s.at_end() {
-            return Err(TransformOriginError::MissingPositions);
+        if stream.at_end() {
+            return Err(TransformOriginError::MissingParameters);
         }
 
-        let mut first_val = None;
-        let mut second_val = None;
-        let mut third_val = None;
 
-        let mut parse_part= || {
-            if let Ok(dp) = s.parse_directional_position() {
+        let parse_part= |stream: &mut Stream| {
+            if let Ok(dp) = stream.parse_directional_position() {
                 Some(Position::DirectionalPosition(dp))
-            } else if let Ok(l) = s.parse_length() {
+            } else if let Ok(l) = stream.parse_length() {
                 Some(Position::Length(l))
             }  else { None }
         };
 
-        first_val = parse_part();
-        second_val = parse_part();
-        third_val = s.parse_length().ok();
+        let first_arg = parse_part(&mut stream);
+        let mut second_arg = None;
+        let mut third_arg = None;
 
-        let result = match (first_val, second_val, third_val) {
+        if !stream.at_end() {
+            stream.skip_spaces();
+            stream.parse_list_separator();
+            second_arg = Some(parse_part(&mut stream).ok_or(TransformOriginError::InvalidParameters)?);
+        }
+
+        if !stream.at_end() {
+            stream.skip_spaces();
+            stream.parse_list_separator();
+            third_arg = Some(stream.parse_length().map_err(|_| TransformOriginError::InvalidParameters)?);
+        }
+
+        stream.skip_spaces();
+
+        if !stream.at_end() {
+            return Err(TransformOriginError::InvalidParameters);
+        }
+
+        let result = match (first_arg, second_arg, third_arg) {
             (Some(p), None, None) => {
                 let (x_offset, y_offset) = if p.is_horizontal() {
                     (p.into(), DirectionalPosition::Center.into())
@@ -117,7 +134,7 @@ impl std::str::FromStr for TransformOrigin {
                     (DirectionalPosition::Center.into(), p.into())
                 };
 
-                TransformOrigin::new(x_offset, y_offset, Length::zero())
+                TransformOrigin::new(x_offset, y_offset, Length::new(0.0, LengthUnit::Px))
             },
             (Some(p1), Some(p2), length) => {
                 if let Some(length) = length {
@@ -125,6 +142,8 @@ impl std::str::FromStr for TransformOrigin {
                         return Err(TransformOriginError::ZIndexIsPercentage);
                     }
                 }
+
+                let length = length.unwrap_or(Length::new(0.0, LengthUnit::Px));
 
                 let check = |pos| {
                     match pos {
@@ -136,15 +155,15 @@ impl std::str::FromStr for TransformOrigin {
                 let only_keyword_is_center = check(p1) && check(p2);
 
                 if only_keyword_is_center {
-                    TransformOrigin::new(p1.into(), p2.into(), length.unwrap_or_default())
+                    TransformOrigin::new(p1.into(), p2.into(), length)
                 }   else {
                     // There is at least one of `left`, `right`, `top`, or `bottom`
                     if p1.is_horizontal() && p2.is_vertical() {
-                        TransformOrigin::new(p1.into(), p2.into(), length.unwrap_or_default())
+                        TransformOrigin::new(p1.into(), p2.into(), length)
                     }   else if p1.is_vertical() && p2.is_horizontal() {
-                        TransformOrigin::new(p2.into(), p1.into(), length.unwrap_or_default())
+                        TransformOrigin::new(p2.into(), p1.into(), length)
                     }   else {
-                        return Err(TransformOriginError::InvalidPositions)
+                        return Err(TransformOriginError::InvalidParameters)
                     }
                 }
             }
@@ -153,4 +172,53 @@ impl std::str::FromStr for TransformOrigin {
 
         Ok(result)
     }
+}
+
+#[rustfmt::skip]
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    macro_rules! test {
+        ($name:ident, $text:expr, $result:expr) => (
+            #[test]
+            fn $name() {
+                let v = TransformOrigin::from_str($text).unwrap();
+                assert_eq!(v, $result);
+            }
+        )
+    }
+
+    test!(parse_1, "center", TransformOrigin::new(Length::new(50.0, LengthUnit::Percent), Length::new(50.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_2, "left", TransformOrigin::new(Length::new(0.0, LengthUnit::Percent), Length::new(50.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_3, "right", TransformOrigin::new(Length::new(100.0, LengthUnit::Percent), Length::new(50.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_4, "top", TransformOrigin::new(Length::new(50.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_5, "bottom", TransformOrigin::new(Length::new(50.0, LengthUnit::Percent), Length::new(100.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_6, "30px", TransformOrigin::new(Length::new(30.0, LengthUnit::Px), Length::new(50.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+
+    test!(parse_7, "center left", TransformOrigin::new(Length::new(0.0, LengthUnit::Percent), Length::new(50.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_8, "left center", TransformOrigin::new(Length::new(0.0, LengthUnit::Percent), Length::new(50.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_9, "center bottom", TransformOrigin::new(Length::new(50.0, LengthUnit::Percent), Length::new(100.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_10, "bottom center", TransformOrigin::new(Length::new(50.0, LengthUnit::Percent), Length::new(100.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_11, "30%, center", TransformOrigin::new(Length::new(30.0, LengthUnit::Percent), Length::new(50.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_12, " center, 30%", TransformOrigin::new(Length::new(50.0, LengthUnit::Percent), Length::new(30.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+    test!(parse_13, "left top", TransformOrigin::new(Length::new(0.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Percent), Length::new(0.0, LengthUnit::Px)));
+
+    test!(parse_14, "center right 3px", TransformOrigin::new(Length::new(100.0, LengthUnit::Percent), Length::new(50.0, LengthUnit::Percent), Length::new(3.0, LengthUnit::Px)));
+
+    macro_rules! test_err {
+        ($name:ident, $text:expr, $result:expr) => (
+            #[test]
+            fn $name() {
+                assert_eq!(TransformOrigin::from_str($text).unwrap_err().to_string(), $result);
+            }
+        )
+    }
+
+    test_err!(parse_err_1, "", "transform origin doesn't have enough parameters");
+    test_err!(parse_err_2, "some", "transform origin has invalid parameters");
+    test_err!(parse_err_3, "center some", "transform origin has invalid parameters");
+    test_err!(parse_err_4, "left right", "transform origin has invalid parameters");
+    test_err!(parse_err_5, "left top 3%", "z-index cannot be a percentage");
 }
