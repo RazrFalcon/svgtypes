@@ -59,13 +59,13 @@ impl std::str::FromStr for DirectionalPosition {
     #[inline]
     fn from_str(text: &str) -> Result<Self, Error> {
         let mut s = Stream::from(text);
-        let relative_pos = s.parse_directional_position()?;
+        let dir_pos = s.parse_directional_position()?;
 
         if !s.at_end() {
             return Err(Error::UnexpectedData(s.calc_char_pos()));
         }
 
-        Ok(relative_pos)
+        Ok(dir_pos)
     }
 }
 
