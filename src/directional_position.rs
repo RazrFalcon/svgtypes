@@ -3,10 +3,15 @@ use crate::{Error, Length, LengthUnit, Stream};
 /// List of all SVG directional positions.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum DirectionalPosition {
+    /// The `top` position.
     Top,
+    /// The `center` position.
     Center,
+    /// The `bottom` position.
     Bottom,
+    /// The `right` position.
     Right,
+    /// The `left` position.
     Left,
 }
 

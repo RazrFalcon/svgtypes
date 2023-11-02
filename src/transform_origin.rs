@@ -39,8 +39,11 @@ impl From<Position> for Length {
 /// [`<transform-origin>`]: https://drafts.csswg.org/css-transforms/#transform-origin-property
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct TransformOrigin {
+    /// The x offset of the transform origin.
     pub x_offset: Length,
+    /// The y offset of the transform origin.
     pub y_offset: Length,
+    /// The z offset of the transform origin.
     pub z_offset: Length,
 }
 
