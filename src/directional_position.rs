@@ -20,8 +20,10 @@ impl DirectionalPosition {
     #[inline]
     pub fn is_horizontal(&self) -> bool {
         match self {
-            DirectionalPosition::Center | DirectionalPosition::Left | DirectionalPosition::Right=> true,
-            _ => false
+            DirectionalPosition::Center
+            | DirectionalPosition::Left
+            | DirectionalPosition::Right => true,
+            _ => false,
         }
     }
 
@@ -29,8 +31,10 @@ impl DirectionalPosition {
     #[inline]
     pub fn is_vertical(&self) -> bool {
         match self {
-            DirectionalPosition::Center | DirectionalPosition::Top | DirectionalPosition::Bottom => true,
-            _ => false
+            DirectionalPosition::Center
+            | DirectionalPosition::Top
+            | DirectionalPosition::Bottom => true,
+            _ => false,
         }
     }
 }
@@ -38,9 +42,13 @@ impl DirectionalPosition {
 impl From<DirectionalPosition> for Length {
     fn from(value: DirectionalPosition) -> Self {
         match value {
-            DirectionalPosition::Left | DirectionalPosition::Top => Length::new(0.0, LengthUnit::Percent),
-            DirectionalPosition::Right | DirectionalPosition::Bottom => Length::new(100.0, LengthUnit::Percent),
-            DirectionalPosition::Center => Length::new(50.0, LengthUnit::Percent)
+            DirectionalPosition::Left | DirectionalPosition::Top => {
+                Length::new(0.0, LengthUnit::Percent)
+            }
+            DirectionalPosition::Right | DirectionalPosition::Bottom => {
+                Length::new(100.0, LengthUnit::Percent)
+            }
+            DirectionalPosition::Center => Length::new(50.0, LengthUnit::Percent),
         }
     }
 }

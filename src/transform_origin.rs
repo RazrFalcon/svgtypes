@@ -1,26 +1,26 @@
+use crate::directional_position::DirectionalPosition;
 use crate::stream::Stream;
 use crate::{Length, LengthUnit};
-use crate::directional_position::DirectionalPosition;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[allow(missing_docs)]
 enum Position {
     Length(Length),
-    DirectionalPosition(DirectionalPosition)
+    DirectionalPosition(DirectionalPosition),
 }
 
 impl Position {
     fn is_vertical(&self) -> bool {
         match self {
             Position::Length(_) => true,
-            Position::DirectionalPosition(dp) => dp.is_vertical()
+            Position::DirectionalPosition(dp) => dp.is_vertical(),
         }
     }
 
     fn is_horizontal(&self) -> bool {
         match self {
             Position::Length(_) => true,
-            Position::DirectionalPosition(dp) => dp.is_horizontal()
+            Position::DirectionalPosition(dp) => dp.is_horizontal(),
         }
     }
 }
@@ -29,7 +29,7 @@ impl From<Position> for Length {
     fn from(value: Position) -> Self {
         match value {
             Position::Length(l) => l,
-            Position::DirectionalPosition(dp) => dp.into()
+            Position::DirectionalPosition(dp) => dp.into(),
         }
     }
 }
@@ -51,7 +51,11 @@ impl TransformOrigin {
     /// Constructs a new transform origin.
     #[inline]
     pub fn new(x_offset: Length, y_offset: Length, z_offset: Length) -> Self {
-        TransformOrigin {x_offset, y_offset, z_offset}
+        TransformOrigin {
+            x_offset,
+            y_offset,
+            z_offset,
+        }
     }
 }
 
@@ -63,7 +67,7 @@ pub enum TransformOriginError {
     /// One of the parameters is invalid.
     InvalidParameters,
     /// z-index is not a percentage.
-    ZIndexIsPercentage
+    ZIndexIsPercentage,
 }
 
 impl std::fmt::Display for TransformOriginError {
@@ -74,7 +78,7 @@ impl std::fmt::Display for TransformOriginError {
             }
             TransformOriginError::InvalidParameters => {
                 write!(f, "transform origin has invalid parameters")
-            },
+            }
             TransformOriginError::ZIndexIsPercentage => {
                 write!(f, "z-index cannot be a percentage")
             }
@@ -98,13 +102,14 @@ impl std::str::FromStr for TransformOrigin {
             return Err(TransformOriginError::MissingParameters);
         }
 
-
-        let parse_part= |stream: &mut Stream| {
+        let parse_part = |stream: &mut Stream| {
             if let Ok(dp) = stream.parse_directional_position() {
                 Some(Position::DirectionalPosition(dp))
             } else if let Ok(l) = stream.parse_length() {
                 Some(Position::Length(l))
-            }  else { None }
+            } else {
+                None
+            }
         };
 
         let first_arg = parse_part(&mut stream);
@@ -114,13 +119,18 @@ impl std::str::FromStr for TransformOrigin {
         if !stream.at_end() {
             stream.skip_spaces();
             stream.parse_list_separator();
-            second_arg = Some(parse_part(&mut stream).ok_or(TransformOriginError::InvalidParameters)?);
+            second_arg =
+                Some(parse_part(&mut stream).ok_or(TransformOriginError::InvalidParameters)?);
         }
 
         if !stream.at_end() {
             stream.skip_spaces();
             stream.parse_list_separator();
-            third_arg = Some(stream.parse_length().map_err(|_| TransformOriginError::InvalidParameters)?);
+            third_arg = Some(
+                stream
+                    .parse_length()
+                    .map_err(|_| TransformOriginError::InvalidParameters)?,
+            );
         }
 
         stream.skip_spaces();
@@ -133,12 +143,12 @@ impl std::str::FromStr for TransformOrigin {
             (Some(p), None, None) => {
                 let (x_offset, y_offset) = if p.is_horizontal() {
                     (p.into(), DirectionalPosition::Center.into())
-                }   else {
+                } else {
                     (DirectionalPosition::Center.into(), p.into())
                 };
 
                 TransformOrigin::new(x_offset, y_offset, Length::new(0.0, LengthUnit::Px))
-            },
+            }
             (Some(p1), Some(p2), length) => {
                 if let Some(length) = length {
                     if length.unit == LengthUnit::Percent {
@@ -148,29 +158,27 @@ impl std::str::FromStr for TransformOrigin {
 
                 let length = length.unwrap_or(Length::new(0.0, LengthUnit::Px));
 
-                let check = |pos| {
-                    match pos {
-                        Position::Length(_) => true,
-                        Position::DirectionalPosition(dp) => dp == DirectionalPosition::Center
-                    }
+                let check = |pos| match pos {
+                    Position::Length(_) => true,
+                    Position::DirectionalPosition(dp) => dp == DirectionalPosition::Center,
                 };
 
                 let only_keyword_is_center = check(p1) && check(p2);
 
                 if only_keyword_is_center {
                     TransformOrigin::new(p1.into(), p2.into(), length)
-                }   else {
+                } else {
                     // There is at least one of `left`, `right`, `top`, or `bottom`
                     if p1.is_horizontal() && p2.is_vertical() {
                         TransformOrigin::new(p1.into(), p2.into(), length)
-                    }   else if p1.is_vertical() && p2.is_horizontal() {
+                    } else if p1.is_vertical() && p2.is_horizontal() {
                         TransformOrigin::new(p2.into(), p1.into(), length)
-                    }   else {
-                        return Err(TransformOriginError::InvalidParameters)
+                    } else {
+                        return Err(TransformOriginError::InvalidParameters);
                     }
                 }
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         };
 
         Ok(result)
