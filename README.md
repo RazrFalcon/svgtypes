@@ -16,6 +16,7 @@
 - [`<viewBox>`](https://www.w3.org/TR/SVG2/coords.html#ViewBoxAttribute)
 - [`<path>`](https://www.w3.org/TR/SVG2/paths.html#PathData)
 - [`<transform>`](https://www.w3.org/TR/SVG11/types.html#DataTypeTransformList)
+- [`transform-origin`](https://drafts.csswg.org/css-transforms/#transform-origin-property)
 - [`<list-of-numbers>`](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGNumberList)
 - [`<list-of-lengths>`](https://www.w3.org/TR/SVG2/types.html#InterfaceSVGLengthList)
 - [`<list-of-points>`](https://www.w3.org/TR/SVG11/shapes.html#PointsBNF)
