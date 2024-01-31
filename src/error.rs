@@ -1,5 +1,5 @@
 /// List of all errors.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     /// An input data ended earlier than expected.
     ///

@@ -70,6 +70,7 @@ mod directional_position;
 mod enable_background;
 mod error;
 mod filter_functions;
+mod font;
 mod funciri;
 mod length;
 mod number;

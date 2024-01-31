@@ -139,7 +139,7 @@ impl<'a> TransformListParser<'a> {
         let s = &mut self.stream;
 
         let start = s.pos();
-        let name = s.consume_ident();
+        let name = s.parse_ident();
         s.skip_spaces();
         s.consume_byte(b'(')?;
 

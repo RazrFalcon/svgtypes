@@ -22,13 +22,15 @@ pub(crate) trait ByteExt {
     /// `[ \r\n\t]`
     fn is_space(&self) -> bool;
 
+    /// Checks if a byte is a space.
+    ///
+    /// `[\r\n]`
+    fn is_newline(&self) -> bool;
+
     /// Checks if a byte is an ASCII char.
     ///
     /// `[A-Za-z]`
     fn is_letter(&self) -> bool;
-
-    /// Checks if a byte is an XML ident char.
-    fn is_ident(&self) -> bool;
 }
 
 impl ByteExt for u8 {
@@ -53,13 +55,13 @@ impl ByteExt for u8 {
     }
 
     #[inline]
-    fn is_letter(&self) -> bool {
-        matches!(*self, b'A'..=b'Z' | b'a'..=b'z')
+    fn is_newline(&self) -> bool {
+        matches!(*self, b'\n' | b'\r')
     }
 
     #[inline]
-    fn is_ident(&self) -> bool {
-        matches!(*self, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' | b'-' | b'_')
+    fn is_letter(&self) -> bool {
+        matches!(*self, b'A'..=b'Z' | b'a'..=b'z')
     }
 }
 
@@ -141,6 +143,15 @@ impl<'a> Stream<'a> {
         Ok(self.curr_byte_unchecked())
     }
 
+    #[inline]
+    pub fn curr_char(&self) -> Result<char, Error> {
+        if self.at_end() {
+            return Err(Error::UnexpectedEndOfStream);
+        }
+
+        Ok(self.text.chars().nth(self.calc_char_pos() - 1).unwrap())
+    }
+
     /// Returns a byte from a current stream position.
     ///
     /// # Panics
@@ -199,6 +210,12 @@ impl<'a> Stream<'a> {
     #[inline]
     pub fn starts_with(&self, text: &[u8]) -> bool {
         self.text.as_bytes()[self.pos..].starts_with(text)
+    }
+
+    pub fn consume_char(&mut self) -> Result<char, Error> {
+        let char = self.curr_char()?;
+        self.advance(char.len_utf8());
+        return Ok(char);
     }
 
     /// Consumes current byte if it's equal to the provided byte.
@@ -277,12 +294,106 @@ impl<'a> Stream<'a> {
         }
     }
 
+    pub fn parse_escape(&mut self) -> Result<char, Error> {
+        let mut processed_char: Option<char> = None;
+
+        if let Ok(b'\\') = self.curr_byte() {
+            if self.next_byte()?.is_newline() {
+                return Err(Error::InvalidValue);
+            }
+
+            self.advance(1);
+
+            if self.curr_byte()?.is_ascii_hexdigit() {
+                let mut escape_sequence = String::new();
+                let mut counter = 0;
+
+                while let Ok(c) = self.curr_byte() {
+                    if c.is_hex_digit() {
+                        escape_sequence.push(self.curr_byte()? as char);
+                        self.advance(1);
+
+                        counter += 1;
+
+                        if counter == 6 {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+
+                if let Ok(num) = u32::from_str_radix(&escape_sequence, 16) {
+                    processed_char = Some(char::from_u32(num).ok_or(Error::InvalidValue)?);
+                }
+            } else {
+                processed_char = Some(self.consume_char()?);
+            }
+        } else {
+            return Err(Error::InvalidValue);
+        }
+
+        if let Ok(b) = self.curr_byte() {
+            if b.is_space() {
+                self.advance(1);
+            }
+        }
+
+        Ok(processed_char.ok_or(Error::InvalidValue)?)
+    }
+
     /// Consumes bytes by the predicate and returns them.
-    pub fn consume_ident(&mut self) -> &'a str {
+    pub fn parse_ident(&mut self) -> &'a str {
         let start = self.pos;
-        self.skip_bytes(|_, c| c.is_ident());
+        self.skip_bytes(|_, c| matches!(c, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' | b'-' | b'_'));
         self.slice_back(start)
     }
+
+    /// Parse an ident
+    /// https://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
+    // pub fn parse_ident(&mut self, is_string: bool) -> Result<&'a str, Error> {
+    //     let double_hyphen = self.starts_with(b"--");
+    //     let digit = self.curr_byte()?.is_digit();
+    //     let hyphen_digit  = match self.next_byte() {
+    //         Err(_) => false,
+    //         Ok(b) => self.starts_with(b"-") && b.is_digit()
+    //     };
+    //
+    //     if double_hyphen || digit || hyphen_digit {
+    //         return Err(Error::InvalidValue);
+    //     }
+    //
+    //     let mut ident = String::new();
+    //
+    //     while let Ok(char) = self.curr_char() {
+    //         if char.is_alphanumeric() || char == '-' || char == '_' || char as u32 >= 0xa0  {
+    //             ident.push(self.consume_char()?);
+    //         }   else if char == '\\' {
+    //             self.consume_char()?;
+    //
+    //             let curr_byte = self.curr_byte()?;
+    //
+    //             if [b'\n', b'\r'].contains(&curr_byte)  {
+    //                 self.skip_spaces();
+    //                 if !is_string {
+    //                     ident.push_str("\\\n");
+    //                 }
+    //             }   else if curr_byte.is_hex_digit() {
+    //
+    //             } else {
+    //                 // Anything except the above can be escaped without special treatment, so we just
+    //                 // consume it.
+    //                 ident.push(self.consume_char()?);
+    //             }
+    //         }   else {
+    //             break;
+    //         }
+    //     }
+    //
+    //     let char = self.curr_char().unwrap();
+    //     char.
+    //     Ok(self.slice_back(start))
+    // }
 
     /// Slices data from `pos` to the current position.
     #[inline]
@@ -400,4 +511,34 @@ mod tests {
         assert_eq!(s.parse_integer().unwrap_err().to_string(),
                    "invalid number at position 1");
     }
+
+    macro_rules! parse_escape {
+        ($name:ident, $text:expr, $result:expr) => (
+            #[test]
+            fn $name() {
+                assert_eq!(Stream::from($text).parse_escape().unwrap(), $result);
+            }
+        )
+    }
+
+    parse_escape!(escape_1, "\\\"", '"');
+    parse_escape!(escape_2, "\\你", '你');
+    parse_escape!(escape_3, "\\38", '8');
+    parse_escape!(escape_4, "\\38 ", '8');
+    parse_escape!(escape_5, "\\0038", '8');
+    parse_escape!(escape_6, "\\000038", '8');
+    parse_escape!(escape_7, "\\0038Hi", '8');
+    parse_escape!(escape_8, "\\0038 45", '8');
+
+    macro_rules! parse_escape_err {
+        ($name:ident, $text:expr, $result:expr) => (
+            #[test]
+            fn $name() {
+                assert_eq!(Stream::from($text).parse_escape().unwrap_err(), $result);
+            }
+        )
+    }
+
+    parse_escape_err!(escape_err_1, "\\", Error::UnexpectedEndOfStream);
+    parse_escape_err!(escape_err_2, "\\\n", Error::InvalidValue);
 }
