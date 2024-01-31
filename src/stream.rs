@@ -149,7 +149,7 @@ impl<'a> Stream<'a> {
             return Err(Error::UnexpectedEndOfStream);
         }
 
-        Ok(self.text.chars().nth(self.calc_char_pos() - 1).unwrap())
+        Ok(self.text[self.pos..].chars().next().unwrap())
     }
 
     /// Returns a byte from a current stream position.
