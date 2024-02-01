@@ -326,17 +326,17 @@ impl<'a> Stream<'a> {
                 if let Ok(num) = u32::from_str_radix(&escape_sequence, 16) {
                     processed_char = Some(char::from_u32(num).ok_or(Error::InvalidValue)?);
                 }
+
+                if let Ok(b) = self.curr_byte() {
+                    if b.is_space() {
+                        self.advance(1);
+                    }
+                }
             } else {
                 processed_char = Some(self.consume_char()?);
             }
         } else {
             return Err(Error::InvalidValue);
-        }
-
-        if let Ok(b) = self.curr_byte() {
-            if b.is_space() {
-                self.advance(1);
-            }
         }
 
         Ok(processed_char.ok_or(Error::InvalidValue)?)
@@ -367,7 +367,6 @@ impl<'a> Stream<'a> {
             if ch.is_ascii_alphanumeric() || ch == '_' || ch == '-' || !first_char.is_ascii() {
                 ident.push(self.consume_char()?);
             } else if ch == '\\' {
-                println!("reached!");
                 ident.push(self.parse_escape()?);
             } else {
                 break;
@@ -380,6 +379,37 @@ impl<'a> Stream<'a> {
         }
 
         Ok(ident)
+    }
+
+    pub fn parse_string(&mut self) -> Result<String, Error> {
+        let first_byte = self.curr_byte()?;
+        let quotation_token = if first_byte == b'"' || first_byte == b'\'' {
+            first_byte
+        } else {
+            return Err(Error::UnexpectedData(self.pos));
+        };
+        self.advance(1);
+
+        let mut string_content = String::new();
+
+        loop {
+            let next_char = self.curr_char()?;
+
+            match next_char {
+                '\\' => string_content.push(self.parse_escape()?),
+                '\'' | '"' => {
+                    if next_char == quotation_token as char {
+                        self.advance(1);
+                        break;
+                    } else {
+                        string_content.push(self.consume_char()?)
+                    }
+                }
+                _ => string_content.push(self.consume_char()?),
+            }
+        }
+
+        Ok(string_content)
     }
 
     /// Slices data from `pos` to the current position.
@@ -556,4 +586,19 @@ mod tests {
     parse_escape_err!(ident_err_2, "8abc", Error::InvalidValue);
     //TODO
     //parse_escape_err!(ident_err_3, "\\38abc", Error::InvalidValue);
+
+    macro_rules! parse_string {
+        ($name:ident, $text:expr, $result:expr) => (
+            #[test]
+            fn $name() {
+                assert_eq!(Stream::from($text).parse_string().unwrap(), $result);
+            }
+        )
+    }
+
+    parse_string!(string_1, "\"\"", "");
+    parse_string!(string_2, "\'\'", "");
+    parse_string!(string_3, "'Some text'", "Some text");
+    parse_string!(string_4, "'text with \\' escaped quotes'", "text with ' escaped quotes");
+    parse_string!(string_5, "\"more quotes ''\\\" and text\"", "more quotes ''\" and text");
 }
