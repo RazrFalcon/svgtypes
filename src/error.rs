@@ -20,6 +20,8 @@ pub enum Error {
 
     InvalidEscape,
 
+    InvalidIdent,
+
     /// An invalid/unexpected character.
     ///
     /// The first byte is an actual one, others - expected.
@@ -52,6 +54,9 @@ impl std::fmt::Display for Error {
             }
             Error::InvalidEscape => {
                 write!(f, "invalid escape sequence")
+            },
+            Error::InvalidIdent => {
+                write!(f, "invalid ident")
             }
             Error::InvalidChar(ref chars, pos) => {
                 // Vec<u8> -> Vec<String>
