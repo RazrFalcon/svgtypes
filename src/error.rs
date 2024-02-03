@@ -18,6 +18,8 @@ pub enum Error {
     /// then we will get `InvalidNumber`, because at least some data is valid.
     InvalidValue,
 
+    InvalidEscape,
+
     /// An invalid/unexpected character.
     ///
     /// The first byte is an actual one, others - expected.
@@ -47,6 +49,9 @@ impl std::fmt::Display for Error {
             }
             Error::InvalidValue => {
                 write!(f, "invalid value")
+            }
+            Error::InvalidEscape => {
+                write!(f, "invalid escape sequence")
             }
             Error::InvalidChar(ref chars, pos) => {
                 // Vec<u8> -> Vec<String>

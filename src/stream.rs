@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::str::FromStr;
 
 use crate::Error;
@@ -21,6 +22,8 @@ pub(crate) trait ByteExt {
     ///
     /// `[ \r\n\t]`
     fn is_space(&self) -> bool;
+
+    fn is_quote(&self) -> bool;
 
     /// Checks if a byte is a space.
     ///
@@ -55,6 +58,11 @@ impl ByteExt for u8 {
     }
 
     #[inline]
+    fn is_quote(&self) -> bool {
+        matches!(*self, b'\'' | b'"')
+    }
+
+    #[inline]
     fn is_newline(&self) -> bool {
         matches!(*self, b'\n' | b'\r')
     }
@@ -62,6 +70,35 @@ impl ByteExt for u8 {
     #[inline]
     fn is_letter(&self) -> bool {
         matches!(*self, b'A'..=b'Z' | b'a'..=b'z')
+    }
+}
+
+pub(crate) trait CharExt {
+    fn is_ident_start_char(&self) -> bool;
+
+    fn is_ident_char(&self) -> bool;
+
+    fn is_newline(&self) -> bool;
+}
+
+impl CharExt for char {
+    #[inline]
+    fn is_ident_start_char(&self) -> bool {
+        *self == '-'
+            || *self == '_'
+            || self.is_ascii_alphabetic()
+            || *self == '\\'
+            || !self.is_ascii()
+    }
+
+    #[inline]
+    fn is_ident_char(&self) -> bool {
+        self.is_ident_start_char() || self.is_ascii_digit()
+    }
+
+    #[inline]
+    fn is_newline(&self) -> bool {
+        matches!(*self, '\n' | '\r')
     }
 }
 
@@ -510,6 +547,54 @@ impl<'a> Stream<'a> {
     }
 }
 
+pub fn escape_string(text: &str) -> Result<Cow<'_, str>, Error> {
+    if !text.contains('\\') {
+        return Ok(Cow::Borrowed(text));
+    } else {
+        let mut escaped = String::new();
+
+        let mut iter = text.chars().peekable();
+
+        while let Some(char) = iter.next() {
+            if char == '\\' {
+                let next = iter.next().ok_or(Error::UnexpectedEndOfStream)?;
+
+                if next == '\n' {
+                    return Err(Error::InvalidEscape);
+                }
+
+                if next.is_ascii_hexdigit() {
+                    let mut escape_sequence = next.to_string();
+                    let mut counter = 1;
+
+                    while let Some(char) = iter.next_if(|c| c.is_ascii_hexdigit()) {
+                        escape_sequence.push(char);
+                        counter += 1;
+                        if counter == 6 {
+                            break;
+                        }
+                    }
+
+                    escaped.push(
+                        char::from_u32(
+                            u32::from_str_radix(&escape_sequence, 16)
+                                .map_err(|_| Error::InvalidEscape)?,
+                        )
+                        .ok_or(Error::InvalidEscape)?,
+                    );
+
+                    iter.next_if_eq(&' ');
+                } else {
+                    escaped.push(next)
+                }
+            } else {
+                escaped.push(char);
+            }
+        }
+        Ok(Cow::Owned(escaped))
+    }
+}
+
 #[rustfmt::skip]
 #[cfg(test)]
 mod tests {
@@ -533,31 +618,36 @@ mod tests {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
-                assert_eq!(Stream::from($text).parse_escape().unwrap(), $result);
+                assert_eq!(escape_string($text).unwrap().to_owned(), $result);
             }
         )
     }
 
-    parse_escape!(escape_1, "\\\"", '"');
-    parse_escape!(escape_2, "\\你", '你');
-    parse_escape!(escape_3, "\\38", '8');
-    parse_escape!(escape_4, "\\38 ", '8');
-    parse_escape!(escape_5, "\\0038", '8');
-    parse_escape!(escape_6, "\\000038", '8');
-    parse_escape!(escape_7, "\\0038Hi", '8');
-    parse_escape!(escape_8, "\\0038 45", '8');
+    parse_escape!(escape_1, "\\\"", "\"");
+    parse_escape!(escape_2, "\\你", "你");
+    parse_escape!(escape_3, "\\41", "A");
+    parse_escape!(escape_4, "\\41 ", "A");
+    parse_escape!(escape_5, "\\0041", "A");
+    parse_escape!(escape_6, "\\000041", "A");
+    parse_escape!(escape_7, "\\0041Hi", "AHi");
+    parse_escape!(escape_8, "\\0041 Hi", "AHi");
+    parse_escape!(escape_9, "\\0041  Hi", "A Hi");
+    parse_escape!(escape_10, "\\0041 10", "A10");
+    parse_escape!(escape_11, "\\0041  10", "A 10");
+    parse_escape!(escape_12, "So\\6D\\65  longer text with Chinese \\6587 \\5b57", "Some longer text with Chinese 文字");
 
     macro_rules! parse_escape_err {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
-                assert_eq!(Stream::from($text).parse_escape().unwrap_err(), $result);
+                assert_eq!(escape_string($text).unwrap_err(), $result);
             }
         )
     }
 
     parse_escape_err!(escape_err_1, "\\", Error::UnexpectedEndOfStream);
-    parse_escape_err!(escape_err_2, "\\\n", Error::InvalidValue);
+    parse_escape_err!(escape_err_2, "\\\n", Error::InvalidEscape);
+    parse_escape_err!(escape_err_3, "\\FFFFFF", Error::InvalidEscape);
 
     macro_rules! parse_ident {
         ($name:ident, $text:expr, $result:expr) => (

@@ -11,11 +11,24 @@ pub enum FontFamily {
     Named(String),
 }
 
-pub fn parse_font_families(text: &str) -> Vec<FontFamily> {
-    let families = vec![];
-
-    families
-}
+// pub fn parse_font_families(text: &str) -> Vec<FontFamily> {
+//     let families = vec![];
+//
+//     let mut stream = Stream::from(text);
+//
+//     let parse_single_family = |mut stream: Stream| {
+//         stream.skip_spaces();
+//
+//         if stream.curr_byte()? == b'\'' || stream.curr_byte()? == b'\"' {
+//             let res = stream.parse_string()?;
+//             return FontFamily::Named(res);
+//         }   else {
+//             while
+//         }
+//     }
+//
+//     families
+// }
 
 // #[rustfmt::skip]
 // #[cfg(test)]
