@@ -24,11 +24,6 @@ pub(crate) trait ByteExt {
 
     fn is_quote(&self) -> bool;
 
-    /// Checks if a byte is a space.
-    ///
-    /// `[\r\n]`
-    fn is_newline(&self) -> bool;
-
     /// Checks if a byte is an ASCII char.
     ///
     /// `[A-Za-z]`
@@ -62,11 +57,6 @@ impl ByteExt for u8 {
     #[inline]
     fn is_quote(&self) -> bool {
         matches!(*self, b'\'' | b'"')
-    }
-
-    #[inline]
-    fn is_newline(&self) -> bool {
-        matches!(*self, b'\n' | b'\r')
     }
 
     #[inline]
