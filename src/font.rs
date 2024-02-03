@@ -46,7 +46,8 @@ impl<'a> Stream<'a> {
             self.skip_spaces();
 
             let family = {
-                if self.curr_byte()? == b'\'' || self.curr_byte()? == b'\"' {
+                let ch = self.curr_byte()?;
+                if ch == b'\'' || ch == b'\"' {
                     let res = self.parse_string()?;
                     FontFamily::Named(res.to_string())
                 } else {
@@ -82,6 +83,8 @@ impl<'a> Stream<'a> {
             if let Ok(b) = self.curr_byte() {
                 if b == b',' {
                     self.advance(1);
+                }   else {
+                    break;
                 }
             }
         }
@@ -107,7 +110,7 @@ mod tests {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
-                assert_eq!(Stream::from($text).parse_font_families().unwrap(), $result);
+                assert_eq!(parse_font_families($text).unwrap(), $result);
             }
         )
     }
@@ -144,14 +147,19 @@ mod tests {
         vec![named!("简体中文"), SANS_SERIF, named!("日本語フォント"), named!("Arial")]);
 
     test!(font_family_16, "", vec![]);
+
     macro_rules! font_family_err {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
-                assert_eq!(Stream::from($text).parse_font_families().unwrap_err().to_string(), $result);
+                assert_eq!(parse_font_families($text).unwrap_err().to_string(), $result);
             }
         )
     }
     font_family_err!(font_family_err_1, "Red/Black, sans-serif", "invalid ident");
-    // font_family_err!(font_family_err_2, "\"Lucida\" Grande, sans-serif", "invalid ident");
+    font_family_err!(font_family_err_2, "\"Lucida\" Grande, sans-serif", "unexpected data at position 10");
+    font_family_err!(font_family_err_3, "Ahem!, sans-serif", "invalid ident");
+    font_family_err!(font_family_err_4, "test@foo, sans-serif", "invalid ident");
+    font_family_err!(font_family_err_5, "#POUND, sans-serif", "invalid ident");
+    font_family_err!(font_family_err_6, "Hawaii 5-0, sans-serif", "invalid ident");
 }

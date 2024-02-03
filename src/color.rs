@@ -164,7 +164,7 @@ impl<'a> Stream<'a> {
             }
         } else {
             // TODO: remove allocation
-            let name = self.consume_ascii_ident().to_lowercase();
+            let name = self.consume_ascii_ident().to_ascii_lowercase();
             if name == "rgb" || name == "rgba" {
                 self.consume_byte(b'(')?;
 
