@@ -1,4 +1,4 @@
-use crate::stream::Stream;
+use crate::stream::{escape_string, Stream};
 use crate::Error;
 use std::str::FromStr;
 
@@ -13,9 +13,6 @@ pub enum FontFamily {
 
 // pub fn parse_font_families(text: &str) -> Vec<FontFamily> {
 //     let families = vec![];
-//
-//     let mut stream = Stream::from(text);
-//
 //     let parse_single_family = |mut stream: Stream| {
 //         stream.skip_spaces();
 //
@@ -23,9 +20,32 @@ pub enum FontFamily {
 //             let res = stream.parse_string()?;
 //             return FontFamily::Named(res);
 //         }   else {
-//             while
+//             let mut idents = vec![];
+//
+//             while let Ok(c) = stream.curr_char() {
+//                 if c != ',' {
+//                     idents.push(stream.parse_ident()?.to_string());
+//                     stream.skip_spaces();
+//                 }
+//             }
+//
+//             let joined = idents.join(" ");
+//
+//             match joined.as_str() {
+//                 "serif" => FontFamily::Serif,
+//                 "sans-serif" => FontFamily::SansSerif,
+//                 "cursive" => FontFamily::Cursive,
+//                 "fantasy" => FontFamily::Fantasy,
+//                 "monospace" => FontFamily::Monospace,
+//                 _ => FontFamily::Named(joined)
+//             }
 //         }
-//     }
+//     };
+//
+//     let Ok(escaped) = escape_string(text) else { return families };
+//     let mut stream = Stream::from(escaped);
+//
+//
 //
 //     families
 // }
