@@ -92,7 +92,7 @@ pub use crate::directional_position::*;
 pub use crate::enable_background::*;
 pub use crate::error::*;
 pub use crate::filter_functions::*;
-pub use crate::font::FontFamily;
+pub use crate::font::*;
 pub use crate::funciri::*;
 pub use crate::length::*;
 pub use crate::number::*;

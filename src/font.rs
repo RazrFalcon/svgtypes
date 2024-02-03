@@ -1,5 +1,18 @@
 use crate::stream::Stream;
 use crate::Error;
+use std::fmt::Display;
+
+pub fn parse_font_families(text: &str) -> Result<Vec<FontFamily>, Error> {
+    let mut s = Stream::from(text);
+    let font_families = s.parse_font_families()?;
+
+    s.skip_spaces();
+    if !s.at_end() {
+        return Err(Error::UnexpectedData(s.calc_char_pos()));
+    }
+
+    Ok(font_families)
+}
 
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub enum FontFamily {
@@ -11,23 +24,19 @@ pub enum FontFamily {
     Named(String),
 }
 
-// impl std::str::FromStr for FontFamily {
-//     type Err = Error;
-//
-//     fn from_str(text: &str) -> Result<Self, Error> {
-//         let mut s = Stream::from(text);
-//         let font_families = s.parse_font_families()?;
-//
-//         // Check that we are at the end of the stream. Otherwise color can be followed by icccolor,
-//         // which is not supported.
-//         s.skip_spaces();
-//         if !s.at_end() {
-//             return Err(Error::UnexpectedData(s.calc_char_pos()));
-//         }
-//
-//         Ok(color)
-//     }
-// }
+impl Display for FontFamily {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match self {
+            FontFamily::Monospace => "monospace".to_string(),
+            FontFamily::Serif => "serif".to_string(),
+            FontFamily::SansSerif => "sans-serif".to_string(),
+            FontFamily::Cursive => "cursive".to_string(),
+            FontFamily::Fantasy => "fantasy".to_string(),
+            FontFamily::Named(s) => format!("\"{}\"", s),
+        };
+        write!(f, "{}", str)
+    }
+}
 
 impl<'a> Stream<'a> {
     pub fn parse_font_families(&mut self) -> Result<Vec<FontFamily>, Error> {
@@ -134,6 +143,7 @@ mod tests {
     test!(font_family_15, "简体中文,sans-serif  , ,\"日本語フォント\",Arial",
         vec![named!("简体中文"), SANS_SERIF, named!("日本語フォント"), named!("Arial")]);
 
+    test!(font_family_16, "", vec![]);
     macro_rules! font_family_err {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
