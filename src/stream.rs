@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::str::FromStr;
 
 use crate::Error;
@@ -73,32 +72,39 @@ impl ByteExt for u8 {
     }
 }
 
-pub(crate) trait CharExt {
-    fn is_ident_start_char(&self) -> bool;
-
-    fn is_ident_char(&self) -> bool;
-
-    fn is_newline(&self) -> bool;
+trait CssCharExt {
+    fn is_name_start(&self) -> bool;
+    fn is_name_char(&self) -> bool;
+    fn is_non_ascii(&self) -> bool;
+    fn is_escape(&self) -> bool;
 }
 
-impl CharExt for char {
+impl CssCharExt for char {
     #[inline]
-    fn is_ident_start_char(&self) -> bool {
-        *self == '-'
-            || *self == '_'
-            || self.is_ascii_alphabetic()
-            || *self == '\\'
-            || !self.is_ascii()
+    fn is_name_start(&self) -> bool {
+        match *self {
+            '_' | 'a'..='z' | 'A'..='Z' => true,
+            _ => self.is_non_ascii() || self.is_escape(),
+        }
     }
 
     #[inline]
-    fn is_ident_char(&self) -> bool {
-        self.is_ident_start_char() || self.is_ascii_digit()
+    fn is_name_char(&self) -> bool {
+        match *self {
+            '_' | 'a'..='z' | 'A'..='Z' | '0'..='9' | '-' => true,
+            _ => self.is_non_ascii() || self.is_escape(),
+        }
     }
 
     #[inline]
-    fn is_newline(&self) -> bool {
-        matches!(*self, '\n' | '\r')
+    fn is_non_ascii(&self) -> bool {
+        *self as u32 > 237
+    }
+
+    #[inline]
+    fn is_escape(&self) -> bool {
+        // TODO: this
+        false
     }
 }
 
@@ -181,12 +187,8 @@ impl<'a> Stream<'a> {
     }
 
     #[inline]
-    pub fn curr_char(&self) -> Result<char, Error> {
-        if self.at_end() {
-            return Err(Error::UnexpectedEndOfStream);
-        }
-
-        Ok(self.text[self.pos..].chars().next().unwrap())
+    pub fn chars(&self) -> std::str::Chars<'a> {
+        self.text[self.pos..].chars()
     }
 
     /// Returns a byte from a current stream position.
@@ -249,12 +251,6 @@ impl<'a> Stream<'a> {
         self.text.as_bytes()[self.pos..].starts_with(text)
     }
 
-    pub fn consume_char(&mut self) -> Result<char, Error> {
-        let char = self.curr_char()?;
-        self.advance(char.len_utf8());
-        return Ok(char);
-    }
-
     /// Consumes current byte if it's equal to the provided byte.
     ///
     /// # Errors
@@ -271,6 +267,73 @@ impl<'a> Stream<'a> {
 
         self.advance(1);
         Ok(())
+    }
+
+    pub fn parse_ident(&mut self) -> Result<&'a str, Error> {
+        let start = self.pos();
+
+        if self.curr_byte() == Ok(b'-') {
+            self.advance(1);
+        }
+
+        let mut iter = self.chars();
+        if let Some(c) = iter.next() {
+            if c.is_name_start() {
+                self.advance(c.len_utf8());
+            } else {
+                return Err(Error::InvalidIdent);
+            }
+        }
+
+        for c in iter {
+            if c.is_name_char() {
+                self.advance(c.len_utf8());
+            } else {
+                break;
+            }
+        }
+
+        if start == self.pos() {
+            return Err(Error::InvalidIdent);
+        }
+
+        let name = self.slice_back(start);
+        Ok(name)
+    }
+
+    pub fn parse_string(&mut self) -> Result<&'a str, Error> {
+        // Check for opening quote.
+        let quote = self.curr_byte()?;
+        if quote == b'\'' || quote == b'"' {
+            let mut prev = quote;
+            self.advance(1);
+
+            let start = self.pos();
+
+            while !self.at_end() {
+                let curr = self.curr_byte_unchecked();
+
+                // Advance until the closing quote.
+                if curr == quote {
+                    // Check for escaped quote.
+                    if prev != b'\\' {
+                        break;
+                    }
+                }
+
+                prev = curr;
+                self.advance(1);
+            }
+
+            let value = self.slice_back(start);
+
+            // Check for closing quote.
+            self.consume_byte(quote)?;
+
+            Ok(value)
+        } else {
+            return Err(Error::InvalidValue);
+        }
     }
 
     /// Consumes selected string.
@@ -329,115 +392,6 @@ impl<'a> Stream<'a> {
                 break;
             }
         }
-    }
-
-    pub fn parse_escape(&mut self) -> Result<char, Error> {
-        let mut processed_char = None;
-
-        if let Ok(b'\\') = self.curr_byte() {
-            if self.next_byte()?.is_newline() {
-                return Err(Error::InvalidValue);
-            }
-
-            self.advance(1);
-
-            if self.curr_byte()?.is_ascii_hexdigit() {
-                let mut escape_sequence = String::new();
-                let mut counter = 0;
-
-                while let Ok(c) = self.curr_byte() {
-                    if c.is_hex_digit() {
-                        escape_sequence.push(self.curr_byte()? as char);
-                        self.advance(1);
-
-                        counter += 1;
-
-                        if counter == 6 {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-
-                if let Ok(num) = u32::from_str_radix(&escape_sequence, 16) {
-                    processed_char = Some(char::from_u32(num).ok_or(Error::InvalidValue)?);
-                }
-
-                if let Ok(b) = self.curr_byte() {
-                    if b.is_space() {
-                        self.advance(1);
-                    }
-                }
-            } else {
-                processed_char = Some(self.consume_char()?);
-            }
-        } else {
-            return Err(Error::InvalidValue);
-        }
-
-        Ok(processed_char.ok_or(Error::InvalidValue)?)
-    }
-
-    /// Parse an ident
-    /// https://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
-    pub fn parse_ident(&mut self) -> Result<Cow<'_, str>, Error> {
-        self.skip_spaces();
-        let start = self.pos;
-        let first_char = self.curr_char()?;
-
-        if first_char.is_ident_start_char() {
-            self.consume_char()?;
-
-            while let Ok(ch) = self.curr_char() {
-                if ch.is_ident_char() {
-                    self.consume_char()?;
-                }   else {
-                    break;
-                }
-            }
-        }
-
-        let s = self.slice_back(start);
-        let escaped = escape_string(s)?;
-
-        // Just a single hyphen as well as a digit in the first position is not allowed
-        if s == "-" || s.as_bytes()[0].is_ascii_digit() {
-            return Err(Error::InvalidIdent);
-        }
-
-        Ok(escaped)
-    }
-
-    pub fn parse_string(&mut self) -> Result<String, Error> {
-        let first_byte = self.curr_byte()?;
-        let quotation_token = if first_byte == b'"' || first_byte == b'\'' {
-            first_byte
-        } else {
-            return Err(Error::UnexpectedData(self.pos));
-        };
-        self.advance(1);
-
-        let mut string_content = String::new();
-
-        loop {
-            let next_char = self.curr_char()?;
-
-            match next_char {
-                '\\' => string_content.push(self.parse_escape()?),
-                '\'' | '"' => {
-                    if next_char == quotation_token as char {
-                        self.advance(1);
-                        break;
-                    } else {
-                        string_content.push(self.consume_char()?)
-                    }
-                }
-                _ => string_content.push(self.consume_char()?),
-            }
-        }
-
-        Ok(string_content)
     }
 
     /// Slices data from `pos` to the current position.
@@ -538,55 +492,6 @@ impl<'a> Stream<'a> {
     }
 }
 
-pub fn escape_string(text: &str) -> Result<Cow<'_, str>, Error> {
-    if !text.contains('\\') {
-        return Ok(Cow::Borrowed(text));
-    } else {
-        let mut escaped = String::new();
-
-        let mut iter = text.chars().peekable();
-
-        while let Some(char) = iter.next() {
-            if char == '\\' {
-                let next = iter.next().ok_or(Error::UnexpectedEndOfStream)?;
-
-                if next == '\n' {
-                    return Err(Error::InvalidEscape);
-                }
-
-                if next.is_ascii_hexdigit() {
-                    let mut escape_sequence = next.to_string();
-                    let mut counter = 1;
-
-                    while let Some(char) = iter.next_if(|c| c.is_ascii_hexdigit()) {
-                        escape_sequence.push(char);
-                        counter += 1;
-                        if counter == 6 {
-                            break;
-                        }
-                    }
-
-                    escaped.push(
-                        char::from_u32(
-                            u32::from_str_radix(&escape_sequence, 16)
-                                .map_err(|_| Error::InvalidEscape)?,
-                        )
-                        .ok_or(Error::InvalidEscape)?,
-                    );
-
-                    // TODO: Readd this
-                    // iter.next_if_eq(&' ');
-                } else {
-                    escaped.push(next)
-                }
-            } else {
-                escaped.push(char);
-            }
-        }
-        Ok(Cow::Owned(escaped))
-    }
-}
-
 #[rustfmt::skip]
 #[cfg(test)]
 mod tests {
@@ -605,84 +510,4 @@ mod tests {
         assert_eq!(s.parse_integer().unwrap_err().to_string(),
                    "invalid number at position 1");
     }
-
-    macro_rules! parse_escape {
-        ($name:ident, $text:expr, $result:expr) => (
-            #[test]
-            fn $name() {
-                assert_eq!(escape_string($text).unwrap().to_owned(), $result);
-            }
-        )
-    }
-
-    parse_escape!(escape_1, "\\\"", "\"");
-    parse_escape!(escape_2, "\\你", "你");
-    parse_escape!(escape_3, "\\41", "A");
-    // TODO: Need to fix space issue.
-    // parse_escape!(escape_4, "\\41 ", "A");
-    parse_escape!(escape_5, "\\0041", "A");
-    parse_escape!(escape_6, "\\000041", "A");
-    parse_escape!(escape_7, "\\0041Hi", "AHi");
-    // TODO: same as above
-    parse_escape!(escape_8, "\\0041 Hi", "A Hi");
-    parse_escape!(escape_10, "\\0041 10", "A 10");
-    // parse_escape!(escape_11, "\\0041  10", "A  10");
-    parse_escape!(escape_12, "So\\6D\\65 longer text with Chinese \\6587\\5b57", "Some longer text with Chinese 文字");
-
-    macro_rules! parse_escape_err {
-        ($name:ident, $text:expr, $result:expr) => (
-            #[test]
-            fn $name() {
-                assert_eq!(escape_string($text).unwrap_err(), $result);
-            }
-        )
-    }
-
-    parse_escape_err!(escape_err_1, "\\", Error::UnexpectedEndOfStream);
-    parse_escape_err!(escape_err_2, "\\\n", Error::InvalidEscape);
-    parse_escape_err!(escape_err_3, "\\FFFFFF", Error::InvalidEscape);
-
-    macro_rules! parse_ident {
-        ($name:ident, $text:expr, $result:expr) => (
-            #[test]
-            fn $name() {
-                assert_eq!(Stream::from($text).parse_ident().unwrap(), $result);
-            }
-        )
-    }
-
-    parse_ident!(ident_1, "_test", "_test");
-    parse_ident!(ident_2, "_te-st", "_te-st");
-    parse_ident!(ident_3, "te\\73\\0074 ", "test");
-    // TODO: space issue
-    // parse_ident!(ident_4, "   \\4F60 80abc   ", "你80abc");
-
-    macro_rules! parse_ident_err {
-        ($name:ident, $text:expr, $result:expr) => (
-            #[test]
-            fn $name() {
-                assert_eq!(Stream::from($text).parse_ident().unwrap_err(), $result);
-            }
-        )
-    }
-
-    // parse_escape_err!(ident_err_1, "-", Error::InvalidValue);
-    // parse_escape_err!(ident_err_2, "8abc", Error::InvalidValue);
-    //TODO
-    //parse_escape_err!(ident_err_3, "\\38abc", Error::InvalidValue);
-
-    macro_rules! parse_string {
-        ($name:ident, $text:expr, $result:expr) => (
-            #[test]
-            fn $name() {
-                assert_eq!(Stream::from($text).parse_string().unwrap(), $result);
-            }
-        )
-    }
-
-    parse_string!(string_1, "\"\"", "");
-    parse_string!(string_2, "\'\'", "");
-    parse_string!(string_3, "'Some text'", "Some text");
-    parse_string!(string_4, "'text with \\' escaped quotes'", "text with ' escaped quotes");
-    parse_string!(string_5, "\"more quotes ''\\\" and text\"", "more quotes ''\" and text");
 }

@@ -18,8 +18,7 @@ pub enum Error {
     /// then we will get `InvalidNumber`, because at least some data is valid.
     InvalidValue,
 
-    InvalidEscape,
-
+    /// An invalid ident.
     InvalidIdent,
 
     /// An invalid/unexpected character.
@@ -52,9 +51,6 @@ impl std::fmt::Display for Error {
             Error::InvalidValue => {
                 write!(f, "invalid value")
             }
-            Error::InvalidEscape => {
-                write!(f, "invalid escape sequence")
-            },
             Error::InvalidIdent => {
                 write!(f, "invalid ident")
             }

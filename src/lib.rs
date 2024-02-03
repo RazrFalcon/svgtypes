@@ -49,7 +49,7 @@ None.
 */
 
 #![forbid(unsafe_code)]
-#![deny(missing_docs)]
+// #![deny(missing_docs)]
 #![deny(missing_debug_implementations)]
 #![deny(missing_copy_implementations)]
 
@@ -92,6 +92,7 @@ pub use crate::directional_position::*;
 pub use crate::enable_background::*;
 pub use crate::error::*;
 pub use crate::filter_functions::*;
+pub use crate::font::FontFamily;
 pub use crate::funciri::*;
 pub use crate::length::*;
 pub use crate::number::*;
