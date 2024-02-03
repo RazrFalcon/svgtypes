@@ -33,6 +33,9 @@ pub(crate) trait ByteExt {
     ///
     /// `[A-Za-z]`
     fn is_letter(&self) -> bool;
+
+    /// Checks if a byte is an ASCII ident char.
+    fn is_ascii_ident(&self) -> bool;
 }
 
 impl ByteExt for u8 {
@@ -69,6 +72,11 @@ impl ByteExt for u8 {
     #[inline]
     fn is_letter(&self) -> bool {
         matches!(*self, b'A'..=b'Z' | b'a'..=b'z')
+    }
+
+    #[inline]
+    fn is_ascii_ident(&self) -> bool {
+        matches!(*self, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' | b'-' | b'_')
     }
 }
 
@@ -299,6 +307,12 @@ impl<'a> Stream<'a> {
 
         let name = self.slice_back(start);
         Ok(name)
+    }
+
+    pub fn consume_ascii_ident(&mut self) -> &'a str {
+        let start = self.pos;
+        self.skip_bytes(|_, c| c.is_ascii_ident());
+        self.slice_back(start)
     }
 
     pub fn parse_string(&mut self) -> Result<&'a str, Error> {

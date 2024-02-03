@@ -19,6 +19,10 @@ pub enum Error {
     InvalidValue,
 
     /// An invalid ident.
+    ///
+    /// CSS idents have certain rules with regard to the characters they may contain.
+    /// For example, they may not start with a number. If an invalid ident is encountered,
+    /// this error will be returned.
     InvalidIdent,
 
     /// An invalid/unexpected character.
