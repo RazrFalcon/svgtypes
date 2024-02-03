@@ -1,6 +1,6 @@
 [package]
 name = "svgtypes"
-version = "0.12.0"
+version = "0.13.0"
 authors = ["Yevhenii Reizner <razrfalcon@gmail.com>"]
 categories = ["parser-implementations"]
 description = "SVG types parser."
@@ -17,4 +17,4 @@ members = ["benches"]
 
 [dependencies]
 siphasher = "0.3" # perfect hash implementation for color names
-kurbo = "0.9" # ArcTo to CurveTo(s)
+kurbo = "0.10" # ArcTo to CurveTo(s)
