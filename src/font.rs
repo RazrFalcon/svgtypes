@@ -1,7 +1,7 @@
-use crate::stream::Stream;
+use crate::stream::{ByteExt, Stream};
 use crate::Error;
-use std::fmt::Display;
 use crate::Error::UnexpectedEndOfStream;
+use std::fmt::Display;
 
 /// Parses a list of font families and generic families from a string.
 pub fn parse_font_families(text: &str) -> Result<Vec<FontFamily>, Error> {
@@ -115,7 +115,7 @@ pub struct FontShorthand<'a> {
     pub font_weight: Option<&'a str>,
     pub font_stretch: Option<&'a str>,
     pub font_size: &'a str,
-    pub font_family: &'a str
+    pub font_family: &'a str,
 }
 
 pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
@@ -134,16 +134,17 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
 
         match ident {
             // TODO: Reuse actual parsers to prevent duplication.
+            // We ignore normal because it's ambiguous to which it belongs and all
+            // other attributes need to be resetted anyway.
             "normal" => {}
             "small-caps" => font_variant = Some(ident),
             "italic" | "oblique" => font_style = Some(ident),
-            "bold" | "bolder" | "lighter" |
-            "100" | "200" | "300" | "400" |
-            "500" | "600" | "700" | "800" |
-            "900" => font_weight = Some(ident),
-            "ultra-condensed" | "extra-condensed" | "condensed" |
-            "semi-condensed" | "semi-expanded" | "expanded" |
-            "extra-expanded" | "ultra-expanded" => font_stretch = Some(ident),
+            "bold" | "bolder" | "lighter" | "100" | "200" | "300" | "400" | "500" | "600"
+            | "700" | "800" | "900" => font_weight = Some(ident),
+            "ultra-condensed" | "extra-condensed" | "condensed" | "semi-condensed"
+            | "semi-expanded" | "expanded" | "extra-expanded" | "ultra-expanded" => {
+                font_stretch = Some(ident)
+            }
             _ => {
                 stream = Stream::from(text);
                 stream.advance(prev_pos);
@@ -156,8 +157,14 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
     }
 
     prev_pos = stream.pos();
-    // TODO: Accept things like 'xxl-large'
-    let _ = stream.parse_length()?;
+    if stream.curr_byte()?.is_digit() {
+        // A font size such as '15pt'
+        let _ = stream.parse_length()?;
+    } else {
+        // A font size like 'xxl-large'
+        let _ = stream.consume_ascii_ident();
+    }
+
     let font_size = stream.slice_back(prev_pos);
     stream.skip_spaces();
     if stream.curr_byte()? == b'/' {
@@ -180,7 +187,7 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
         font_weight,
         font_stretch,
         font_size,
-        font_family
+        font_family,
     })
 }
 
@@ -189,7 +196,7 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
 mod tests {
     use super::*;
 
-    macro_rules! test_font_family {
+    macro_rules! font_family {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
@@ -210,26 +217,26 @@ mod tests {
     const MONOSPACE: FontFamily = FontFamily::Monospace;
     const CURSIVE: FontFamily = FontFamily::Cursive;
 
-    test_font_family!(font_family_1, "Times New Roman", vec![named!("Times New Roman")]);
-    test_font_family!(font_family_2, "serif", vec![SERIF]);
-    test_font_family!(font_family_3, "sans-serif", vec![SANS_SERIF]);
-    test_font_family!(font_family_4, "cursive", vec![CURSIVE]);
-    test_font_family!(font_family_5, "fantasy", vec![FANTASY]);
-    test_font_family!(font_family_6, "monospace", vec![MONOSPACE]);
-    test_font_family!(font_family_7, "'Times New Roman'", vec![named!("Times New Roman")]);
-    test_font_family!(font_family_8, "'Times New Roman', sans-serif", vec![named!("Times New Roman"), SANS_SERIF]);
-    test_font_family!(font_family_9, "'Times New Roman', sans-serif", vec![named!("Times New Roman"), SANS_SERIF]);
-    test_font_family!(font_family_10, "Arial, sans-serif, 'fantasy'", vec![named!("Arial"), SANS_SERIF, named!("fantasy")]);
-    test_font_family!(font_family_11, "    Arial  , monospace  , 'fantasy'", vec![named!("Arial"), MONOSPACE, named!("fantasy")]);
-    test_font_family!(font_family_12, "Times    New Roman", vec![named!("Times New Roman")]);
-    test_font_family!(font_family_13, "\"Times New Roman\", sans-serif, sans-serif, \"Arial\"",
+    font_family!(font_family_1, "Times New Roman", vec![named!("Times New Roman")]);
+    font_family!(font_family_2, "serif", vec![SERIF]);
+    font_family!(font_family_3, "sans-serif", vec![SANS_SERIF]);
+    font_family!(font_family_4, "cursive", vec![CURSIVE]);
+    font_family!(font_family_5, "fantasy", vec![FANTASY]);
+    font_family!(font_family_6, "monospace", vec![MONOSPACE]);
+    font_family!(font_family_7, "'Times New Roman'", vec![named!("Times New Roman")]);
+    font_family!(font_family_8, "'Times New Roman', sans-serif", vec![named!("Times New Roman"), SANS_SERIF]);
+    font_family!(font_family_9, "'Times New Roman', sans-serif", vec![named!("Times New Roman"), SANS_SERIF]);
+    font_family!(font_family_10, "Arial, sans-serif, 'fantasy'", vec![named!("Arial"), SANS_SERIF, named!("fantasy")]);
+    font_family!(font_family_11, "    Arial  , monospace  , 'fantasy'", vec![named!("Arial"), MONOSPACE, named!("fantasy")]);
+    font_family!(font_family_12, "Times    New Roman", vec![named!("Times New Roman")]);
+    font_family!(font_family_13, "\"Times New Roman\", sans-serif, sans-serif, \"Arial\"",
         vec![named!("Times New Roman"), SANS_SERIF, SANS_SERIF, named!("Arial")]
     );
-    test_font_family!(font_family_14, "Times New Roman,,,Arial", vec![named!("Times New Roman"), named!("Arial")]);
-    test_font_family!(font_family_15, "简体中文,sans-serif  , ,\"日本語フォント\",Arial",
+    font_family!(font_family_14, "Times New Roman,,,Arial", vec![named!("Times New Roman"), named!("Arial")]);
+    font_family!(font_family_15, "简体中文,sans-serif  , ,\"日本語フォント\",Arial",
         vec![named!("简体中文"), SANS_SERIF, named!("日本語フォント"), named!("Arial")]);
 
-    test_font_family!(font_family_16, "", vec![]);
+    font_family!(font_family_16, "", vec![]);
 
     macro_rules! font_family_err {
         ($name:ident, $text:expr, $result:expr) => (
@@ -246,7 +253,16 @@ mod tests {
     font_family_err!(font_family_err_5, "#POUND, sans-serif", "invalid ident");
     font_family_err!(font_family_err_6, "Hawaii 5-0, sans-serif", "invalid ident");
 
-    macro_rules! test_font_shorthand {
+    impl<'a> FontShorthand<'a> {
+        fn new(font_style: Option<&'a str>, font_variant: Option<&'a str>, font_weight: Option<&'a str>,
+                   font_stretch: Option<&'a str>, font_size: &'a str, font_family: &'a str) -> Self {
+            Self {
+                font_style, font_variant, font_weight, font_stretch, font_size, font_family
+            }
+        }
+    }
+
+    macro_rules! font_shorthand {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
@@ -254,4 +270,24 @@ mod tests {
             }
         )
     }
+
+    font_shorthand!(font_shorthand_1, "12pt/14pt sans-serif",
+        FontShorthand::new(None, None, None, None, "12pt", "sans-serif"));
+    font_shorthand!(font_shorthand_2, "80% sans-serif",
+        FontShorthand::new(None, None, None, None, "80%", "sans-serif"));
+    font_shorthand!(font_shorthand_3, "bold italic large Palatino, serif",
+        FontShorthand::new(Some("italic"), None, Some("bold"), None, "large", "Palatino, serif"));
+    font_shorthand!(font_shorthand_4, "x-large/110% \"new century schoolbook\", serif",
+        FontShorthand::new(None, None, None, None, "x-large", "\"new century schoolbook\", serif"));
+    font_shorthand!(font_shorthand_5, "normal small-caps 120%/120% fantasy",
+        FontShorthand::new(None, Some("small-caps"), None, None, "120%", "fantasy"));
+    font_shorthand!(font_shorthand_6, "condensed oblique 12pt \"Helvetica Neue\", serif",
+        FontShorthand::new(Some("oblique"), None, None, Some("condensed"), "12pt", "\"Helvetica Neue\", serif"));
+    font_shorthand!(font_shorthand_7, "italic 500 2em sans-serif, 'Noto Sans'",
+        FontShorthand::new(Some("italic"), None, Some("500"), None, "2em", "sans-serif, 'Noto Sans'"));
+    font_shorthand!(font_shorthand_8, "xxl-large 'Noto Sans'",
+        FontShorthand::new(None, None, None, None, "xxl-large", "'Noto Sans'"));
+
+    // TODO: Add failing tests
+
 }
