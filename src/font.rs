@@ -61,9 +61,7 @@ impl<'a> Stream<'a> {
                 } else {
                     let mut idents = vec![];
 
-                    while !self.at_end() {
-                        let c = self.chars().next().unwrap();
-
+                    while let Some(c) = self.chars().next() {
                         if c != ',' {
                             idents.push(self.parse_ident()?.to_string());
                             self.skip_spaces();
