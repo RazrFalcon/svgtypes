@@ -56,7 +56,7 @@ impl<'a> Stream<'a> {
             let family = {
                 let ch = self.curr_byte()?;
                 if ch == b'\'' || ch == b'\"' {
-                    let res = self.parse_string()?;
+                    let res = self.parse_quoted_string()?;
                     FontFamily::Named(res.to_string())
                 } else {
                     let mut idents = vec![];

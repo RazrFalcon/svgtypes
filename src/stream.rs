@@ -317,7 +317,7 @@ impl<'a> Stream<'a> {
     ///
     /// - `UnexpectedEndOfStream`
     /// - `InvalidValue`
-    pub fn parse_string(&mut self) -> Result<&'a str, Error> {
+    pub fn parse_quoted_string(&mut self) -> Result<&'a str, Error> {
         // Check for opening quote.
         let quote = self.curr_byte()?;
 
