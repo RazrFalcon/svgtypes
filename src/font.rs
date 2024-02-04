@@ -170,17 +170,33 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
         let _ = stream.parse_length()?;
     } else {
         // A font size like 'xxl-large'
-        let _ = stream.consume_ascii_ident();
+        let size = stream.consume_ascii_ident();
+
+        if !matches!(
+            size,
+            "xx-small"
+                | "x-small"
+                | "small"
+                | "medium"
+                | "large"
+                | "x-large"
+                | "xx-large"
+                | "larger"
+                | "smaller"
+        ) {
+            return Err(Error::UnexpectedData(prev_pos));
+        }
     }
 
     let font_size = stream.slice_back(prev_pos);
     stream.skip_spaces();
+
     if stream.curr_byte()? == b'/' {
         // We can ignore line height
         stream.advance(1);
         stream.skip_spaces();
         let _ = stream.parse_length()?;
-        stream.skip_spaces()
+        stream.skip_spaces();
     }
 
     if stream.at_end() {
@@ -293,9 +309,26 @@ mod tests {
         FontShorthand::new(Some("oblique"), None, None, Some("condensed"), "12pt", "\"Helvetica Neue\", serif"));
     font_shorthand!(font_shorthand_7, "italic 500 2em sans-serif, 'Noto Sans'",
         FontShorthand::new(Some("italic"), None, Some("500"), None, "2em", "sans-serif, 'Noto Sans'"));
-    font_shorthand!(font_shorthand_8, "xxl-large 'Noto Sans'",
-        FontShorthand::new(None, None, None, None, "xxl-large", "'Noto Sans'"));
+    font_shorthand!(font_shorthand_8, "xx-large 'Noto Sans'",
+        FontShorthand::new(None, None, None, None, "xx-large", "'Noto Sans'"));
+    font_shorthand!(font_shorthand_9, "small-caps normal normal italic xx-small Times",
+        FontShorthand::new(Some("italic"), Some("small-caps"), None, None, "xx-small", "Times"));
 
-    // TODO: Add failing tests
 
+    macro_rules! font_shorthand_err {
+        ($name:ident, $text:expr, $result:expr) => (
+            #[test]
+            fn $name() {
+                assert_eq!(parse_font_shorthand($text).unwrap_err(), $result);
+            }
+        )
+    }
+
+    font_shorthand_err!(font_shorthand_err_1, "", Error::UnexpectedEndOfStream);
+    font_shorthand_err!(font_shorthand_err_2, "Noto Sans", Error::UnexpectedData(0));
+    font_shorthand_err!(font_shorthand_err_3, "12pt  ", Error::UnexpectedEndOfStream);
+    font_shorthand_err!(font_shorthand_err_4, "something 12pt 'Noto Sans'", Error::UnexpectedData(0));
+    font_shorthand_err!(font_shorthand_err_5, "'Noto Sans' 13pt", Error::UnexpectedData(0));
+    font_shorthand_err!(font_shorthand_err_6,
+        "small-caps normal normal normal italic xx-large Times", Error::UnexpectedData(32));
 }
