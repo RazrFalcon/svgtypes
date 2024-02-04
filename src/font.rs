@@ -191,7 +191,7 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
 mod tests {
     use super::*;
 
-    macro_rules! test {
+    macro_rules! test_font_family {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
@@ -212,26 +212,26 @@ mod tests {
     const MONOSPACE: FontFamily = FontFamily::Monospace;
     const CURSIVE: FontFamily = FontFamily::Cursive;
 
-    test!(font_family_1, "Times New Roman", vec![named!("Times New Roman")]);
-    test!(font_family_2, "serif", vec![SERIF]);
-    test!(font_family_3, "sans-serif", vec![SANS_SERIF]);
-    test!(font_family_4, "cursive", vec![CURSIVE]);
-    test!(font_family_5, "fantasy", vec![FANTASY]);
-    test!(font_family_6, "monospace", vec![MONOSPACE]);
-    test!(font_family_7, "'Times New Roman'", vec![named!("Times New Roman")]);
-    test!(font_family_8, "'Times New Roman', sans-serif", vec![named!("Times New Roman"), SANS_SERIF]);
-    test!(font_family_9, "'Times New Roman', sans-serif", vec![named!("Times New Roman"), SANS_SERIF]);
-    test!(font_family_10, "Arial, sans-serif, 'fantasy'", vec![named!("Arial"), SANS_SERIF, named!("fantasy")]);
-    test!(font_family_11, "    Arial  , monospace  , 'fantasy'", vec![named!("Arial"), MONOSPACE, named!("fantasy")]);
-    test!(font_family_12, "Times    New Roman", vec![named!("Times New Roman")]);
-    test!(font_family_13, "\"Times New Roman\", sans-serif, sans-serif, \"Arial\"",
+    test_font_family!(font_family_1, "Times New Roman", vec![named!("Times New Roman")]);
+    test_font_family!(font_family_2, "serif", vec![SERIF]);
+    test_font_family!(font_family_3, "sans-serif", vec![SANS_SERIF]);
+    test_font_family!(font_family_4, "cursive", vec![CURSIVE]);
+    test_font_family!(font_family_5, "fantasy", vec![FANTASY]);
+    test_font_family!(font_family_6, "monospace", vec![MONOSPACE]);
+    test_font_family!(font_family_7, "'Times New Roman'", vec![named!("Times New Roman")]);
+    test_font_family!(font_family_8, "'Times New Roman', sans-serif", vec![named!("Times New Roman"), SANS_SERIF]);
+    test_font_family!(font_family_9, "'Times New Roman', sans-serif", vec![named!("Times New Roman"), SANS_SERIF]);
+    test_font_family!(font_family_10, "Arial, sans-serif, 'fantasy'", vec![named!("Arial"), SANS_SERIF, named!("fantasy")]);
+    test_font_family!(font_family_11, "    Arial  , monospace  , 'fantasy'", vec![named!("Arial"), MONOSPACE, named!("fantasy")]);
+    test_font_family!(font_family_12, "Times    New Roman", vec![named!("Times New Roman")]);
+    test_font_family!(font_family_13, "\"Times New Roman\", sans-serif, sans-serif, \"Arial\"",
         vec![named!("Times New Roman"), SANS_SERIF, SANS_SERIF, named!("Arial")]
     );
-    test!(font_family_14, "Times New Roman,,,Arial", vec![named!("Times New Roman"), named!("Arial")]);
-    test!(font_family_15, "简体中文,sans-serif  , ,\"日本語フォント\",Arial",
+    test_font_family!(font_family_14, "Times New Roman,,,Arial", vec![named!("Times New Roman"), named!("Arial")]);
+    test_font_family!(font_family_15, "简体中文,sans-serif  , ,\"日本語フォント\",Arial",
         vec![named!("简体中文"), SANS_SERIF, named!("日本語フォント"), named!("Arial")]);
 
-    test!(font_family_16, "", vec![]);
+    test_font_family!(font_family_16, "", vec![]);
 
     macro_rules! font_family_err {
         ($name:ident, $text:expr, $result:expr) => (
@@ -247,4 +247,13 @@ mod tests {
     font_family_err!(font_family_err_4, "test@foo, sans-serif", "invalid ident");
     font_family_err!(font_family_err_5, "#POUND, sans-serif", "invalid ident");
     font_family_err!(font_family_err_6, "Hawaii 5-0, sans-serif", "invalid ident");
+
+    macro_rules! test_font_shorthand {
+        ($name:ident, $text:expr, $result:expr) => (
+            #[test]
+            fn $name() {
+                assert_eq!(parse_font_shorthand($text).unwrap(), $result);
+            }
+        )
+    }
 }
