@@ -70,14 +70,14 @@ impl ByteExt for u8 {
     }
 }
 
-trait CssCharExt {
+trait CharExt {
     fn is_name_start(&self) -> bool;
     fn is_name_char(&self) -> bool;
     fn is_non_ascii(&self) -> bool;
     fn is_escape(&self) -> bool;
 }
 
-impl CssCharExt for char {
+impl CharExt for char {
     #[inline]
     fn is_name_start(&self) -> bool {
         match *self {
@@ -267,6 +267,11 @@ impl<'a> Stream<'a> {
         Ok(())
     }
 
+    /// Parses a single [ident](https://drafts.csswg.org/css-syntax-3/#typedef-ident-token).
+    ///
+    /// # Errors
+    ///
+    /// - `InvalidIdent`
     pub fn parse_ident(&mut self) -> Result<&'a str, Error> {
         let start = self.pos();
 
@@ -299,45 +304,53 @@ impl<'a> Stream<'a> {
         Ok(name)
     }
 
+    /// Consumes a single ident consisting of ASCII characters, if available.
     pub fn consume_ascii_ident(&mut self) -> &'a str {
         let start = self.pos;
         self.skip_bytes(|_, c| c.is_ascii_ident());
         self.slice_back(start)
     }
 
+    /// Parses a single [quoted string](https://drafts.csswg.org/css-syntax-3/#typedef-string-token)
+    ///
+    /// # Errors
+    ///
+    /// - `UnexpectedEndOfStream`
+    /// - `InvalidValue`
     pub fn parse_string(&mut self) -> Result<&'a str, Error> {
         // Check for opening quote.
         let quote = self.curr_byte()?;
-        if quote == b'\'' || quote == b'"' {
-            let mut prev = quote;
-            self.advance(1);
 
-            let start = self.pos();
-
-            while !self.at_end() {
-                let curr = self.curr_byte_unchecked();
-
-                // Advance until the closing quote.
-                if curr == quote {
-                    // Check for escaped quote.
-                    if prev != b'\\' {
-                        break;
-                    }
-                }
-
-                prev = curr;
-                self.advance(1);
-            }
-
-            let value = self.slice_back(start);
-
-            // Check for closing quote.
-            self.consume_byte(quote)?;
-
-            Ok(value)
-        } else {
+        if quote != b'\'' && quote != b'"' {
             return Err(Error::InvalidValue);
         }
+
+        let mut prev = quote;
+        self.advance(1);
+
+        let start = self.pos();
+
+        while !self.at_end() {
+            let curr = self.curr_byte_unchecked();
+
+            // Advance until the closing quote.
+            if curr == quote {
+                // Check for escaped quote.
+                if prev != b'\\' {
+                    break;
+                }
+            }
+
+            prev = curr;
+            self.advance(1);
+        }
+
+        let value = self.slice_back(start);
+
+        // Check for closing quote.
+        self.consume_byte(quote)?;
+
+        Ok(value)
     }
 
     /// Consumes selected string.

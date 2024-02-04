@@ -2,6 +2,7 @@ use crate::stream::Stream;
 use crate::Error;
 use std::fmt::Display;
 
+/// Parses a list of font families and generic families from a string.
 pub fn parse_font_families(text: &str) -> Result<Vec<FontFamily>, Error> {
     let mut s = Stream::from(text);
     let font_families = s.parse_font_families()?;
@@ -14,13 +15,20 @@ pub fn parse_font_families(text: &str) -> Result<Vec<FontFamily>, Error> {
     Ok(font_families)
 }
 
+/// A type of font family.
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub enum FontFamily {
+    /// A serif font.
     Serif,
+    /// A sans-serif font.
     SansSerif,
+    /// A cursive font.
     Cursive,
+    /// A fantasy font.
     Fantasy,
+    /// A monospace font.
     Monospace,
+    /// A custom named font.
     Named(String),
 }
 
@@ -83,7 +91,7 @@ impl<'a> Stream<'a> {
             if let Ok(b) = self.curr_byte() {
                 if b == b',' {
                     self.advance(1);
-                }   else {
+                } else {
                     break;
                 }
             }
