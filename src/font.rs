@@ -108,16 +108,24 @@ impl<'a> Stream<'a> {
     }
 }
 
+/// The values of a `font` shorthand.
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct FontShorthand<'a> {
+    /// The font style.
     pub font_style: Option<&'a str>,
+    /// The font variant.
     pub font_variant: Option<&'a str>,
+    /// The font weight.
     pub font_weight: Option<&'a str>,
+    /// The font stretch.
     pub font_stretch: Option<&'a str>,
+    /// The font size.
     pub font_size: &'a str,
+    /// The font family.
     pub font_family: &'a str,
 }
 
+/// Split the font shorthand into its respective components.
 pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
     let mut stream = Stream::from(text);
     stream.skip_spaces();
