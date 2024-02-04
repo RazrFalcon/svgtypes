@@ -1,6 +1,5 @@
 use crate::stream::{ByteExt, Stream};
 use crate::Error;
-use crate::Error::UnexpectedEndOfStream;
 use std::fmt::Display;
 
 /// Parses a list of font families and generic families from a string.
@@ -108,7 +107,7 @@ impl<'a> Stream<'a> {
     }
 }
 
-/// The values of a `font` shorthand.
+/// The values of a [`font` shorthand](https://www.w3.org/TR/css-fonts-3/#font-prop).
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct FontShorthand<'a> {
     /// The font style.
@@ -154,6 +153,8 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
                 font_stretch = Some(ident)
             }
             _ => {
+                // Not one of the 4 properties, so we backtrack and then start pasing font
+                // size and family.
                 stream = Stream::from(text);
                 stream.advance(prev_pos);
                 break;
@@ -169,7 +170,7 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
         // A font size such as '15pt'
         let _ = stream.parse_length()?;
     } else {
-        // A font size like 'xxl-large'
+        // A font size like 'xx-large'
         let size = stream.consume_ascii_ident();
 
         if !matches!(
@@ -200,7 +201,7 @@ pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
     }
 
     if stream.at_end() {
-        return Err(UnexpectedEndOfStream);
+        return Err(Error::UnexpectedEndOfStream);
     }
 
     let font_family = stream.slice_tail();
