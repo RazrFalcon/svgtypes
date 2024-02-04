@@ -1,6 +1,7 @@
 use crate::stream::Stream;
 use crate::Error;
 use std::fmt::Display;
+use crate::Error::UnexpectedEndOfStream;
 
 /// Parses a list of font families and generic families from a string.
 pub fn parse_font_families(text: &str) -> Result<Vec<FontFamily>, Error> {
@@ -107,6 +108,82 @@ impl<'a> Stream<'a> {
 
         Ok(families)
     }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+pub struct FontShorthand<'a> {
+    pub font_style: Option<&'a str>,
+    pub font_variant: Option<&'a str>,
+    pub font_weight: Option<&'a str>,
+    pub font_stretch: Option<&'a str>,
+    pub font_size: &'a str,
+    pub font_family: &'a str
+}
+
+pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
+    let mut stream = Stream::from(text);
+    stream.skip_spaces();
+
+    let mut prev_pos = stream.pos();
+
+    let mut font_style = None;
+    let mut font_variant = None;
+    let mut font_weight = None;
+    let mut font_stretch = None;
+
+    for _ in 0..4 {
+        let ident = stream.consume_ascii_ident();
+
+        match ident {
+            // TODO: Reuse actual parsers to prevent duplication.
+            "normal" => {}
+            "small-caps" => font_variant = Some(ident),
+            "italic" | "oblique" => font_style = Some(ident),
+            "bold" | "bolder" | "lighter" |
+            "100" | "200" | "300" | "400" |
+            "500" | "600" | "700" | "800" |
+            "900" => font_weight = Some(ident),
+            "ultra-condensed" | "extra-condensed" | "condensed" |
+            "semi-condensed" | "semi-expanded" | "expanded" |
+            "extra-expanded" | "ultra-expanded" => font_stretch = Some(ident),
+            _ => {
+                stream = Stream::from(text);
+                stream.advance(prev_pos);
+                break;
+            }
+        }
+
+        stream.skip_spaces();
+        prev_pos = stream.pos();
+    }
+
+    prev_pos = stream.pos();
+    // TODO: Accept things like 'xxl-large'
+    let _ = stream.parse_length()?;
+    let font_size = stream.slice_back(prev_pos);
+    stream.skip_spaces();
+    if stream.curr_byte()? == b'/' {
+        // We can ignore line height
+        stream.advance(1);
+        stream.skip_spaces();
+        let _ = stream.parse_length()?;
+        stream.skip_spaces()
+    }
+
+    if stream.at_end() {
+        return Err(UnexpectedEndOfStream);
+    }
+
+    let font_family = stream.slice_tail();
+
+    Ok(FontShorthand {
+        font_style,
+        font_variant,
+        font_weight,
+        font_stretch,
+        font_size,
+        font_family
+    })
 }
 
 #[rustfmt::skip]
