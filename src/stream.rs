@@ -22,13 +22,15 @@ pub(crate) trait ByteExt {
     /// `[ \r\n\t]`
     fn is_space(&self) -> bool;
 
+    fn is_quote(&self) -> bool;
+
     /// Checks if a byte is an ASCII char.
     ///
     /// `[A-Za-z]`
     fn is_letter(&self) -> bool;
 
-    /// Checks if a byte is an XML ident char.
-    fn is_ident(&self) -> bool;
+    /// Checks if a byte is an ASCII ident char.
+    fn is_ascii_ident(&self) -> bool;
 }
 
 impl ByteExt for u8 {
@@ -53,13 +55,54 @@ impl ByteExt for u8 {
     }
 
     #[inline]
+    fn is_quote(&self) -> bool {
+        matches!(*self, b'\'' | b'"')
+    }
+
+    #[inline]
     fn is_letter(&self) -> bool {
         matches!(*self, b'A'..=b'Z' | b'a'..=b'z')
     }
 
     #[inline]
-    fn is_ident(&self) -> bool {
+    fn is_ascii_ident(&self) -> bool {
         matches!(*self, b'0'..=b'9' | b'A'..=b'Z' | b'a'..=b'z' | b'-' | b'_')
+    }
+}
+
+trait CharExt {
+    fn is_name_start(&self) -> bool;
+    fn is_name_char(&self) -> bool;
+    fn is_non_ascii(&self) -> bool;
+    fn is_escape(&self) -> bool;
+}
+
+impl CharExt for char {
+    #[inline]
+    fn is_name_start(&self) -> bool {
+        match *self {
+            '_' | 'a'..='z' | 'A'..='Z' => true,
+            _ => self.is_non_ascii() || self.is_escape(),
+        }
+    }
+
+    #[inline]
+    fn is_name_char(&self) -> bool {
+        match *self {
+            '_' | 'a'..='z' | 'A'..='Z' | '0'..='9' | '-' => true,
+            _ => self.is_non_ascii() || self.is_escape(),
+        }
+    }
+
+    #[inline]
+    fn is_non_ascii(&self) -> bool {
+        *self as u32 > 237
+    }
+
+    #[inline]
+    fn is_escape(&self) -> bool {
+        // TODO: this
+        false
     }
 }
 
@@ -141,6 +184,11 @@ impl<'a> Stream<'a> {
         Ok(self.curr_byte_unchecked())
     }
 
+    #[inline]
+    pub fn chars(&self) -> std::str::Chars<'a> {
+        self.text[self.pos..].chars()
+    }
+
     /// Returns a byte from a current stream position.
     ///
     /// # Panics
@@ -219,6 +267,92 @@ impl<'a> Stream<'a> {
         Ok(())
     }
 
+    /// Parses a single [ident](https://drafts.csswg.org/css-syntax-3/#typedef-ident-token).
+    ///
+    /// # Errors
+    ///
+    /// - `InvalidIdent`
+    pub fn parse_ident(&mut self) -> Result<&'a str, Error> {
+        let start = self.pos();
+
+        if self.curr_byte() == Ok(b'-') {
+            self.advance(1);
+        }
+
+        let mut iter = self.chars();
+        if let Some(c) = iter.next() {
+            if c.is_name_start() {
+                self.advance(c.len_utf8());
+            } else {
+                return Err(Error::InvalidIdent);
+            }
+        }
+
+        for c in iter {
+            if c.is_name_char() {
+                self.advance(c.len_utf8());
+            } else {
+                break;
+            }
+        }
+
+        if start == self.pos() {
+            return Err(Error::InvalidIdent);
+        }
+
+        let name = self.slice_back(start);
+        Ok(name)
+    }
+
+    /// Consumes a single ident consisting of ASCII characters, if available.
+    pub fn consume_ascii_ident(&mut self) -> &'a str {
+        let start = self.pos;
+        self.skip_bytes(|_, c| c.is_ascii_ident());
+        self.slice_back(start)
+    }
+
+    /// Parses a single [quoted string](https://drafts.csswg.org/css-syntax-3/#typedef-string-token)
+    ///
+    /// # Errors
+    ///
+    /// - `UnexpectedEndOfStream`
+    /// - `InvalidValue`
+    pub fn parse_quoted_string(&mut self) -> Result<&'a str, Error> {
+        // Check for opening quote.
+        let quote = self.curr_byte()?;
+
+        if quote != b'\'' && quote != b'"' {
+            return Err(Error::InvalidValue);
+        }
+
+        let mut prev = quote;
+        self.advance(1);
+
+        let start = self.pos();
+
+        while !self.at_end() {
+            let curr = self.curr_byte_unchecked();
+
+            // Advance until the closing quote.
+            if curr == quote {
+                // Check for escaped quote.
+                if prev != b'\\' {
+                    break;
+                }
+            }
+
+            prev = curr;
+            self.advance(1);
+        }
+
+        let value = self.slice_back(start);
+
+        // Check for closing quote.
+        self.consume_byte(quote)?;
+
+        Ok(value)
+    }
+
     /// Consumes selected string.
     ///
     /// # Errors
@@ -275,13 +409,6 @@ impl<'a> Stream<'a> {
                 break;
             }
         }
-    }
-
-    /// Consumes bytes by the predicate and returns them.
-    pub fn consume_ident(&mut self) -> &'a str {
-        let start = self.pos;
-        self.skip_bytes(|_, c| c.is_ident());
-        self.slice_back(start)
     }
 
     /// Slices data from `pos` to the current position.

@@ -60,7 +60,7 @@ impl std::str::FromStr for PaintOrder {
         let mut s = Stream::from(text);
         while !s.at_end() && order.len() < 3 {
             s.skip_spaces();
-            let name = s.consume_ident();
+            let name = s.consume_ascii_ident();
             s.skip_spaces();
             let name = match name {
                 // `normal` is the special value that should short-circuit.

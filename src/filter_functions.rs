@@ -161,7 +161,7 @@ impl<'a> FilterValueListParser<'a> {
         let s = &mut self.stream;
 
         let start = s.pos();
-        let name = s.consume_ident();
+        let name = s.consume_ascii_ident();
         s.skip_spaces();
         s.consume_byte(b'(')?;
         s.skip_spaces();

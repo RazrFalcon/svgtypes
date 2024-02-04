@@ -54,7 +54,7 @@ impl std::str::FromStr for AspectRatio {
         }
 
         let start = s.pos();
-        let align = s.consume_ident();
+        let align = s.consume_ascii_ident();
         let align = match align {
             "none" => Align::None,
             "xMinYMin" => Align::XMinYMin,
@@ -74,7 +74,7 @@ impl std::str::FromStr for AspectRatio {
         let mut slice = false;
         if !s.at_end() {
             let start = s.pos();
-            let v = s.consume_ident();
+            let v = s.consume_ascii_ident();
             match v {
                 "meet" => {}
                 "slice" => slice = true,

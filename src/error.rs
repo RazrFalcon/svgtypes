@@ -1,5 +1,5 @@
 /// List of all errors.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Error {
     /// An input data ended earlier than expected.
     ///
@@ -17,6 +17,13 @@ pub enum Error {
     /// But if we try to parse a number list like `1.2 zzz`,
     /// then we will get `InvalidNumber`, because at least some data is valid.
     InvalidValue,
+
+    /// An invalid ident.
+    ///
+    /// CSS idents have certain rules with regard to the characters they may contain.
+    /// For example, they may not start with a number. If an invalid ident is encountered,
+    /// this error will be returned.
+    InvalidIdent,
 
     /// An invalid/unexpected character.
     ///
@@ -47,6 +54,9 @@ impl std::fmt::Display for Error {
             }
             Error::InvalidValue => {
                 write!(f, "invalid value")
+            }
+            Error::InvalidIdent => {
+                write!(f, "invalid ident")
             }
             Error::InvalidChar(ref chars, pos) => {
                 // Vec<u8> -> Vec<String>
