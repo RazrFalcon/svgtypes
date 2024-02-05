@@ -27,6 +27,8 @@
 - [`<IRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeIRI)
 - [`<FuncIRI>`](https://www.w3.org/TR/SVG11/types.html#DataTypeFuncIRI)
 - [`paint-order`](https://www.w3.org/TR/SVG2/painting.html#PaintOrder)
+- [`<font-family>`](https://www.w3.org/TR/2018/REC-css-fonts-3-20180920/#font-family-prop)
+- [`font`](https://www.w3.org/TR/css-fonts-3/#font-prop)
 
 ### Features
 

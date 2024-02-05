@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.14.0] - 2024-02-05
+### Added
+- `font-family` parsing.
+  [@LaurenzV](https://github.com/LaurenzV)
+- `font` shorthand parsing.
+  [@LaurenzV](https://github.com/LaurenzV)
+
 ## [0.13.0] - 2023-12-03
 ### Added
 - `Paint::ContextFill` and `Paint::ContextStroke`.
