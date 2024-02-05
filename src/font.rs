@@ -125,7 +125,8 @@ pub struct FontShorthand<'a> {
 }
 
 impl<'a> FontShorthand<'a> {
-    /// Parsers the `font` shorthand from a string.
+    /// Parses the `font` shorthand from a string.
+    ///
     /// We can't use the `FromStr` trait because it requires
     /// an owned value as a return type.
     ///
