@@ -124,96 +124,102 @@ pub struct FontShorthand<'a> {
     pub font_family: &'a str,
 }
 
-/// Split the font shorthand into its respective components.
-pub fn parse_font_shorthand(text: &str) -> Result<FontShorthand, Error> {
-    let mut stream = Stream::from(text);
-    stream.skip_spaces();
+impl<'a> FontShorthand<'a> {
+    /// Parsers the `font` shorthand from a string.
+    /// We can't use the `FromStr` trait because it requires
+    /// an owned value as a return type.
+    ///
+    /// [font]: https://www.w3.org/TR/css-fonts-3/#font-prop
+    pub fn from_str(text: &'a str) -> Result<Self, Error> {
+        let mut stream = Stream::from(text);
+        stream.skip_spaces();
 
-    let mut prev_pos = stream.pos();
+        let mut prev_pos = stream.pos();
 
-    let mut font_style = None;
-    let mut font_variant = None;
-    let mut font_weight = None;
-    let mut font_stretch = None;
+        let mut font_style = None;
+        let mut font_variant = None;
+        let mut font_weight = None;
+        let mut font_stretch = None;
 
-    for _ in 0..4 {
-        let ident = stream.consume_ascii_ident();
+        for _ in 0..4 {
+            let ident = stream.consume_ascii_ident();
 
-        match ident {
-            // TODO: Reuse actual parsers to prevent duplication.
-            // We ignore normal because it's ambiguous to which it belongs and all
-            // other attributes need to be resetted anyway.
-            "normal" => {}
-            "small-caps" => font_variant = Some(ident),
-            "italic" | "oblique" => font_style = Some(ident),
-            "bold" | "bolder" | "lighter" | "100" | "200" | "300" | "400" | "500" | "600"
-            | "700" | "800" | "900" => font_weight = Some(ident),
-            "ultra-condensed" | "extra-condensed" | "condensed" | "semi-condensed"
-            | "semi-expanded" | "expanded" | "extra-expanded" | "ultra-expanded" => {
-                font_stretch = Some(ident)
+            match ident {
+                // TODO: Reuse actual parsers to prevent duplication.
+                // We ignore normal because it's ambiguous to which it belongs and all
+                // other attributes need to be resetted anyway.
+                "normal" => {}
+                "small-caps" => font_variant = Some(ident),
+                "italic" | "oblique" => font_style = Some(ident),
+                "bold" | "bolder" | "lighter" | "100" | "200" | "300" | "400" | "500" | "600"
+                | "700" | "800" | "900" => font_weight = Some(ident),
+                "ultra-condensed" | "extra-condensed" | "condensed" | "semi-condensed"
+                | "semi-expanded" | "expanded" | "extra-expanded" | "ultra-expanded" => {
+                    font_stretch = Some(ident)
+                }
+                _ => {
+                    // Not one of the 4 properties, so we backtrack and then start pasing font
+                    // size and family.
+                    stream = Stream::from(text);
+                    stream.advance(prev_pos);
+                    break;
+                }
             }
-            _ => {
-                // Not one of the 4 properties, so we backtrack and then start pasing font
-                // size and family.
-                stream = Stream::from(text);
-                stream.advance(prev_pos);
-                break;
-            }
+
+            stream.skip_spaces();
+            prev_pos = stream.pos();
         }
 
-        stream.skip_spaces();
         prev_pos = stream.pos();
-    }
+        if stream.curr_byte()?.is_digit() {
+            // A font size such as '15pt'.
+            let _ = stream.parse_length()?;
+        } else {
+            // A font size like 'xx-large'.
+            let size = stream.consume_ascii_ident();
 
-    prev_pos = stream.pos();
-    if stream.curr_byte()?.is_digit() {
-        // A font size such as '15pt'
-        let _ = stream.parse_length()?;
-    } else {
-        // A font size like 'xx-large'
-        let size = stream.consume_ascii_ident();
-
-        if !matches!(
-            size,
-            "xx-small"
-                | "x-small"
-                | "small"
-                | "medium"
-                | "large"
-                | "x-large"
-                | "xx-large"
-                | "larger"
-                | "smaller"
-        ) {
-            return Err(Error::UnexpectedData(prev_pos));
+            if !matches!(
+                size,
+                "xx-small"
+                    | "x-small"
+                    | "small"
+                    | "medium"
+                    | "large"
+                    | "x-large"
+                    | "xx-large"
+                    | "larger"
+                    | "smaller"
+            ) {
+                return Err(Error::UnexpectedData(prev_pos));
+            }
         }
-    }
 
-    let font_size = stream.slice_back(prev_pos);
-    stream.skip_spaces();
-
-    if stream.curr_byte()? == b'/' {
-        // We can ignore line height
-        stream.advance(1);
+        let font_size = stream.slice_back(prev_pos);
         stream.skip_spaces();
-        let _ = stream.parse_length()?;
-        stream.skip_spaces();
+
+        if stream.curr_byte()? == b'/' {
+            // We should ignore line height since it has no effect in SVG.
+            stream.advance(1);
+            stream.skip_spaces();
+            let _ = stream.parse_length()?;
+            stream.skip_spaces();
+        }
+
+        if stream.at_end() {
+            return Err(Error::UnexpectedEndOfStream);
+        }
+
+        let font_family = stream.slice_tail();
+
+        Ok(Self {
+            font_style,
+            font_variant,
+            font_weight,
+            font_stretch,
+            font_size,
+            font_family,
+        })
     }
-
-    if stream.at_end() {
-        return Err(Error::UnexpectedEndOfStream);
-    }
-
-    let font_family = stream.slice_tail();
-
-    Ok(FontShorthand {
-        font_style,
-        font_variant,
-        font_weight,
-        font_stretch,
-        font_size,
-        font_family,
-    })
 }
 
 #[rustfmt::skip]
@@ -291,7 +297,7 @@ mod tests {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
-                assert_eq!(parse_font_shorthand($text).unwrap(), $result);
+                assert_eq!(FontShorthand::from_str($text).unwrap(), $result);
             }
         )
     }
@@ -320,7 +326,7 @@ mod tests {
         ($name:ident, $text:expr, $result:expr) => (
             #[test]
             fn $name() {
-                assert_eq!(parse_font_shorthand($text).unwrap_err(), $result);
+                assert_eq!(FontShorthand::from_str($text).unwrap_err(), $result);
             }
         )
     }
