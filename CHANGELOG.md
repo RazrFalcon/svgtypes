@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.15.0] - 2024-04-03
+### Changed
+- Bump `kurbo` and `siphasher`
+
 ## [0.14.0] - 2024-02-05
 ### Added
 - `font-family` parsing.
@@ -166,7 +170,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - `Paint::from_span` poor performance.
 
-[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/RazrFalcon/svgtypes/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/RazrFalcon/svgtypes/compare/v0.11.0...v0.12.0
