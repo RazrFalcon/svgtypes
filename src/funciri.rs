@@ -73,18 +73,31 @@ impl<'a> Stream<'a> {
         self.skip_spaces();
         self.consume_string(b"url(")?;
         self.skip_spaces();
-        let has_quotes = self.consume_byte(b'\'').is_ok();
-        if has_quotes {
+
+        let quote = match self.curr_byte() {
+            Ok(b'\'') | Ok(b'"') => self.curr_byte().ok(),
+            _ => None,
+        };
+        if quote.is_some() {
+            self.advance(1);
             self.skip_spaces();
         }
         self.consume_byte(b'#')?;
-        let link = self.consume_bytes(|_, c| c != b' ' && c != b')' && c != b'\'');
+        let link = if let Some(quote) = quote {
+            self.consume_bytes(|_, c| c != quote).trim_end()
+        } else {
+            self.consume_bytes(|_, c| c != b' ' && c != b')')
+        };
         if link.is_empty() {
             return Err(Error::InvalidValue);
         }
+        // Non-paired quotes is an error.
+        if link.contains('\'') || link.contains('"') {
+            return Err(Error::InvalidValue);
+        }
         self.skip_spaces();
-        if has_quotes {
-            self.consume_byte(b'\'')?;
+        if let Some(quote) = quote {
+            self.consume_byte(quote)?;
             self.skip_spaces();
         }
         self.consume_byte(b')')?;
@@ -150,9 +163,14 @@ mod tests {
 
     #[test]
     fn parse_func_iri_5() {
-        // Some SVG files have IDs surrounded by single quotes
         assert_eq!(FuncIRI::from_str("url('#id')").unwrap(), FuncIRI("id"));
         assert_eq!(FuncIRI::from_str("url(' #id ')").unwrap(), FuncIRI("id"));
+    }
+
+    #[test]
+    fn parse_func_iri_6() {
+        assert_eq!(FuncIRI::from_str("url(\"#id\")").unwrap(), FuncIRI("id"));
+        assert_eq!(FuncIRI::from_str("url(\" #id \")").unwrap(), FuncIRI("id"));
     }
 
     #[test]
@@ -176,8 +194,8 @@ mod tests {
     fn parse_err_func_iri_4() {
         // If single quotes are present around the ID, they should be on both sides
         assert_eq!(FuncIRI::from_str("url('#id)").unwrap_err().to_string(),
-                   "expected ''' not ')' at position 9");
+                   "unexpected end of stream");
         assert_eq!(FuncIRI::from_str("url(#id')").unwrap_err().to_string(),
-                   "expected ')' not ''' at position 8");
+                   "invalid value");
     }
 }
