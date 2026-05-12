@@ -93,6 +93,18 @@ impl Stream<'_> {
 
         Ok(Angle::new(n, u))
     }
+
+    /// Parses angle from a list of numbers.
+    pub fn parse_list_angle(&mut self) -> Result<Angle, Error> {
+        if self.at_end() {
+            return Err(Error::UnexpectedEndOfStream);
+        }
+
+        let a = self.parse_angle()?;
+        self.skip_spaces();
+        self.parse_list_separator();
+        Ok(a)
+    }
 }
 
 #[rustfmt::skip]

@@ -205,7 +205,7 @@ impl Stream<'_> {
             } else if name == "hsl" || name == "hsla" {
                 self.consume_byte(b'(')?;
 
-                let mut hue = self.parse_list_number()?;
+                let mut hue = self.parse_list_angle()?.to_degrees();
                 hue = ((hue % 360.0) + 360.0) % 360.0;
 
                 let saturation = f64_bound(0.0, self.parse_list_number_or_percent()?, 1.0);
@@ -215,7 +215,7 @@ impl Stream<'_> {
 
                 self.skip_spaces();
                 if !self.starts_with(b")") {
-                    color.alpha = (self.parse_list_number()? * 255.0).round() as u8;
+                    color.alpha = (self.parse_list_number_or_percent()? * 255.0).round() as u8;
                 }
 
                 self.skip_spaces();
@@ -564,6 +564,42 @@ mod tests {
         hsla_with_hue_float,
         "hsla(120.152, 100%, 75%, 0.5)",
         Color::new_rgba(128, 255, 128, 128)
+    );
+
+    test!(
+        hsl_hue_1turn,
+        "hsl(1turn, 100%, 100%)",
+        Color::new_rgba(255, 255, 255, 255)
+    );
+
+    test!(
+        hsl_with_hue_turn_and_percentages,
+        "hsl(0.25turn, 100%, 50%)",
+        Color::new_rgba(128, 255, 0, 255)
+    );
+
+    test!(
+        hsl_with_hue_deg_and_percentages,
+        "hsl(90deg, 100%, 50%)",
+        Color::new_rgba(128, 255, 0, 255)
+    );
+
+    test!(
+        hsl_with_hue_deg_and_numbers,
+        "hsl(90deg, 1, 0.5)",
+        Color::new_rgba(128, 255, 0, 255)
+    );
+
+    test!(
+        hsla_with_hue_deg_percentages,
+        "hsla(120deg, 75%, 75%, 100%)",
+        Color::new_rgba(143, 239, 143, 255)
+    );
+
+    test!(
+        hsla_with_hue_deg_above_360,
+        "hsla(480deg, 75%, 75%, 100%)",
+        Color::new_rgba(143, 239, 143, 255)
     );
 
     macro_rules! test_err {
