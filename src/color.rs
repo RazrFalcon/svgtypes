@@ -197,6 +197,10 @@ impl Stream<'_> {
 
                 self.skip_spaces();
                 if !self.starts_with(b")") {
+                    if self.is_curr_byte_eq(b'/') {
+                        self.advance(1);
+                        self.skip_spaces();
+                    }
                     color.alpha = (self.parse_list_number()? * 255.0).round() as u8;
                 }
 
@@ -215,6 +219,10 @@ impl Stream<'_> {
 
                 self.skip_spaces();
                 if !self.starts_with(b")") {
+                    if self.is_curr_byte_eq(b'/') {
+                        self.advance(1);
+                        self.skip_spaces();
+                    }
                     color.alpha = (self.parse_list_number_or_percent()? * 255.0).round() as u8;
                 }
 
@@ -483,6 +491,18 @@ mod tests {
     );
 
     test!(
+        rgba_half_no_comma,
+        "rgba(10 20 30 0.5)",
+        Color::new_rgba(10, 20, 30, 128)
+    );
+
+    test!(
+        rgba_half_slash,
+        "rgba(10 20 30 / 0.5)",
+        Color::new_rgba(10, 20, 30, 128)
+    );
+
+    test!(
         rgba_numeric_red_float,
         "rgba(3.141592653, 110, 201, 1.0)",
         Color::new_rgba(3, 110, 201, 255)
@@ -545,6 +565,12 @@ mod tests {
     test!(
         hsl_with_alpha,
         "hsl(120, 100%, 75%, 0.5)",
+        Color::new_rgba(128, 255, 128, 128)
+    );
+
+    test!(
+        hsl_with_alpha_slash,
+        "hsl(120 100% 75% / 0.5)",
         Color::new_rgba(128, 255, 128, 128)
     );
 
