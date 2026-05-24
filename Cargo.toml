@@ -20,6 +20,7 @@ members = ["benches"]
 default = ["std"]
 std = ["kurbo/std"]
 libm = ["kurbo/libm"]
+simple-elliptical-arcs = []
 
 [dependencies]
 siphasher = "1.0" # perfect hash implementation for color names

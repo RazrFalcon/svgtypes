@@ -688,6 +688,19 @@ pub enum SimplePathSegment {
         x: f64,
         y: f64,
     },
+
+    /// Elliptical arc segment (enabled with the `simple-elliptical-arcs` feature).
+    #[cfg(feature = "simple-elliptical-arcs")]
+    EllipticalArc {
+        rx: f64,
+        ry: f64,
+        x_axis_rotation: f64,
+        large_arc: bool,
+        sweep: bool,
+        x: f64,
+        y: f64,
+    },
+
     ClosePath,
 }
 
@@ -696,7 +709,7 @@ pub enum SimplePathSegment {
 /// A more high-level Path Data parser on top of [`PathParser`] that provides:
 ///
 /// - Relative to absolute segment coordinates conversion
-/// - `ArcTo` to `CurveTo`s conversion
+/// - `ArcTo` to `CurveTo`s conversion (unless `simple-elliptical-arcs` is enabled)
 /// - `SmoothCurveTo` and `SmoothQuadratic` conversion
 /// - `HorizontalLineTo` and `VerticalLineTo` to `LineTo` conversion
 /// - Implicit `MoveTo` after `ClosePath` handling
@@ -957,6 +970,48 @@ impl Iterator for SimplifyingPathParser<'_> {
                 // Remember as absolute.
                 self.prev_seg = PathSegment::SmoothQuadratic { abs: true, x, y };
             }
+
+            // Emit EllipticalArc segment when `simple-elliptical-arcs` is enabled.
+            #[cfg(feature = "simple-elliptical-arcs")]
+            PathSegment::EllipticalArc {
+                abs,
+                rx,
+                ry,
+                x_axis_rotation,
+                large_arc,
+                sweep,
+                mut x,
+                mut y,
+            } => {
+                if !abs {
+                    x += self.prev_x;
+                    y += self.prev_y;
+                }
+
+                self.buffer.push(SimplePathSegment::EllipticalArc {
+                    rx,
+                    ry,
+                    x_axis_rotation,
+                    large_arc,
+                    sweep,
+                    x,
+                    y,
+                });
+
+                self.prev_seg = PathSegment::EllipticalArc {
+                    abs: true,
+                    rx,
+                    ry,
+                    x_axis_rotation,
+                    large_arc,
+                    sweep,
+                    x,
+                    y,
+                };
+            }
+
+            // Approximate with cubics if `simple-elliptical-arcs` is disabled.
+            #[cfg(not(feature = "simple-elliptical-arcs"))]
             PathSegment::EllipticalArc {
                 abs,
                 rx,
@@ -1036,6 +1091,11 @@ impl Iterator for SimplifyingPathParser<'_> {
                     self.prev_x = x;
                     self.prev_y = y;
                 }
+                #[cfg(feature = "simple-elliptical-arcs")]
+                SimplePathSegment::EllipticalArc { x, y, .. } => {
+                    self.prev_x = x;
+                    self.prev_y = y;
+                }
                 SimplePathSegment::ClosePath => {
                     // ClosePath moves us to the last MoveTo coordinate.
                     self.prev_x = self.prev_mx;
@@ -1096,6 +1156,18 @@ mod simple_tests {
         SimplePathSegment::CurveTo { x1: 29.0, y1: 135.0, x2: 171.0, y2: 45.0, x: 180.0, y: 155.0 }
     );
 
+    #[cfg(feature = "simple-elliptical-arcs")]
+    test!(relative_smooth_curve_to_after_arc_to, "M 1 5 A 5 5 0 0 1 3 1 s 3 2 8 2",
+        SimplePathSegment::MoveTo { x: 1.0, y: 5.0 },
+        SimplePathSegment::EllipticalArc {
+          rx: 5.0, ry: 5.0, x_axis_rotation: 0.0,
+          large_arc: false, sweep: true,
+          x: 3.0, y: 1.0
+        },
+        SimplePathSegment::CurveTo { x1: 3.0, y1: 1.0, x2: 6.0, y2: 3.0, x: 11.0, y: 3.0 }
+    );
+
+    #[cfg(not(feature = "simple-elliptical-arcs"))]
     test!(relative_smooth_curve_to_after_arc_to, "M 1 5 A 5 5 0 0 1 3 1 s 3 2 8 2",
         SimplePathSegment::MoveTo { x: 1.0, y: 5.0 },
         SimplePathSegment::CurveTo {
@@ -1163,6 +1235,18 @@ mod simple_tests {
         SimplePathSegment::Quadratic { x1: 80.0, y1: 180.0, x: 170.0, y: 30.0 }
     );
 
+    #[cfg(feature = "simple-elliptical-arcs")]
+    test!(relative_smooth_quadratic_to_after_arc_to, "M 1 5 A 5 5 0 0 1 3 1 t 8 2",
+        SimplePathSegment::MoveTo { x: 1.0, y: 5.0 },
+        SimplePathSegment::EllipticalArc {
+          rx: 5.0, ry: 5.0, x_axis_rotation: 0.0,
+          large_arc: false, sweep: true,
+          x: 3.0, y: 1.0
+        },
+        SimplePathSegment::Quadratic { x1: 3.0, y1: 1.0, x: 11.0, y: 3.0 }
+    );
+
+    #[cfg(not(feature = "simple-elliptical-arcs"))]
     test!(relative_smooth_quadratic_to_after_arc_to, "M 1 5 A 5 5 0 0 1 3 1 t 8 2",
         SimplePathSegment::MoveTo { x: 1.0, y: 5.0 },
         SimplePathSegment::CurveTo {
@@ -1185,6 +1269,30 @@ mod simple_tests {
     );
 
     #[test]
+    #[cfg(feature = "simple-elliptical-arcs")]
+    fn arc_to() {
+        let mut s = SimplifyingPathParser::from("M 30 40 A 40 30 20 1 1 150 100");
+        assert_eq!(s.next().unwrap().unwrap(), SimplePathSegment::MoveTo { x: 30.0, y: 40.0 });
+        let arc = s.next().unwrap().unwrap();
+        if let Some(res) = s.next() {
+            assert!(res.is_err());
+        }
+
+        if let SimplePathSegment::EllipticalArc { rx, ry, x_axis_rotation, large_arc, sweep, x, y } = arc {
+            assert_eq!(rx.round(), 40.0);
+            assert_eq!(ry.round(), 30.0);
+            assert_eq!(x_axis_rotation.round(), 20.0);
+            assert!(large_arc);
+            assert!(sweep);
+            assert_eq!(x.round(), 150.0);
+            assert_eq!(y.round(), 100.0);
+        } else {
+            panic!("invalid type");
+        }
+    }
+
+    #[test]
+    #[cfg(not(feature = "simple-elliptical-arcs"))]
     fn arc_to() {
         let mut s = SimplifyingPathParser::from("M 30 40 A 40 30 20 1 1 150 100");
         assert_eq!(s.next().unwrap().unwrap(), SimplePathSegment::MoveTo { x: 30.0, y: 40.0 });
