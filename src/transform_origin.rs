@@ -181,7 +181,7 @@ impl core::str::FromStr for TransformOrigin {
                     }
                 }
             }
-            _ => unreachable!(),
+            _ => return Err(TransformOriginError::InvalidParameters),
         };
 
         Ok(result)
@@ -236,4 +236,13 @@ mod tests {
     test_err!(parse_err_3, "center some", "transform origin has invalid parameters");
     test_err!(parse_err_4, "left right", "transform origin has invalid parameters");
     test_err!(parse_err_5, "left top 3%", "z-index cannot be a percentage");
+
+    // Inputs where the first component fails to parse but the underlying
+    // `skip_spaces`/sign handling still consumes the input, leaving the stream
+    // at its end. These previously reached an `unreachable!()` and panicked.
+    test_err!(parse_err_6, " ", "transform origin has invalid parameters");
+    test_err!(parse_err_7, "  ", "transform origin has invalid parameters");
+    test_err!(parse_err_8, "\t", "transform origin has invalid parameters");
+    test_err!(parse_err_9, "-", "transform origin has invalid parameters");
+    test_err!(parse_err_10, "+", "transform origin has invalid parameters");
 }
